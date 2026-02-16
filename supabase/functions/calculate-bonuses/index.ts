@@ -51,10 +51,14 @@ Deno.serve(async (req: Request) => {
       throw new Error("Invalid period_type. Must be 'daily', 'weekly', or 'monthly'");
     }
 
+    let startStr: string;
+    let endStr: string;
     let start: Date;
     let end: Date;
 
     if (period_start && period_end) {
+      startStr = period_start;
+      endStr = period_end;
       start = new Date(period_start);
       end = new Date(period_end);
     } else {
@@ -77,6 +81,8 @@ Deno.serve(async (req: Request) => {
         end.setDate(0);
         end.setHours(23, 59, 59, 999);
       }
+      startStr = start.toISOString();
+      endStr = end.toISOString();
     }
 
     const { data: activeRules, error: rulesError } = await supabase
@@ -161,8 +167,8 @@ Deno.serve(async (req: Request) => {
         .upsert({
           personnel_id: person.id,
           period_type,
-          period_start: start.toISOString(),
-          period_end: end.toISOString(),
+          period_start: startStr,
+          period_end: endStr,
           total_bonus_amount: totalBonus,
           calculation_details: bonusDetails,
           metrics_snapshot: metrics,
@@ -186,8 +192,8 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         period_type,
-        period_start: start.toISOString(),
-        period_end: end.toISOString(),
+        period_start: startStr,
+        period_end: endStr,
         calculations,
         total_bonuses: calculations.reduce((sum, c) => sum + c.total_bonus, 0),
       }),

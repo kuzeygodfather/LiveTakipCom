@@ -70,7 +70,7 @@ export default function BonusReports() {
         .eq('period_type', periodType)
         .gte('period_start', `${startDate}T00:00:00.000Z`)
         .lte('period_end', `${endDate}T23:59:59.999Z`)
-        .order('total_bonus_amount', { ascending: false })
+        .order('calculated_at', { ascending: false })
         .range(from, from + batchSize - 1);
 
       if (error) break;
@@ -80,7 +80,17 @@ export default function BonusReports() {
       from += batchSize;
     }
 
-    setCalculations(allData);
+    const latestByPersonnel = new Map<string, BonusCalculation>();
+    for (const calc of allData) {
+      if (!latestByPersonnel.has(calc.personnel_id)) {
+        latestByPersonnel.set(calc.personnel_id, calc);
+      }
+    }
+
+    const uniqueCalculations = Array.from(latestByPersonnel.values());
+    uniqueCalculations.sort((a, b) => b.total_bonus_amount - a.total_bonus_amount);
+
+    setCalculations(uniqueCalculations);
     setLoading(false);
   };
 
