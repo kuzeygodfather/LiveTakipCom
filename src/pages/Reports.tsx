@@ -118,7 +118,6 @@ export default function Reports() {
           analysis_date,
           chats!inner (
             agent_name,
-            agent_email,
             created_at,
             ended_at,
             chat_data
@@ -135,20 +134,27 @@ export default function Reports() {
 
       const sentChatIds = new Set((sentFeedbacks || []).map(f => f.chat_id));
 
-      const processedChats = (chatsData || []).map((item: any) => ({
-        id: item.id,
-        chat_id: item.chat_id,
-        overall_score: parseFloat(item.overall_score || 0),
-        sentiment: item.sentiment,
-        issues_detected: item.issues_detected || {},
-        ai_summary: item.ai_summary,
-        agent_name: item.chats?.agent_name || 'Unknown',
-        agent_email: item.chats?.agent_email || '',
-        started_at: item.chats?.created_at,
-        ended_at: item.chats?.ended_at,
-        chat_data: item.chats?.chat_data || {},
-        sent_feedback: sentChatIds.has(item.id),
-      }));
+      const generateAgentEmail = (agentName: string): string => {
+        return agentName.toLowerCase().replace(/\s+/g, '.') + '@company.com';
+      };
+
+      const processedChats = (chatsData || []).map((item: any) => {
+        const agentName = item.chats?.agent_name || 'Unknown';
+        return {
+          id: item.id,
+          chat_id: item.chat_id,
+          overall_score: parseFloat(item.overall_score || 0),
+          sentiment: item.sentiment,
+          issues_detected: item.issues_detected || {},
+          ai_summary: item.ai_summary,
+          agent_name: agentName,
+          agent_email: generateAgentEmail(agentName),
+          started_at: item.chats?.created_at,
+          ended_at: item.chats?.ended_at,
+          chat_data: item.chats?.chat_data || {},
+          sent_feedback: sentChatIds.has(item.id),
+        };
+      });
 
       setNegativeChats(processedChats);
     } catch (error) {
