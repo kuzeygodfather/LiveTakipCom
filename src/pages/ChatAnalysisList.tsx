@@ -46,7 +46,10 @@ export default function ChatAnalysisList() {
       while (true) {
         const { data: batch } = await supabase
           .from('chats')
-          .select('*')
+          .select(`
+            *,
+            chat_analysis(*)
+          `)
           .order('created_at', { ascending: false })
           .range(from, from + chatBatchSize - 1);
 
@@ -56,32 +59,13 @@ export default function ChatAnalysisList() {
         from += chatBatchSize;
       }
 
-      if (allChatsData.length > 0) {
-        const analyzedIds = allChatsData.filter((c) => c.analyzed).map((c) => c.id);
-        let analysisMap: Record<string, ChatAnalysis> = {};
-
-        if (analyzedIds.length > 0) {
-          const batchSize = 200;
-          for (let i = 0; i < analyzedIds.length; i += batchSize) {
-            const batch = analyzedIds.slice(i, i + batchSize);
-            const { data: analyses } = await supabase
-              .from('chat_analysis')
-              .select('*')
-              .in('chat_id', batch);
-            if (analyses) {
-              for (const a of analyses) {
-                analysisMap[a.chat_id] = a;
-              }
-            }
-          }
-        }
-
-        const chatsWithAnalysis = allChatsData.map((chat) => ({
-          ...chat,
-          analysis: analysisMap[chat.id] || undefined,
-        }));
-        setChats(chatsWithAnalysis);
-      }
+      const chatsWithAnalysis = allChatsData.map((chat) => ({
+        ...chat,
+        analysis: Array.isArray(chat.chat_analysis)
+          ? chat.chat_analysis[0]
+          : chat.chat_analysis || undefined,
+      }));
+      setChats(chatsWithAnalysis);
     } catch (error) {
       console.error('Error loading chats:', error);
     } finally {
