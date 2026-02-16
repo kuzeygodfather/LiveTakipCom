@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+
+interface ReportData {
+  daily: any[];
+  weekly: any[];
+  monthly: any[];
+}
 
 interface ChatMessage {
   author: { name: string };
@@ -23,20 +29,69 @@ interface NegativeChat {
 }
 
 export default function Reports() {
+  const [reportData, setReportData] = useState<ReportData>({
+    daily: [],
+    weekly: [],
+    monthly: [],
+  });
   const [negativeChats, setNegativeChats] = useState<NegativeChat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [expandedChat, setExpandedChat] = useState<string | null>(null);
 
   useEffect(() => {
-    loadNegativeChats();
+    loadData();
   }, []);
 
-  const loadNegativeChats = async () => {
+  const parseScore = (score: number | string): number => {
+    if (typeof score === 'string') {
+      const parsed = parseFloat(score);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    return score;
+  };
+
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) {
+      return `${Math.round(seconds)}s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    if (remainingSeconds === 0) {
+      return `${minutes}dk`;
+    }
+    return `${minutes}dk ${remainingSeconds}s`;
+  };
+
+  const loadData = async () => {
     try {
+      let allData: any[] = [];
+      let from = 0;
+      const batchSize = 1000;
+
+      while (true) {
+        const { data: batch } = await supabase
+          .from('personnel_daily_stats')
+          .select('*')
+          .order('date', { ascending: false })
+          .range(from, from + batchSize - 1);
+
+        if (!batch || batch.length === 0) break;
+        allData = [...allData, ...batch];
+        if (batch.length < batchSize) break;
+        from += batchSize;
+      }
+
+      setReportData({
+        daily: allData || [],
+        weekly: allData || [],
+        monthly: allData || [],
+      });
+
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { data, error } = await supabase
+      const { data: chatsData } = await supabase
         .from('chat_analyses')
         .select('*')
         .or('sentiment.eq.negative,score.lt.50')
@@ -44,17 +99,86 @@ export default function Reports() {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) {
-        console.error('Error loading negative chats:', error);
-        return;
-      }
-
-      setNegativeChats(data || []);
+      setNegativeChats(chatsData || []);
     } catch (error) {
-      console.error('Error loading negative chats:', error);
+      console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getWeekNumber = (date: Date): string => {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    return `${date.getFullYear()}-W${weekNumber}`;
+  };
+
+  const getMonthKey = (date: Date): string => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const getTrendData = () => {
+    const data = timeRange === 'daily' ? reportData.daily :
+                 timeRange === 'weekly' ? reportData.weekly :
+                 reportData.monthly;
+
+    const grouped = data.reduce((acc: any, curr: any) => {
+      let groupKey: string;
+      const dateObj = new Date(curr.date);
+
+      if (timeRange === 'daily') {
+        groupKey = curr.date;
+      } else if (timeRange === 'weekly') {
+        groupKey = getWeekNumber(dateObj);
+      } else {
+        groupKey = getMonthKey(dateObj);
+      }
+
+      if (!acc[groupKey]) {
+        acc[groupKey] = {
+          date: groupKey,
+          totalAnalysisScore: 0,
+          analysisCount: 0,
+          totalPersonnelScore: 0,
+          personnelCount: 0,
+          totalResponseTime: 0,
+          responseTimeCount: 0,
+          totalResolutionTime: 0,
+          resolutionTimeCount: 0,
+        };
+      }
+
+      if (curr.total_analysis_score > 0 && curr.analysis_count > 0) {
+        acc[groupKey].totalAnalysisScore += curr.total_analysis_score;
+        acc[groupKey].analysisCount += curr.analysis_count;
+      }
+
+      if (curr.average_score > 0 && curr.total_chats > 0) {
+        acc[groupKey].totalPersonnelScore += parseScore(curr.average_score) * curr.total_chats;
+        acc[groupKey].personnelCount += curr.total_chats;
+      }
+
+      if (curr.average_response_time > 0) {
+        acc[groupKey].totalResponseTime += curr.average_response_time;
+        acc[groupKey].responseTimeCount++;
+      }
+
+      if (curr.average_resolution_time > 0) {
+        acc[groupKey].totalResolutionTime += curr.average_resolution_time;
+        acc[groupKey].resolutionTimeCount++;
+      }
+
+      return acc;
+    }, {});
+
+    return Object.values(grouped).map((item: any) => ({
+      date: item.date,
+      analysisScore: item.analysisCount > 0 ? Math.round(item.totalAnalysisScore / item.analysisCount) : 0,
+      personnelScore: item.personnelCount > 0 ? Math.round(item.totalPersonnelScore / item.personnelCount) : 0,
+      responseTime: item.responseTimeCount > 0 ? Math.round(item.totalResponseTime / item.responseTimeCount) : 0,
+      resolutionTime: item.resolutionTimeCount > 0 ? Math.round(item.totalResolutionTime / item.resolutionTimeCount) : 0,
+    })).sort((a: any, b: any) => b.date.localeCompare(a.date));
   };
 
   const getCoachingSuggestion = async (chat: NegativeChat) => {
@@ -145,6 +269,8 @@ export default function Reports() {
     return 'Olumlu';
   };
 
+  const trendData = getTrendData();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -155,129 +281,234 @@ export default function Reports() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Koçluk & İyileştirme Önerileri</h1>
-        <p className="text-sm sm:text-base text-slate-600 mt-1">
-          Olumsuz değerlendirilen chat'ler ve AI destekli iyileştirme önerileri
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Raporlar & Trendler</h1>
+          <p className="text-sm sm:text-base text-slate-600 mt-1">Performans trendleri ve istatistiksel analizler</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setTimeRange('daily')}
+            className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm ${
+              timeRange === 'daily'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-slate-700 border border-slate-300'
+            }`}
+          >
+            Gunluk
+          </button>
+          <button
+            onClick={() => setTimeRange('weekly')}
+            className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm ${
+              timeRange === 'weekly'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-slate-700 border border-slate-300'
+            }`}
+          >
+            Haftalik
+          </button>
+          <button
+            onClick={() => setTimeRange('monthly')}
+            className={`px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm ${
+              timeRange === 'monthly'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-slate-700 border border-slate-300'
+            }`}
+          >
+            Aylik
+          </button>
+        </div>
       </div>
 
-      {negativeChats.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12">
-          <div className="text-center">
-            <MessageCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">Harika İş Çıkarıyorsunuz!</h3>
-            <p className="text-slate-600">Son 30 günde olumsuz değerlendirilen chat bulunamadı.</p>
-          </div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <BarChart className="w-5 h-5 sm:w-6 sm:h-6 text-slate-700" />
+          <h2 className="text-xl font-bold text-slate-900">Trend Analizi</h2>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-900">
-                <strong>Not:</strong> Bu bölüm, müşteri memnuniyetsizliği yaşanan chat'leri gösterir.
-                Her chat için AI destekli iyileştirme önerileri sunulur. Chat'e tıklayarak detayları görün.
+
+        {trendData.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">
+            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>Bu dönem için veri bulunamadı</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {trendData.map((item: any) => {
+              let displayDate = item.date;
+              if (timeRange === 'daily') {
+                displayDate = new Date(item.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
+              } else if (timeRange === 'weekly') {
+                displayDate = `Hafta ${item.date}`;
+              } else {
+                const [year, month] = item.date.split('-');
+                const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+                                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+                displayDate = `${monthNames[parseInt(month) - 1]} ${year}`;
+              }
+
+              return (
+                <div key={item.date} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg">
+                  <div className="sm:w-32">
+                    <div className="text-sm font-medium text-slate-900">
+                      {displayDate}
+                    </div>
+                  </div>
+                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Analiz Skor</div>
+                      <div className={`text-base sm:text-lg font-bold ${
+                        item.analysisScore >= 80 ? 'text-green-600' :
+                        item.analysisScore >= 50 ? 'text-slate-600' : 'text-red-600'
+                      }`}>
+                        {item.analysisScore}/100
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Personel Skor</div>
+                      <div className={`text-base sm:text-lg font-bold ${
+                        item.personnelScore >= 80 ? 'text-green-600' :
+                        item.personnelScore >= 50 ? 'text-slate-600' : 'text-red-600'
+                      }`}>
+                        {item.personnelScore}/100
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Ort. Yanıt</div>
+                      <div className="text-base sm:text-lg font-bold text-slate-900">{formatTime(item.responseTime)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Ort. Çözüm</div>
+                      <div className="text-base sm:text-lg font-bold text-slate-900">{formatTime(item.resolutionTime)}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
+          <Lightbulb className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+          <h2 className="text-xl font-bold text-slate-900">Koçluk & İyileştirme Önerileri</h2>
+        </div>
+
+        {negativeChats.length === 0 ? (
+          <div className="text-center py-8">
+            <MessageCircle className="w-12 h-12 mx-auto mb-3 text-green-500" />
+            <h3 className="text-lg font-semibold text-slate-900 mb-1">Harika İş Çıkarıyorsunuz!</h3>
+            <p className="text-sm text-slate-600">Son 30 günde olumsuz değerlendirilen chat bulunamadı.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <strong>Not:</strong> Bu bölüm, müşteri memnuniyetsizliği yaşanan chat'leri gösterir.
+                  Her chat için AI destekli iyileştirme önerileri sunulur. Chat'e tıklayarak detayları görün.
+                </div>
               </div>
             </div>
-          </div>
 
-          {negativeChats.map((chat) => {
-            const isExpanded = expandedChat === chat.id;
-            return (
-              <div
-                key={chat.id}
-                className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-              >
-                <button
-                  onClick={() => toggleChat(chat.id)}
-                  className="w-full p-4 sm:p-6 text-left hover:bg-slate-50 transition-colors"
+            {negativeChats.map((chat) => {
+              const isExpanded = expandedChat === chat.id;
+              return (
+                <div
+                  key={chat.id}
+                  className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="font-semibold text-slate-900">{chat.agent_name}</span>
-                        <span className={`px-2 py-1 rounded text-xs font-medium border ${getSentimentColor(chat.sentiment, chat.score)}`}>
-                          {getSentimentLabel(chat.sentiment)} • {chat.score}/100
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {formatDate(chat.started_at)}
-                        </span>
+                  <button
+                    onClick={() => toggleChat(chat.id)}
+                    className="w-full p-4 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="font-semibold text-slate-900">{chat.agent_name}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getSentimentColor(chat.sentiment, chat.score)}`}>
+                            {getSentimentLabel(chat.sentiment)} • {chat.score}/100
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {formatDate(chat.started_at)}
+                          </span>
+                        </div>
+
+                        {chat.summary && (
+                          <p className="text-sm text-slate-700 line-clamp-2 mb-2">{chat.summary}</p>
+                        )}
+
+                        {chat.issues && chat.issues.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {chat.issues.slice(0, 3).map((issue, idx) => (
+                              <span key={idx} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                                {issue}
+                              </span>
+                            ))}
+                            {chat.issues.length > 3 && (
+                              <span className="text-xs text-slate-500">+{chat.issues.length - 3} daha</span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
-                      {chat.summary && (
-                        <p className="text-sm text-slate-700 line-clamp-2 mb-2">{chat.summary}</p>
-                      )}
+                      <div className="flex-shrink-0">
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-slate-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-slate-400" />
+                        )}
+                      </div>
+                    </div>
+                  </button>
 
-                      {chat.issues && chat.issues.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {chat.issues.slice(0, 3).map((issue, idx) => (
-                            <span key={idx} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
-                              {issue}
-                            </span>
-                          ))}
-                          {chat.issues.length > 3 && (
-                            <span className="text-xs text-slate-500">+{chat.issues.length - 3} daha</span>
-                          )}
+                  {isExpanded && (
+                    <div className="border-t border-slate-200 p-4 bg-slate-50 space-y-4">
+                      {chat.messages && chat.messages.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                            <MessageCircle className="w-4 h-4" />
+                            Chat Görüşmesi
+                          </h4>
+                          <div className="bg-white rounded-lg border border-slate-200 p-3 max-h-60 overflow-y-auto space-y-2">
+                            {chat.messages.map((msg, idx) => (
+                              <div key={idx} className="text-sm">
+                                <span className="font-medium text-slate-900">{msg.author.name}:</span>
+                                <span className="text-slate-700 ml-2">{msg.text}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
-                    </div>
 
-                    <div className="flex-shrink-0">
-                      {isExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-slate-400" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
-                      )}
-                    </div>
-                  </div>
-                </button>
-
-                {isExpanded && (
-                  <div className="border-t border-slate-200 p-4 sm:p-6 bg-slate-50 space-y-4">
-                    {chat.messages && chat.messages.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                          <MessageCircle className="w-4 h-4" />
-                          Chat Görüşmesi
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+                        <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                          <Lightbulb className="w-4 h-4 text-blue-600" />
+                          AI Koçluk Önerileri
                         </h4>
-                        <div className="bg-white rounded-lg border border-slate-200 p-4 max-h-60 overflow-y-auto space-y-2">
-                          {chat.messages.map((msg, idx) => (
-                            <div key={idx} className="text-sm">
-                              <span className="font-medium text-slate-900">{msg.author.name}:</span>
-                              <span className="text-slate-700 ml-2">{msg.text}</span>
-                            </div>
-                          ))}
-                        </div>
+
+                        {chat.loadingCoaching ? (
+                          <div className="flex items-center gap-2 text-blue-600">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span className="text-sm">AI öneri hazırlıyor...</span>
+                          </div>
+                        ) : chat.coaching ? (
+                          <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">
+                            {chat.coaching}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-slate-500">Öneri yükleniyor...</div>
+                        )}
                       </div>
-                    )}
-
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-                      <h4 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Lightbulb className="w-5 h-5 text-blue-600" />
-                        AI Koçluk Önerileri
-                      </h4>
-
-                      {chat.loadingCoaching ? (
-                        <div className="flex items-center gap-2 text-blue-600">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span className="text-sm">AI öneri hazırlıyor...</span>
-                        </div>
-                      ) : chat.coaching ? (
-                        <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">
-                          {chat.coaching}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-slate-500">Öneri yükleniyor...</div>
-                      )}
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
