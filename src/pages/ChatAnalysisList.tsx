@@ -39,19 +39,22 @@ export default function ChatAnalysisList() {
 
       setTotalChatsCount(totalCount || 0);
 
+      // Load all chats in batches
       let allChatsData: any[] = [];
       let from = 0;
       const chatBatchSize = 1000;
 
       while (true) {
-        const { data: batch } = await supabase
+        const { data: batch, error: batchError } = await supabase
           .from('chats')
-          .select(`
-            *,
-            chat_analysis(*)
-          `)
+          .select('*')
           .order('created_at', { ascending: false })
           .range(from, from + chatBatchSize - 1);
+
+        if (batchError) {
+          console.error('Chat batch fetch error:', batchError);
+          break;
+        }
 
         if (!batch || batch.length === 0) break;
         allChatsData = [...allChatsData, ...batch];
@@ -59,18 +62,47 @@ export default function ChatAnalysisList() {
         from += chatBatchSize;
       }
 
+      console.log('Total chats loaded:', allChatsData.length);
+
+      // Load all chat_analysis data in batches
+      let allAnalysisData: any[] = [];
+      from = 0;
+      const analysisBatchSize = 1000;
+
+      while (true) {
+        const { data: batch, error: batchError } = await supabase
+          .from('chat_analysis')
+          .select('*')
+          .range(from, from + analysisBatchSize - 1);
+
+        if (batchError) {
+          console.error('Analysis batch fetch error:', batchError);
+          break;
+        }
+
+        if (!batch || batch.length === 0) break;
+        allAnalysisData = [...allAnalysisData, ...batch];
+        if (batch.length < analysisBatchSize) break;
+        from += analysisBatchSize;
+      }
+
+      console.log('Total analysis loaded:', allAnalysisData.length);
+
+      // Create a map for quick lookup
+      const analysisMap: Record<string, ChatAnalysis> = {};
+      allAnalysisData.forEach((analysis) => {
+        analysisMap[analysis.chat_id] = analysis;
+      });
+
+      // Combine chats with their analysis
       const chatsWithAnalysis = allChatsData.map((chat) => ({
         ...chat,
-        analysis: Array.isArray(chat.chat_analysis)
-          ? chat.chat_analysis[0]
-          : chat.chat_analysis || undefined,
+        analysis: analysisMap[chat.id] || undefined,
       }));
 
       console.log('=== ChatAnalysisList Debug ===');
-      console.log('Total chats loaded:', chatsWithAnalysis.length);
       console.log('Chats with analysis:', chatsWithAnalysis.filter(c => c.analysis).length);
-      console.log('Sample chat:', chatsWithAnalysis.find(c => c.analysis));
-      console.log('Sample analysis:', chatsWithAnalysis.find(c => c.analysis)?.analysis);
+      console.log('Sample chat with analysis:', chatsWithAnalysis.find(c => c.analysis));
 
       setChats(chatsWithAnalysis);
     } catch (error) {
