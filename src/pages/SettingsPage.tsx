@@ -67,7 +67,8 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      setMessage({ type: 'error', text: 'Ayarlar kaydedilemedi' });
+      const errorMessage = error instanceof Error ? error.message : 'Ayarlar kaydedilemedi';
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setSaving(false);
     }
