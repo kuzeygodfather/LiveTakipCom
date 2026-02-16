@@ -83,31 +83,99 @@ export default function Reports() {
 
   const loadData = async () => {
     try {
-      let allData: any[] = [];
-      let from = 0;
-      const batchSize = 1000;
-
-      while (true) {
-        const { data: batch } = await supabase
-          .from('personnel_daily_stats')
-          .select('*')
-          .order('date', { ascending: false })
-          .range(from, from + batchSize - 1);
-
-        if (!batch || batch.length === 0) break;
-        allData = [...allData, ...batch];
-        if (batch.length < batchSize) break;
-        from += batchSize;
-      }
-
-      setReportData({
-        daily: allData || [],
-        weekly: allData || [],
-        monthly: allData || [],
-      });
-
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const { data: chatsRaw } = await supabase
+        .from('chats')
+        .select(`
+          id,
+          chat_id,
+          agent_name,
+          created_at,
+          ended_at,
+          rating,
+          first_response_time
+        `)
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false });
+
+      const { data: analysisData } = await supabase
+        .from('chat_analysis')
+        .select('chat_id, overall_score, analysis_score')
+        .gte('analysis_date', thirtyDaysAgo.toISOString());
+
+      const analysisMap = new Map();
+      (analysisData || []).forEach((item: any) => {
+        analysisMap.set(item.chat_id, {
+          overall_score: parseFloat(item.overall_score || 0),
+          analysis_score: parseFloat(item.analysis_score || 0),
+        });
+      });
+
+      const dailyStats: any = {};
+
+      (chatsRaw || []).forEach((chat: any) => {
+        const dateStr = new Date(chat.created_at).toISOString().split('T')[0];
+
+        if (!dailyStats[dateStr]) {
+          dailyStats[dateStr] = {
+            date: dateStr,
+            total_chats: 0,
+            total_analysis_score: 0,
+            analysis_count: 0,
+            total_personnel_score: 0,
+            personnel_count: 0,
+            total_response_time: 0,
+            response_time_count: 0,
+            total_resolution_time: 0,
+            resolution_time_count: 0,
+          };
+        }
+
+        dailyStats[dateStr].total_chats++;
+
+        const analysis = analysisMap.get(chat.chat_id);
+        if (analysis) {
+          if (analysis.analysis_score > 0) {
+            dailyStats[dateStr].total_analysis_score += analysis.analysis_score;
+            dailyStats[dateStr].analysis_count++;
+          }
+          if (analysis.overall_score > 0) {
+            dailyStats[dateStr].total_personnel_score += analysis.overall_score;
+            dailyStats[dateStr].personnel_count++;
+          }
+        }
+
+        if (chat.first_response_time && chat.first_response_time > 0) {
+          dailyStats[dateStr].total_response_time += chat.first_response_time;
+          dailyStats[dateStr].response_time_count++;
+        }
+
+        if (chat.created_at && chat.ended_at) {
+          const duration = (new Date(chat.ended_at).getTime() - new Date(chat.created_at).getTime()) / 1000;
+          if (duration > 0) {
+            dailyStats[dateStr].total_resolution_time += duration;
+            dailyStats[dateStr].resolution_time_count++;
+          }
+        }
+      });
+
+      const dailyArray = Object.values(dailyStats).map((day: any) => ({
+        date: day.date,
+        total_chats: day.total_chats,
+        total_analysis_score: day.total_analysis_score,
+        analysis_count: day.analysis_count,
+        average_score: day.personnel_count > 0 ? day.total_personnel_score / day.personnel_count : 0,
+        average_response_time: day.response_time_count > 0 ? day.total_response_time / day.response_time_count : 0,
+        average_resolution_time: day.resolution_time_count > 0 ? day.total_resolution_time / day.resolution_time_count : 0,
+      }));
+
+      setReportData({
+        daily: dailyArray || [],
+        weekly: dailyArray || [],
+        monthly: dailyArray || [],
+      });
 
       const { data: chatsData } = await supabase
         .from('chat_analysis')
