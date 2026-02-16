@@ -46,7 +46,7 @@ export default function PersonnelAnalytics() {
           .from('personnel')
           .select('*')
           .neq('name', 'Unknown')
-          .order('statistical_score', { ascending: false })
+          .order('average_score', { ascending: false })
           .range(from, from + batchSize - 1);
 
         if (!batch || batch.length === 0) break;
@@ -257,7 +257,7 @@ export default function PersonnelAnalytics() {
           <h2 className="text-lg font-bold text-slate-900 mb-4">Personel Listesi</h2>
           <div className="space-y-2">
             {personnel.map((person) => {
-              const statScore = person.statistical_score || person.average_score;
+              const statScore = person.average_score;
               const performance = getPerformanceLevel(statScore);
               const ratings = ratingInfo[person.name] || {
                 like_count: 0,
@@ -417,8 +417,8 @@ export default function PersonnelAnalytics() {
                       </span>
                     </div>
                   </div>
-                  <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.statistical_score || selectedPersonnel.average_score).color}`}>
-                    {getPerformanceLevel(selectedPersonnel.statistical_score || selectedPersonnel.average_score).label}
+                  <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.average_score).color}`}>
+                    {getPerformanceLevel(selectedPersonnel.average_score).label}
                   </div>
                 </div>
 
@@ -430,7 +430,7 @@ export default function PersonnelAnalytics() {
                   <div className="bg-slate-50 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">İstatistiksel Skor</div>
                     <div className="text-2xl font-bold text-slate-900">
-                      {Math.round(parseScore(selectedPersonnel.statistical_score || selectedPersonnel.average_score))}/100
+                      {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
                   </div>
                   <div className="bg-slate-50 p-4 rounded-lg">
