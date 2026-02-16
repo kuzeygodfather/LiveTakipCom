@@ -81,7 +81,7 @@ export default function PersonnelAnalytics() {
         while (true) {
           const { data: batch } = await supabase
             .from('chats')
-            .select('id, agent_name, customer_name, rating_score, status, first_response_time, duration_seconds')
+            .select('id, agent_name, customer_name, chat_data, status')
             .eq('agent_name', person.name)
             .range(from, from + batchSize - 1);
 
@@ -125,22 +125,22 @@ export default function PersonnelAnalytics() {
               missedCount++;
             }
 
-            const score = chat.rating_score;
+            const score = chat.chat_data?.properties?.raw_chat_data?.rating_score;
             if (score !== null && score !== undefined) {
-              if (score >= 4) {
+              if (score > 0) {
                 liked.push({ id: chat.id, customer_name: chat.customer_name || 'Bilinmiyor' });
-              } else if (score <= 2) {
+              } else if (score < 0) {
                 disliked.push({ id: chat.id, customer_name: chat.customer_name || 'Bilinmiyor' });
               }
             }
 
-            const firstResponseTime = chat.first_response_time;
+            const firstResponseTime = chat.chat_data?.properties?.raw_chat_data?.first_response_time_seconds;
             if (firstResponseTime !== null && firstResponseTime !== undefined && !isNaN(firstResponseTime)) {
               totalFirstResponseTime += firstResponseTime;
               firstResponseCount++;
             }
 
-            const chatDuration = chat.duration_seconds;
+            const chatDuration = chat.chat_data?.properties?.raw_chat_data?.chat_duration_seconds;
             if (chatDuration !== null && chatDuration !== undefined && !isNaN(chatDuration)) {
               totalResolutionTime += chatDuration;
               resolutionCount++;

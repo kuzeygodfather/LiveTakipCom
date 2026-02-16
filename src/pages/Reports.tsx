@@ -8,6 +8,12 @@ interface ReportData {
   monthly: any[];
 }
 
+interface ChatMessage {
+  author_id: string;
+  text: string;
+  created_at: string;
+}
+
 interface NegativeChat {
   id: string;
   chat_id: string;
@@ -19,6 +25,7 @@ interface NegativeChat {
   overall_score: number;
   issues_detected: { improvement_areas?: string[] };
   ai_summary: string;
+  chat_data: { all_messages?: ChatMessage[] };
   messages?: Array<{ author: { name: string }; text: string }>;
   coaching?: string;
   loadingCoaching?: boolean;
@@ -115,7 +122,8 @@ export default function Reports() {
           chats!inner (
             agent_name,
             created_at,
-            ended_at
+            ended_at,
+            chat_data
           )
         `)
         .or('sentiment.eq.negative,overall_score.lt.50')
@@ -146,6 +154,7 @@ export default function Reports() {
           agent_email: generateAgentEmail(agentName),
           started_at: item.chats?.created_at,
           ended_at: item.chats?.ended_at,
+          chat_data: item.chats?.chat_data || {},
           sent_feedback: sentChatIds.has(item.id),
         };
       });
@@ -244,17 +253,16 @@ export default function Reports() {
         prev.map(c => c.id === chat.id ? { ...c, loadingCoaching: true } : c)
       );
 
-      const { data: messages } = await supabase
-        .from('chat_messages')
-        .select('author_type, text, is_system')
-        .eq('chat_id', chat.chat_id)
-        .eq('is_system', false)
-        .order('created_at', { ascending: true });
+      const chatData: any = chat.chat_data || {};
+      const fullChatData = chatData.properties?.full_chat_data || chatData;
+      const allMessages = fullChatData.all_messages || [];
 
-      const formattedMessages = (messages || []).map((msg: any) => ({
-        author: { name: msg.author_type === 'agent' ? chat.agent_name : 'Müşteri' },
-        text: msg.text
-      }));
+      const formattedMessages = allMessages
+        .filter((msg: any) => msg.text && msg.type === 'message')
+        .map((msg: any) => ({
+          author: { name: msg.author_id.includes('@') ? chat.agent_name : 'Müşteri' },
+          text: msg.text
+        }));
 
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-coaching`;
       const headers = {
