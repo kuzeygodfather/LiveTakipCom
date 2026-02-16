@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter } from 'lucide-react';
 
 interface ReportData {
   daily: any[];
@@ -40,6 +40,10 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [expandedChat, setExpandedChat] = useState<string | null>(null);
+
+  const [selectedAgent, setSelectedAgent] = useState<string>('all');
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
+  const [selectedIssue, setSelectedIssue] = useState<string>('all');
 
   useEffect(() => {
     loadData();
@@ -314,6 +318,44 @@ export default function Reports() {
     return chat.issues_detected?.improvement_areas || [];
   };
 
+  const uniqueAgents = useMemo(() => {
+    const agents = new Set(negativeChats.map(chat => chat.agent_name));
+    return Array.from(agents).sort();
+  }, [negativeChats]);
+
+  const allIssues = useMemo(() => {
+    const issues = new Set<string>();
+    negativeChats.forEach(chat => {
+      getIssues(chat).forEach(issue => issues.add(issue));
+    });
+    return Array.from(issues).sort();
+  }, [negativeChats]);
+
+  const filteredChats = useMemo(() => {
+    return negativeChats.filter(chat => {
+      if (selectedAgent !== 'all' && chat.agent_name !== selectedAgent) {
+        return false;
+      }
+
+      if (selectedDateRange !== 'all') {
+        const chatDate = new Date(chat.started_at);
+        const now = new Date();
+        const daysAgo = Math.floor((now.getTime() - chatDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (selectedDateRange === '7' && daysAgo > 7) return false;
+        if (selectedDateRange === '14' && daysAgo > 14) return false;
+        if (selectedDateRange === '30' && daysAgo > 30) return false;
+      }
+
+      if (selectedIssue !== 'all') {
+        const issues = getIssues(chat);
+        if (!issues.includes(selectedIssue)) return false;
+      }
+
+      return true;
+    });
+  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue]);
+
   const trendData = getTrendData();
 
   if (loading) {
@@ -447,6 +489,79 @@ export default function Reports() {
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="w-4 h-4 text-slate-600" />
+                <h3 className="font-semibold text-slate-900">Filtreler</h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Agent</label>
+                  <select
+                    value={selectedAgent}
+                    onChange={(e) => setSelectedAgent(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tümü ({negativeChats.length})</option>
+                    {uniqueAgents.map(agent => (
+                      <option key={agent} value={agent}>
+                        {agent} ({negativeChats.filter(c => c.agent_name === agent).length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Tarih Aralığı</label>
+                  <select
+                    value={selectedDateRange}
+                    onChange={(e) => setSelectedDateRange(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tüm Zamanlar</option>
+                    <option value="7">Son 7 Gün</option>
+                    <option value="14">Son 14 Gün</option>
+                    <option value="30">Son 30 Gün</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Sorun Tipi</label>
+                  <select
+                    value={selectedIssue}
+                    onChange={(e) => setSelectedIssue(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tüm Sorunlar</option>
+                    {allIssues.map(issue => (
+                      <option key={issue} value={issue}>
+                        {issue}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all') && (
+                <div className="mt-3 flex items-center justify-between">
+                  <span className="text-sm text-slate-600">
+                    {filteredChats.length} chat gösteriliyor
+                  </span>
+                  <button
+                    onClick={() => {
+                      setSelectedAgent('all');
+                      setSelectedDateRange('all');
+                      setSelectedIssue('all');
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Filtreleri Temizle
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <div className="flex gap-2">
                 <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -457,100 +572,117 @@ export default function Reports() {
               </div>
             </div>
 
-            {negativeChats.map((chat) => {
-              const isExpanded = expandedChat === chat.id;
-              return (
-                <div
-                  key={chat.id}
-                  className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden"
+            {filteredChats.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="font-medium">Filtrelere uygun chat bulunamadı</p>
+                <button
+                  onClick={() => {
+                    setSelectedAgent('all');
+                    setSelectedDateRange('all');
+                    setSelectedIssue('all');
+                  }}
+                  className="mt-2 text-sm text-blue-600 hover:text-blue-700"
                 >
-                  <button
-                    onClick={() => toggleChat(chat.id)}
-                    className="w-full p-4 text-left hover:bg-slate-50 transition-colors"
+                  Filtreleri temizle
+                </button>
+              </div>
+            ) : (
+              filteredChats.map((chat) => {
+                const isExpanded = expandedChat === chat.id;
+                return (
+                  <div
+                    key={chat.id}
+                    className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden"
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span className="font-semibold text-slate-900">{chat.agent_name}</span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getSentimentColor(chat.sentiment, chat.overall_score)}`}>
-                            {getSentimentLabel(chat.sentiment)} • {Math.round(chat.overall_score)}/100
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            {formatDate(chat.started_at)}
-                          </span>
+                    <button
+                      onClick={() => toggleChat(chat.id)}
+                      className="w-full p-4 text-left hover:bg-slate-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="font-semibold text-slate-900">{chat.agent_name}</span>
+                            <span className={`px-2 py-1 rounded text-xs font-medium border ${getSentimentColor(chat.sentiment, chat.overall_score)}`}>
+                              {getSentimentLabel(chat.sentiment)} • {Math.round(chat.overall_score)}/100
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {formatDate(chat.started_at)}
+                            </span>
+                          </div>
+
+                          {chat.ai_summary && (
+                            <p className="text-sm text-slate-700 line-clamp-2 mb-2">{chat.ai_summary}</p>
+                          )}
+
+                          {getIssues(chat).length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {getIssues(chat).slice(0, 3).map((issue, idx) => (
+                                <span key={idx} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
+                                  {issue}
+                                </span>
+                              ))}
+                              {getIssues(chat).length > 3 && (
+                                <span className="text-xs text-slate-500">+{getIssues(chat).length - 3} daha</span>
+                              )}
+                            </div>
+                          )}
                         </div>
 
-                        {chat.ai_summary && (
-                          <p className="text-sm text-slate-700 line-clamp-2 mb-2">{chat.ai_summary}</p>
-                        )}
+                        <div className="flex-shrink-0">
+                          {isExpanded ? (
+                            <ChevronUp className="w-5 h-5 text-slate-400" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-slate-400" />
+                          )}
+                        </div>
+                      </div>
+                    </button>
 
-                        {getIssues(chat).length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {getIssues(chat).slice(0, 3).map((issue, idx) => (
-                              <span key={idx} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
-                                {issue}
-                              </span>
-                            ))}
-                            {getIssues(chat).length > 3 && (
-                              <span className="text-xs text-slate-500">+{getIssues(chat).length - 3} daha</span>
-                            )}
+                    {isExpanded && (
+                      <div className="border-t border-slate-200 p-4 bg-slate-50 space-y-4">
+                        {chat.messages && chat.messages.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                              <MessageCircle className="w-4 h-4" />
+                              Chat Görüşmesi
+                            </h4>
+                            <div className="bg-white rounded-lg border border-slate-200 p-3 max-h-60 overflow-y-auto space-y-2">
+                              {chat.messages.map((msg, idx) => (
+                                <div key={idx} className="text-sm">
+                                  <span className="font-medium text-slate-900">{msg.author.name}:</span>
+                                  <span className="text-slate-700 ml-2">{msg.text}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
-                      </div>
 
-                      <div className="flex-shrink-0">
-                        {isExpanded ? (
-                          <ChevronUp className="w-5 h-5 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-slate-400" />
-                        )}
-                      </div>
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="border-t border-slate-200 p-4 bg-slate-50 space-y-4">
-                      {chat.messages && chat.messages.length > 0 && (
-                        <div>
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
                           <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                            <MessageCircle className="w-4 h-4" />
-                            Chat Görüşmesi
+                            <Lightbulb className="w-4 h-4 text-blue-600" />
+                            AI Koçluk Önerileri
                           </h4>
-                          <div className="bg-white rounded-lg border border-slate-200 p-3 max-h-60 overflow-y-auto space-y-2">
-                            {chat.messages.map((msg, idx) => (
-                              <div key={idx} className="text-sm">
-                                <span className="font-medium text-slate-900">{msg.author.name}:</span>
-                                <span className="text-slate-700 ml-2">{msg.text}</span>
-                              </div>
-                            ))}
-                          </div>
+
+                          {chat.loadingCoaching ? (
+                            <div className="flex items-center gap-2 text-blue-600">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span className="text-sm">AI öneri hazırlıyor...</span>
+                            </div>
+                          ) : chat.coaching ? (
+                            <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">
+                              {chat.coaching}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-slate-500">Öneri yükleniyor...</div>
+                          )}
                         </div>
-                      )}
-
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-                        <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                          <Lightbulb className="w-4 h-4 text-blue-600" />
-                          AI Koçluk Önerileri
-                        </h4>
-
-                        {chat.loadingCoaching ? (
-                          <div className="flex items-center gap-2 text-blue-600">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span className="text-sm">AI öneri hazırlıyor...</span>
-                          </div>
-                        ) : chat.coaching ? (
-                          <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">
-                            {chat.coaching}
-                          </div>
-                        ) : (
-                          <div className="text-sm text-slate-500">Öneri yükleniyor...</div>
-                        )}
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
