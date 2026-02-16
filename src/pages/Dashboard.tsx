@@ -902,8 +902,8 @@ export default function Dashboard() {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <HeatMap
           data={hourlyDistribution}
-          title="🕐 Saatlik Chat Yoğunluğu Analizi"
-          description="Son 7 gün boyunca her saat diliminde toplam kaç chat alındığını gösterir. En yoğun saatleri tespit ederek personel planlaması yapabilirsiniz."
+          title="🕐 Saatlik Chat Yoğunluğu Analizi (Son 30 Gün)"
+          description="Son 30 gün boyunca her saat diliminde toplam kaç chat alındığını gösterir. En yoğun saatleri tespit ederek personel planlaması yapabilirsiniz."
         />
       </div>
 
