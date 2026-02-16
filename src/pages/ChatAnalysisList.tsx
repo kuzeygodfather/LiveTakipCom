@@ -65,6 +65,13 @@ export default function ChatAnalysisList() {
           ? chat.chat_analysis[0]
           : chat.chat_analysis || undefined,
       }));
+
+      console.log('=== ChatAnalysisList Debug ===');
+      console.log('Total chats loaded:', chatsWithAnalysis.length);
+      console.log('Chats with analysis:', chatsWithAnalysis.filter(c => c.analysis).length);
+      console.log('Sample chat:', chatsWithAnalysis.find(c => c.analysis));
+      console.log('Sample analysis:', chatsWithAnalysis.find(c => c.analysis)?.analysis);
+
       setChats(chatsWithAnalysis);
     } catch (error) {
       console.error('Error loading chats:', error);
@@ -76,6 +83,10 @@ export default function ChatAnalysisList() {
   const filterChats = () => {
     let filtered = [...chats];
 
+    console.log('=== Filter Debug ===');
+    console.log('Initial chats count:', chats.length);
+    console.log('Chats with analysis:', chats.filter(c => c.analysis).length);
+
     filtered = filtered.filter((chat) => {
       if (!chat.analysis) return true;
       const score = parseScore(chat.analysis.overall_score);
@@ -84,6 +95,8 @@ export default function ChatAnalysisList() {
       }
       return true;
     });
+
+    console.log('After empty filter:', filtered.length);
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -112,6 +125,7 @@ export default function ChatAnalysisList() {
       filtered = filtered.filter((chat) => new Date(chat.created_at) <= toDate);
     }
 
+    console.log('Filter sentiment:', filterSentiment);
     if (filterSentiment !== 'all') {
       filtered = filtered.filter((chat) => {
         if (!chat.analysis) return false;
@@ -123,6 +137,7 @@ export default function ChatAnalysisList() {
       });
     }
 
+    console.log('Final filtered count:', filtered.length);
     setFilteredChats(filtered);
   };
 
