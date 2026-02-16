@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter } from 'lucide-react';
+import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter, Send, CheckCircle } from 'lucide-react';
 
 interface ReportData {
   daily: any[];
@@ -18,6 +18,7 @@ interface NegativeChat {
   id: string;
   chat_id: string;
   agent_name: string;
+  agent_email?: string;
   started_at: string;
   ended_at: string;
   sentiment: string;
@@ -28,6 +29,8 @@ interface NegativeChat {
   messages?: Array<{ author: { name: string }; text: string }>;
   coaching?: string;
   loadingCoaching?: boolean;
+  sent_feedback?: boolean;
+  sending_feedback?: boolean;
 }
 
 export default function Reports() {
@@ -46,6 +49,10 @@ export default function Reports() {
   const [selectedIssue, setSelectedIssue] = useState<string>('all');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
+
+  const [improvementReports, setImprovementReports] = useState<any[]>([]);
+  const [loadingImprovements, setLoadingImprovements] = useState(false);
+  const [selectedImprovementAgent, setSelectedImprovementAgent] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -111,6 +118,7 @@ export default function Reports() {
           analysis_date,
           chats!inner (
             agent_name,
+            agent_email,
             created_at,
             ended_at,
             chat_data
@@ -121,6 +129,12 @@ export default function Reports() {
         .order('analysis_date', { ascending: false })
         .limit(50);
 
+      const { data: sentFeedbacks } = await supabase
+        .from('coaching_feedbacks')
+        .select('chat_id');
+
+      const sentChatIds = new Set((sentFeedbacks || []).map(f => f.chat_id));
+
       const processedChats = (chatsData || []).map((item: any) => ({
         id: item.id,
         chat_id: item.chat_id,
@@ -129,9 +143,11 @@ export default function Reports() {
         issues_detected: item.issues_detected || {},
         ai_summary: item.ai_summary,
         agent_name: item.chats?.agent_name || 'Unknown',
+        agent_email: item.chats?.agent_email || '',
         started_at: item.chats?.created_at,
         ended_at: item.chats?.ended_at,
         chat_data: item.chats?.chat_data || {},
+        sent_feedback: sentChatIds.has(item.id),
       }));
 
       setNegativeChats(processedChats);
@@ -286,6 +302,75 @@ export default function Reports() {
     }
   };
 
+  const sendCoachingFeedback = async (chat: NegativeChat) => {
+    if (!chat.coaching || !chat.agent_email) return;
+
+    try {
+      setNegativeChats(prev =>
+        prev.map(c => c.id === chat.id ? { ...c, sending_feedback: true } : c)
+      );
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { error } = await supabase
+        .from('coaching_feedbacks')
+        .insert({
+          chat_id: chat.id,
+          agent_name: chat.agent_name,
+          agent_email: chat.agent_email,
+          coaching_suggestion: chat.coaching,
+          sent_by: user?.id,
+        });
+
+      if (error) throw error;
+
+      setNegativeChats(prev =>
+        prev.map(c => c.id === chat.id
+          ? { ...c, sent_feedback: true, sending_feedback: false }
+          : c
+        )
+      );
+    } catch (error) {
+      console.error('Error sending coaching feedback:', error);
+      setNegativeChats(prev =>
+        prev.map(c => c.id === chat.id ? { ...c, sending_feedback: false } : c)
+      );
+      alert('Koçluk önerisi gönderilirken bir hata oluştu.');
+    }
+  };
+
+  const loadImprovementReport = async (agentEmail: string) => {
+    if (!agentEmail) return;
+
+    setLoadingImprovements(true);
+    try {
+      const { data, error } = await supabase.rpc('get_personnel_improvement_report', {
+        p_agent_email: agentEmail,
+        p_days_before: 30,
+        p_days_after: 30
+      });
+
+      if (error) throw error;
+
+      if (data && data.has_data) {
+        setImprovementReports([data]);
+      } else {
+        setImprovementReports([]);
+      }
+    } catch (error) {
+      console.error('Error loading improvement report:', error);
+      setImprovementReports([]);
+    } finally {
+      setLoadingImprovements(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedImprovementAgent) {
+      loadImprovementReport(selectedImprovementAgent);
+    }
+  }, [selectedImprovementAgent]);
+
   const toggleChat = async (chatId: string) => {
     if (expandedChat === chatId) {
       setExpandedChat(null);
@@ -329,6 +414,16 @@ export default function Reports() {
   const uniqueAgents = useMemo(() => {
     const agents = new Set(negativeChats.map(chat => chat.agent_name));
     return Array.from(agents).sort();
+  }, [negativeChats]);
+
+  const agentsWithCoaching = useMemo(() => {
+    const agents = new Map<string, string>();
+    negativeChats.forEach(chat => {
+      if (chat.agent_email && chat.sent_feedback) {
+        agents.set(chat.agent_email, chat.agent_name);
+      }
+    });
+    return Array.from(agents.entries()).map(([email, name]) => ({ email, name })).sort((a, b) => a.name.localeCompare(b.name));
   }, [negativeChats]);
 
   const allIssues = useMemo(() => {
@@ -502,6 +597,160 @@ export default function Reports() {
           </div>
         )}
       </div>
+
+      {agentsWithCoaching.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <BarChart className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+            <h2 className="text-xl font-bold text-slate-900">Personel Gelişim Takibi</h2>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-blue-900">
+                  <strong>Nasıl Çalışır:</strong> Koçluk önerisi iletilen personellerin, öneri öncesi ve sonrası performans değişimini görebilirsiniz.
+                  Bir personel seçin ve gelişim raporunu inceleyin.
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">Personel Seçin</label>
+              <select
+                value={selectedImprovementAgent}
+                onChange={(e) => setSelectedImprovementAgent(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Bir personel seçin...</option>
+                {agentsWithCoaching.map(agent => (
+                  <option key={agent.email} value={agent.email}>
+                    {agent.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {loadingImprovements && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-green-600" />
+                <span className="ml-2 text-slate-600">Gelişim raporu yükleniyor...</span>
+              </div>
+            )}
+
+            {!loadingImprovements && improvementReports.length > 0 && improvementReports[0].has_data && (
+              <div className="space-y-4">
+                {improvementReports.map((report, idx) => {
+                  const beforeAvgScore = Math.round(report.before_coaching?.average_score || 0);
+                  const afterAvgScore = Math.round(report.after_coaching?.average_score || 0);
+                  const scoreDiff = afterAvgScore - beforeAvgScore;
+
+                  const beforeAnalysisScore = Math.round(report.before_coaching?.total_analysis_score || 0);
+                  const afterAnalysisScore = Math.round(report.after_coaching?.total_analysis_score || 0);
+                  const analysisDiff = afterAnalysisScore - beforeAnalysisScore;
+
+                  return (
+                    <div key={idx} className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200 p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold text-slate-900">
+                            {agentsWithCoaching.find(a => a.email === report.agent_email)?.name}
+                          </h3>
+                          <p className="text-xs text-slate-600">
+                            İlk Koçluk Tarihi: {new Date(report.first_coaching_date).toLocaleDateString('tr-TR')}
+                          </p>
+                          <p className="text-xs text-green-700 font-medium">
+                            Toplam {report.total_coaching_sent} koçluk önerisi iletildi
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-sm font-semibold text-slate-700 mb-3">Öneri Öncesi (30 Gün)</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Personel Skoru:</span>
+                              <span className="font-semibold text-slate-900">{beforeAvgScore}/100</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Analiz Skoru:</span>
+                              <span className="font-semibold text-slate-900">{beforeAnalysisScore}/100</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Toplam Chat:</span>
+                              <span className="font-semibold text-slate-900">{report.before_coaching?.total_chats || 0}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg border border-slate-200 p-4">
+                          <h4 className="text-sm font-semibold text-slate-700 mb-3">Öneri Sonrası (30 Gün)</h4>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Personel Skoru:</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-slate-900">{afterAvgScore}/100</span>
+                                <span className={`text-xs font-medium ${scoreDiff > 0 ? 'text-green-600' : scoreDiff < 0 ? 'text-red-600' : 'text-slate-500'}`}>
+                                  {scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Analiz Skoru:</span>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-slate-900">{afterAnalysisScore}/100</span>
+                                <span className={`text-xs font-medium ${analysisDiff > 0 ? 'text-green-600' : analysisDiff < 0 ? 'text-red-600' : 'text-slate-500'}`}>
+                                  {analysisDiff > 0 ? `+${analysisDiff}` : analysisDiff}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs text-slate-600">Toplam Chat:</span>
+                              <span className="font-semibold text-slate-900">{report.after_coaching?.total_chats || 0}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-green-200">
+                        <div className="text-sm">
+                          {scoreDiff > 5 && analysisDiff > 5 && (
+                            <div className="flex items-center gap-2 text-green-700">
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="font-medium">Harika gelişme! Koçluk önerileri olumlu etki gösterdi.</span>
+                            </div>
+                          )}
+                          {scoreDiff <= 0 && analysisDiff <= 0 && (
+                            <div className="flex items-center gap-2 text-amber-700">
+                              <AlertCircle className="w-4 h-4" />
+                              <span className="font-medium">Gelişme görülmedi. Ek koçluk veya farklı yaklaşımlar gerekebilir.</span>
+                            </div>
+                          )}
+                          {(scoreDiff > 0 || analysisDiff > 0) && scoreDiff <= 5 && analysisDiff <= 5 && (
+                            <div className="flex items-center gap-2 text-blue-700">
+                              <AlertCircle className="w-4 h-4" />
+                              <span className="font-medium">Küçük gelişmeler var. Süreci takip etmeye devam edin.</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {!loadingImprovements && selectedImprovementAgent && improvementReports.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Bu personel için henüz gelişim verisi bulunamadı.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
         <div className="flex items-center gap-2 mb-4 sm:mb-6">
@@ -714,11 +963,46 @@ export default function Reports() {
                           </div>
                         )}
 
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
-                          <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                            <Lightbulb className="w-4 h-4 text-blue-600" />
-                            AI Koçluk Önerileri
-                          </h4>
+                        <div className={`rounded-lg border p-4 ${
+                          chat.sent_feedback
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                            : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+                        }`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold text-slate-900 flex items-center gap-2">
+                              {chat.sent_feedback ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                  AI Koçluk Önerileri (İletildi)
+                                </>
+                              ) : (
+                                <>
+                                  <Lightbulb className="w-4 h-4 text-blue-600" />
+                                  AI Koçluk Önerileri
+                                </>
+                              )}
+                            </h4>
+
+                            {chat.coaching && !chat.sent_feedback && (
+                              <button
+                                onClick={() => sendCoachingFeedback(chat)}
+                                disabled={chat.sending_feedback}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded-lg transition-colors"
+                              >
+                                {chat.sending_feedback ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Gönderiliyor...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send className="w-4 h-4" />
+                                    Önerileri İlet
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
 
                           {chat.loadingCoaching ? (
                             <div className="flex items-center gap-2 text-blue-600">
@@ -726,9 +1010,21 @@ export default function Reports() {
                               <span className="text-sm">AI öneri hazırlıyor...</span>
                             </div>
                           ) : chat.coaching ? (
-                            <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">
-                              {chat.coaching}
-                            </div>
+                            <>
+                              <div className={`prose prose-sm max-w-none whitespace-pre-wrap ${
+                                chat.sent_feedback ? 'text-slate-600' : 'text-slate-700'
+                              }`}>
+                                {chat.coaching}
+                              </div>
+                              {chat.sent_feedback && (
+                                <div className="mt-3 pt-3 border-t border-green-200">
+                                  <p className="text-xs text-green-700 flex items-center gap-1">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Bu öneriler personele iletildi ve gelişim takibi başlatıldı.
+                                  </p>
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <div className="text-sm text-slate-500">Öneri yükleniyor...</div>
                           )}
