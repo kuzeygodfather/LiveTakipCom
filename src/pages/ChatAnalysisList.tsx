@@ -47,7 +47,7 @@ export default function ChatAnalysisList() {
       while (true) {
         const { data: batch, error: batchError } = await supabase
           .from('chats')
-          .select('*')
+          .select('id, chat_id, agent_name, customer_name, created_at, analyzed')
           .order('created_at', { ascending: false })
           .range(from, from + chatBatchSize - 1);
 
