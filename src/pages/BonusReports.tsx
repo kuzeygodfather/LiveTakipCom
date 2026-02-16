@@ -327,7 +327,9 @@ export default function BonusReports() {
                                           {metricLabels[detail.metric_type]}: {detail.metric_value.toFixed(2)}
                                         </p>
                                       </div>
-                                      <p className="text-base font-bold text-green-600">+{detail.bonus_amount.toLocaleString('tr-TR')} TL</p>
+                                      <p className={`text-base font-bold ${detail.bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {detail.bonus_amount >= 0 ? '+' : ''}{detail.bonus_amount.toLocaleString('tr-TR')} TL
+                                      </p>
                                     </div>
                                   ))}
                                 </div>
@@ -391,7 +393,9 @@ export default function BonusReports() {
                         {calc.calculation_details.map((detail, idx) => (
                           <div key={idx} className="flex justify-between py-1 text-sm">
                             <span className="text-gray-700">{detail.rule_name}</span>
-                            <span className="font-bold text-green-600">+{detail.bonus_amount.toLocaleString('tr-TR')} TL</span>
+                            <span className={`font-bold ${detail.bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {detail.bonus_amount >= 0 ? '+' : ''}{detail.bonus_amount.toLocaleString('tr-TR')} TL
+                            </span>
                           </div>
                         ))}
                       </div>
