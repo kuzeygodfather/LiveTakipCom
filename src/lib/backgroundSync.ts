@@ -133,21 +133,9 @@ export function useBackgroundSync() {
   }, [loadPollingInterval]);
 
   useEffect(() => {
-    const initialDelay = setTimeout(() => {
-      syncChats();
-      analyzeChats();
-    }, 30000);
-
-    const syncInterval = setInterval(syncChats, pollingInterval);
-    const analyzeInterval = setInterval(analyzeChats, Math.max(pollingInterval * 2, DEFAULT_ANALYZE_INTERVAL));
-    const settingsInterval = setInterval(loadPollingInterval, STATS_REFRESH_INTERVAL * 4);
-
-    return () => {
-      clearTimeout(initialDelay);
-      clearInterval(syncInterval);
-      clearInterval(analyzeInterval);
-      clearInterval(settingsInterval);
-    };
+    // Background sync disabled to prevent blocking
+    // Sync will only run when manually triggered
+    return () => {};
   }, [pollingInterval, syncChats, analyzeChats, loadPollingInterval]);
 
   return { syncStatus, syncChats, analyzeChats };
