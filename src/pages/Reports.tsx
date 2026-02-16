@@ -9,21 +9,23 @@ interface ReportData {
 }
 
 interface ChatMessage {
-  author: { name: string };
+  author_id: string;
   text: string;
+  created_at: string;
 }
 
 interface NegativeChat {
   id: string;
-  thread_id: string;
+  chat_id: string;
   agent_name: string;
   started_at: string;
   ended_at: string;
   sentiment: string;
-  score: number;
-  issues: string[];
-  summary: string;
-  messages: ChatMessage[];
+  overall_score: number;
+  issues_detected: { improvement_areas?: string[] };
+  ai_summary: string;
+  chat_data: { all_messages?: ChatMessage[] };
+  messages?: Array<{ author: { name: string }; text: string }>;
   coaching?: string;
   loadingCoaching?: boolean;
 }
@@ -92,14 +94,41 @@ export default function Reports() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const { data: chatsData } = await supabase
-        .from('chat_analyses')
-        .select('*')
-        .or('sentiment.eq.negative,score.lt.50')
-        .gte('created_at', thirtyDaysAgo.toISOString())
-        .order('created_at', { ascending: false })
+        .from('chat_analysis')
+        .select(`
+          id,
+          chat_id,
+          overall_score,
+          sentiment,
+          issues_detected,
+          ai_summary,
+          analysis_date,
+          chats!inner (
+            agent_name,
+            created_at,
+            ended_at,
+            chat_data
+          )
+        `)
+        .or('sentiment.eq.negative,overall_score.lt.50')
+        .gte('analysis_date', thirtyDaysAgo.toISOString())
+        .order('analysis_date', { ascending: false })
         .limit(50);
 
-      setNegativeChats(chatsData || []);
+      const processedChats = (chatsData || []).map((item: any) => ({
+        id: item.id,
+        chat_id: item.chat_id,
+        overall_score: parseFloat(item.overall_score || 0),
+        sentiment: item.sentiment,
+        issues_detected: item.issues_detected || {},
+        ai_summary: item.ai_summary,
+        agent_name: item.chats?.agent_name || 'Unknown',
+        started_at: item.chats?.created_at,
+        ended_at: item.chats?.ended_at,
+        chat_data: item.chats?.chat_data || {},
+      }));
+
+      setNegativeChats(processedChats);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -187,6 +216,17 @@ export default function Reports() {
         prev.map(c => c.id === chat.id ? { ...c, loadingCoaching: true } : c)
       );
 
+      const chatData: any = chat.chat_data || {};
+      const fullChatData = chatData.properties?.full_chat_data || chatData;
+      const allMessages = fullChatData.all_messages || [];
+
+      const formattedMessages = allMessages
+        .filter((msg: any) => msg.text && msg.type === 'message')
+        .map((msg: any) => ({
+          author: { name: msg.author_id.includes('@') ? chat.agent_name : 'Müşteri' },
+          text: msg.text
+        }));
+
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-coaching`;
       const headers = {
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -198,12 +238,12 @@ export default function Reports() {
         headers,
         body: JSON.stringify({
           chatId: chat.id,
-          messages: chat.messages,
+          messages: formattedMessages,
           analysis: {
             sentiment: chat.sentiment,
-            score: chat.score,
-            issues: chat.issues,
-            summary: chat.summary,
+            score: chat.overall_score,
+            issues: chat.issues_detected?.improvement_areas || [],
+            summary: chat.ai_summary,
           },
         }),
       });
@@ -217,7 +257,7 @@ export default function Reports() {
       setNegativeChats(prev =>
         prev.map(c =>
           c.id === chat.id
-            ? { ...c, coaching: result.suggestion, loadingCoaching: false }
+            ? { ...c, coaching: result.suggestion, loadingCoaching: false, messages: formattedMessages }
             : c
         )
       );
@@ -267,6 +307,10 @@ export default function Reports() {
     if (sentiment === 'negative') return 'Olumsuz';
     if (sentiment === 'neutral') return 'Nötr';
     return 'Olumlu';
+  };
+
+  const getIssues = (chat: NegativeChat): string[] => {
+    return chat.issues_detected?.improvement_areas || [];
   };
 
   const trendData = getTrendData();
@@ -427,27 +471,27 @@ export default function Reports() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span className="font-semibold text-slate-900">{chat.agent_name}</span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getSentimentColor(chat.sentiment, chat.score)}`}>
-                            {getSentimentLabel(chat.sentiment)} • {chat.score}/100
+                          <span className={`px-2 py-1 rounded text-xs font-medium border ${getSentimentColor(chat.sentiment, chat.overall_score)}`}>
+                            {getSentimentLabel(chat.sentiment)} • {Math.round(chat.overall_score)}/100
                           </span>
                           <span className="text-xs text-slate-500">
                             {formatDate(chat.started_at)}
                           </span>
                         </div>
 
-                        {chat.summary && (
-                          <p className="text-sm text-slate-700 line-clamp-2 mb-2">{chat.summary}</p>
+                        {chat.ai_summary && (
+                          <p className="text-sm text-slate-700 line-clamp-2 mb-2">{chat.ai_summary}</p>
                         )}
 
-                        {chat.issues && chat.issues.length > 0 && (
+                        {getIssues(chat).length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {chat.issues.slice(0, 3).map((issue, idx) => (
+                            {getIssues(chat).slice(0, 3).map((issue, idx) => (
                               <span key={idx} className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">
                                 {issue}
                               </span>
                             ))}
-                            {chat.issues.length > 3 && (
-                              <span className="text-xs text-slate-500">+{chat.issues.length - 3} daha</span>
+                            {getIssues(chat).length > 3 && (
+                              <span className="text-xs text-slate-500">+{getIssues(chat).length - 3} daha</span>
                             )}
                           </div>
                         )}
