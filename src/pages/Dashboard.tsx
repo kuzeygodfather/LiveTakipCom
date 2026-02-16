@@ -141,7 +141,7 @@ export default function Dashboard() {
       while (true) {
         const { data: batch } = await supabase
           .from('chats')
-          .select('chat_data')
+          .select('rating_score')
           .range(from, from + batchSize - 1);
 
         if (!batch || batch.length === 0) break;
@@ -170,7 +170,7 @@ export default function Dashboard() {
 
       if (allChats) {
         for (const chat of allChats) {
-          const score = Number(chat.chat_data?.properties?.raw_chat_data?.rating_score);
+          const score = Number(chat.rating_score);
           if (!isNaN(score) && score > 0) {
             if (score >= 4) totalLikes++;
             else if (score <= 2) totalDislikes++;
