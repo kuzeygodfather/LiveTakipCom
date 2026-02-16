@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -285,8 +285,8 @@ export default function BonusReports() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {calculations.map((calc) => (
-                  <>
-                    <tr key={calc.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleRow(calc.id)}>
+                  <React.Fragment key={calc.id}>
+                    <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleRow(calc.id)}>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <button className="text-gray-400 hover:text-gray-600">
                           {expandedRows.has(calc.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -362,7 +362,7 @@ export default function BonusReports() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

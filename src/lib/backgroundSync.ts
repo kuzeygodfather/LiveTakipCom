@@ -119,14 +119,17 @@ export function useBackgroundSync() {
   }, [loadPollingInterval]);
 
   useEffect(() => {
-    syncChats();
-    analyzeChats();
+    const initialDelay = setTimeout(() => {
+      syncChats();
+      analyzeChats();
+    }, 5000);
 
     const syncInterval = setInterval(syncChats, pollingInterval);
     const analyzeInterval = setInterval(analyzeChats, Math.max(pollingInterval * 2, DEFAULT_ANALYZE_INTERVAL));
     const settingsInterval = setInterval(loadPollingInterval, STATS_REFRESH_INTERVAL * 4);
 
     return () => {
+      clearTimeout(initialDelay);
       clearInterval(syncInterval);
       clearInterval(analyzeInterval);
       clearInterval(settingsInterval);
