@@ -43,6 +43,18 @@ export default function Reports() {
     }
   };
 
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) {
+      return `${Math.round(seconds)}s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    if (remainingSeconds === 0) {
+      return `${minutes}dk`;
+    }
+    return `${minutes}dk ${remainingSeconds}s`;
+  };
+
   const loadReportData = async () => {
     try {
       let allData: any[] = [];
