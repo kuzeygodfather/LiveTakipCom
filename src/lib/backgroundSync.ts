@@ -46,20 +46,14 @@ export function useBackgroundSync() {
     setSyncStatus(prev => ({ ...prev, syncing: true, error: null }));
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat?days=1`,
         {
           headers: {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
-          signal: controller.signal,
         }
       );
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error(`Sync failed: ${response.status}`);
 
@@ -67,13 +61,12 @@ export function useBackgroundSync() {
         ...prev,
         lastSyncTime: new Date().toISOString(),
         syncing: false,
-        error: null,
       }));
     } catch (err: any) {
       setSyncStatus(prev => ({
         ...prev,
         syncing: false,
-        error: null,
+        error: err.message,
       }));
     } finally {
       syncingRef.current = false;
@@ -83,31 +76,25 @@ export function useBackgroundSync() {
   const analyzeChats = useCallback(async () => {
     if (analyzingRef.current) return;
 
+    const { count } = await supabase
+      .from('chats')
+      .select('*', { count: 'exact', head: true })
+      .eq('analyzed', false);
+
+    if (!count || count === 0) return;
+
+    analyzingRef.current = true;
+    setSyncStatus(prev => ({ ...prev, analyzing: true }));
+
     try {
-      const { count } = await supabase
-        .from('chats')
-        .select('*', { count: 'exact', head: true })
-        .eq('analyzed', false);
-
-      if (!count || count === 0) return;
-
-      analyzingRef.current = true;
-      setSyncStatus(prev => ({ ...prev, analyzing: true }));
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`,
         {
           headers: {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
-          signal: controller.signal,
         }
       );
-
-      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error(`Analyze failed: ${response.status}`);
 
@@ -115,13 +102,12 @@ export function useBackgroundSync() {
         ...prev,
         lastAnalyzeTime: new Date().toISOString(),
         analyzing: false,
-        error: null,
       }));
     } catch (err: any) {
       setSyncStatus(prev => ({
         ...prev,
         analyzing: false,
-        error: null,
+        error: err.message,
       }));
     } finally {
       analyzingRef.current = false;
@@ -133,9 +119,18 @@ export function useBackgroundSync() {
   }, [loadPollingInterval]);
 
   useEffect(() => {
-    // Background sync disabled to prevent blocking
-    // Sync will only run when manually triggered
-    return () => {};
+    syncChats();
+    analyzeChats();
+
+    const syncInterval = setInterval(syncChats, pollingInterval);
+    const analyzeInterval = setInterval(analyzeChats, Math.max(pollingInterval * 2, DEFAULT_ANALYZE_INTERVAL));
+    const settingsInterval = setInterval(loadPollingInterval, STATS_REFRESH_INTERVAL * 4);
+
+    return () => {
+      clearInterval(syncInterval);
+      clearInterval(analyzeInterval);
+      clearInterval(settingsInterval);
+    };
   }, [pollingInterval, syncChats, analyzeChats, loadPollingInterval]);
 
   return { syncStatus, syncChats, analyzeChats };

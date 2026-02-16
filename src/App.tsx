@@ -20,12 +20,7 @@ function App() {
   const { session, loading, signOut } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { syncStatus, syncChats, analyzeChats } = useBackgroundSync();
-
-  const handleManualSync = async () => {
-    await syncChats();
-    await analyzeChats();
-  };
+  const { syncStatus } = useBackgroundSync();
 
   if (loading) {
     return (
@@ -149,14 +144,6 @@ function App() {
               })}
             </div>
             <div className="border-t border-slate-200 pt-3 mt-3 space-y-2">
-              <button
-                onClick={handleManualSync}
-                disabled={syncStatus.syncing || syncStatus.analyzing}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <RefreshCw className={`w-5 h-5 flex-shrink-0 ${(syncStatus.syncing || syncStatus.analyzing) ? 'animate-spin' : ''}`} />
-                <span>Manuel Senkronizasyon</span>
-              </button>
               <div className="px-4 py-2">
                 <div className="flex items-center gap-2 mb-1.5">
                   {syncStatus.syncing || syncStatus.analyzing ? (
@@ -164,13 +151,13 @@ function App() {
                   ) : syncStatus.error ? (
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                   ) : (
-                    <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
                   )}
                   <span className="text-xs font-medium text-slate-600">
                     {syncStatus.syncing ? 'Senkronize ediliyor...' :
                      syncStatus.analyzing ? 'Analiz ediliyor...' :
                      syncStatus.error ? 'Baglanti hatasi' :
-                     'Manuel mod'}
+                     'Otomatik senk. aktif'}
                   </span>
                 </div>
                 {syncStatus.lastSyncTime && (
