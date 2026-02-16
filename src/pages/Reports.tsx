@@ -227,32 +227,43 @@ export default function Reports() {
           text: msg.text
         }));
 
+      console.log('Chat data structure:', chat.chat_data);
+      console.log('Formatted messages:', formattedMessages);
+
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-coaching`;
       const headers = {
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       };
 
+      const requestBody = {
+        chatId: chat.id,
+        messages: formattedMessages,
+        analysis: {
+          sentiment: chat.sentiment,
+          score: chat.overall_score,
+          issues: chat.issues_detected?.improvement_areas || [],
+          summary: chat.ai_summary,
+        },
+      };
+
+      console.log('Sending request:', requestBody);
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          chatId: chat.id,
-          messages: formattedMessages,
-          analysis: {
-            sentiment: chat.sentiment,
-            score: chat.overall_score,
-            issues: chat.issues_detected?.improvement_areas || [],
-            summary: chat.ai_summary,
-          },
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
       if (!response.ok) {
-        throw new Error('Failed to get coaching suggestion');
+        throw new Error(`API error: ${response.status} - ${responseText}`);
       }
 
-      const result = await response.json();
+      const result = JSON.parse(responseText);
 
       setNegativeChats(prev =>
         prev.map(c =>
@@ -263,10 +274,11 @@ export default function Reports() {
       );
     } catch (error) {
       console.error('Error getting coaching suggestion:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
       setNegativeChats(prev =>
         prev.map(c =>
           c.id === chat.id
-            ? { ...c, coaching: 'Öneri alınırken bir hata oluştu.', loadingCoaching: false }
+            ? { ...c, coaching: `Öneri alınırken bir hata oluştu: ${errorMessage}`, loadingCoaching: false }
             : c
         )
       );
