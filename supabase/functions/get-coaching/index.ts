@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,6 +30,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const { chatId, messages, analysis }: CoachingRequest = await req.json();
 
     if (!messages || messages.length === 0) {
@@ -41,10 +46,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    const { data: settings } = await supabase
+      .from("settings")
+      .select("claude_api_key")
+      .single();
+
+    const ANTHROPIC_API_KEY = settings?.claude_api_key;
     if (!ANTHROPIC_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        JSON.stringify({ error: "Claude API key not configured in settings" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -52,7 +62,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Chat mesajlarını string'e çevir
     const chatTranscript = messages
       .map((msg) => `${msg.author.name}: ${msg.text}`)
       .join("\n");
@@ -102,7 +111,7 @@ Türkçe, profesyonel ve yapıcı bir dille yaz.`;
       const error = await response.text();
       console.error("Claude API error:", error);
       return new Response(
-        JSON.stringify({ error: "Failed to get coaching suggestions" }),
+        JSON.stringify({ error: "Failed to get coaching suggestions from Claude API" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
