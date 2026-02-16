@@ -127,28 +127,50 @@ export default function Reports() {
       if (!acc[groupKey]) {
         acc[groupKey] = {
           date: groupKey,
-          totalChats: 0,
-          totalScore: 0,
-          count: 0,
-          avgResponseTime: 0,
+          totalAnalysisScore: 0,
+          analysisCount: 0,
+          totalPersonnelScore: 0,
+          personnelCount: 0,
+          totalResponseTime: 0,
           responseTimeCount: 0,
+          totalResolutionTime: 0,
+          resolutionTimeCount: 0,
         };
       }
-      acc[groupKey].totalChats += curr.total_chats;
-      acc[groupKey].totalScore += parseScore(curr.average_score) * curr.total_chats;
-      acc[groupKey].count += curr.total_chats;
+
+      // Analiz skorları
+      if (curr.total_analysis_score > 0 && curr.analysis_count > 0) {
+        acc[groupKey].totalAnalysisScore += curr.total_analysis_score;
+        acc[groupKey].analysisCount += curr.analysis_count;
+      }
+
+      // Personel skorları
+      if (curr.average_score > 0 && curr.total_chats > 0) {
+        acc[groupKey].totalPersonnelScore += parseScore(curr.average_score) * curr.total_chats;
+        acc[groupKey].personnelCount += curr.total_chats;
+      }
+
+      // Yanıt süresi
       if (curr.average_response_time > 0) {
-        acc[groupKey].avgResponseTime += curr.average_response_time;
+        acc[groupKey].totalResponseTime += curr.average_response_time;
         acc[groupKey].responseTimeCount++;
       }
+
+      // Çözüm süresi
+      if (curr.average_resolution_time > 0) {
+        acc[groupKey].totalResolutionTime += curr.average_resolution_time;
+        acc[groupKey].resolutionTimeCount++;
+      }
+
       return acc;
     }, {});
 
     return Object.values(grouped).map((item: any) => ({
       date: item.date,
-      totalChats: item.totalChats,
-      averageScore: item.count > 0 ? Math.round(item.totalScore / item.count) : 0,
-      avgResponseTime: item.responseTimeCount > 0 ? Math.round(item.avgResponseTime / item.responseTimeCount) : 0,
+      analysisScore: item.analysisCount > 0 ? Math.round(item.totalAnalysisScore / item.analysisCount) : 0,
+      personnelScore: item.personnelCount > 0 ? Math.round(item.totalPersonnelScore / item.personnelCount) : 0,
+      responseTime: item.responseTimeCount > 0 ? Math.round(item.totalResponseTime / item.responseTimeCount) : 0,
+      resolutionTime: item.resolutionTimeCount > 0 ? Math.round(item.totalResolutionTime / item.resolutionTimeCount) : 0,
     })).sort((a: any, b: any) => b.date.localeCompare(a.date));
   };
 
@@ -236,23 +258,32 @@ export default function Reports() {
                       {displayDate}
                     </div>
                   </div>
-                  <div className="flex-1 grid grid-cols-3 gap-2 sm:gap-4">
+                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                     <div>
-                      <div className="text-xs text-slate-600 mb-0.5">Chat</div>
-                      <div className="text-base sm:text-lg font-bold text-slate-900">{item.totalChats}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-slate-600 mb-0.5">Skor</div>
+                      <div className="text-xs text-slate-600 mb-0.5">Analiz Skor</div>
                       <div className={`text-base sm:text-lg font-bold ${
-                        item.averageScore >= 80 ? 'text-green-600' :
-                        item.averageScore >= 50 ? 'text-slate-600' : 'text-red-600'
+                        item.analysisScore >= 80 ? 'text-green-600' :
+                        item.analysisScore >= 50 ? 'text-slate-600' : 'text-red-600'
                       }`}>
-                        {item.averageScore}/100
+                        {item.analysisScore}/100
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs text-slate-600 mb-0.5">Yanit</div>
-                      <div className="text-base sm:text-lg font-bold text-slate-900">{item.avgResponseTime}s</div>
+                      <div className="text-xs text-slate-600 mb-0.5">Personel Skor</div>
+                      <div className={`text-base sm:text-lg font-bold ${
+                        item.personnelScore >= 80 ? 'text-green-600' :
+                        item.personnelScore >= 50 ? 'text-slate-600' : 'text-red-600'
+                      }`}>
+                        {item.personnelScore}/100
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Ort. Yanıt</div>
+                      <div className="text-base sm:text-lg font-bold text-slate-900">{item.responseTime}s</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Ort. Çözüm</div>
+                      <div className="text-base sm:text-lg font-bold text-slate-900">{item.resolutionTime}s</div>
                     </div>
                   </div>
                 </div>
