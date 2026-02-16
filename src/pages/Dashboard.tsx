@@ -214,7 +214,7 @@ export default function Dashboard() {
   const loadPersonnelTrends = async () => {
     try {
       const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
 
       let allChatsForAgents: any[] = [];
       let from = 0;
@@ -318,7 +318,7 @@ export default function Dashboard() {
   const loadComplaintData = async () => {
     try {
       const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
 
       let allAnalysis: any[] = [];
       let from = 0;
@@ -425,7 +425,7 @@ export default function Dashboard() {
         const { data: batch } = await supabase
           .from('chats')
           .select('created_at')
-          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
           .range(from, from + batchSize - 1);
 
         if (!batch || batch.length === 0) break;
@@ -452,7 +452,7 @@ export default function Dashboard() {
   const loadPerformersRanking = async () => {
     try {
       const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
 
       let allChatsForRanking: any[] = [];
       let from = 0;
@@ -767,7 +767,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <Leaderboard
             data={topPerformers}
-            title="🏆 Haftanın En İyi Performansları"
+            title="🏆 Ayın En İyi Performansları"
             type="top"
           />
         </div>
@@ -783,7 +783,7 @@ export default function Dashboard() {
 
       {personnelTrends.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">📈 Personel Performans Trendleri (Son 7 Gün)</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-6">📈 Personel Performans Trendleri (Son 30 Gün)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {personnelTrends.map((trend, index) => (
               <div key={index} className="border border-slate-200 rounded-lg p-4">
@@ -812,7 +812,7 @@ export default function Dashboard() {
               label: d.date,
               value: d.negative + d.neutral,
             }))}
-            title="📊 Günlük Şikayet Trendi (Son 7 Gün)"
+            title="📊 Günlük Şikayet Trendi (Son 30 Gün)"
             color="#ef4444"
             height={250}
           />
