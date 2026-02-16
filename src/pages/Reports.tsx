@@ -279,11 +279,11 @@ export default function Reports() {
                     </div>
                     <div>
                       <div className="text-xs text-slate-600 mb-0.5">Ort. Yanıt</div>
-                      <div className="text-base sm:text-lg font-bold text-slate-900">{item.responseTime}s</div>
+                      <div className="text-base sm:text-lg font-bold text-slate-900">{formatTime(item.responseTime)}</div>
                     </div>
                     <div>
                       <div className="text-xs text-slate-600 mb-0.5">Ort. Çözüm</div>
-                      <div className="text-base sm:text-lg font-bold text-slate-900">{item.resolutionTime}s</div>
+                      <div className="text-base sm:text-lg font-bold text-slate-900">{formatTime(item.resolutionTime)}</div>
                     </div>
                   </div>
                 </div>
