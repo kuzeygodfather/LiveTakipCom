@@ -44,6 +44,8 @@ export default function Reports() {
   const [selectedAgent, setSelectedAgent] = useState<string>('all');
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
   const [selectedIssue, setSelectedIssue] = useState<string>('all');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -337,7 +339,21 @@ export default function Reports() {
         return false;
       }
 
-      if (selectedDateRange !== 'all') {
+      if (selectedDateRange === 'custom') {
+        const chatDate = new Date(chat.started_at);
+
+        if (customStartDate) {
+          const startDate = new Date(customStartDate);
+          startDate.setHours(0, 0, 0, 0);
+          if (chatDate < startDate) return false;
+        }
+
+        if (customEndDate) {
+          const endDate = new Date(customEndDate);
+          endDate.setHours(23, 59, 59, 999);
+          if (chatDate > endDate) return false;
+        }
+      } else if (selectedDateRange !== 'all') {
         const chatDate = new Date(chat.started_at);
         const now = new Date();
         const daysAgo = Math.floor((now.getTime() - chatDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -354,7 +370,7 @@ export default function Reports() {
 
       return true;
     });
-  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue]);
+  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue, customStartDate, customEndDate]);
 
   const trendData = getTrendData();
 
@@ -523,6 +539,7 @@ export default function Reports() {
                     <option value="7">Son 7 Gün</option>
                     <option value="14">Son 14 Gün</option>
                     <option value="30">Son 30 Gün</option>
+                    <option value="custom">Özel Tarih Aralığı</option>
                   </select>
                 </div>
 
@@ -543,6 +560,29 @@ export default function Reports() {
                 </div>
               </div>
 
+              {selectedDateRange === 'custom' && (
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Başlangıç Tarihi</label>
+                    <input
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-700 mb-1">Bitiş Tarihi</label>
+                    <input
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
               {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all') && (
                 <div className="mt-3 flex items-center justify-between">
                   <span className="text-sm text-slate-600">
@@ -553,6 +593,8 @@ export default function Reports() {
                       setSelectedAgent('all');
                       setSelectedDateRange('all');
                       setSelectedIssue('all');
+                      setCustomStartDate('');
+                      setCustomEndDate('');
                     }}
                     className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                   >
@@ -581,6 +623,8 @@ export default function Reports() {
                     setSelectedAgent('all');
                     setSelectedDateRange('all');
                     setSelectedIssue('all');
+                    setCustomStartDate('');
+                    setCustomEndDate('');
                   }}
                   className="mt-2 text-sm text-blue-600 hover:text-blue-700"
                 >
