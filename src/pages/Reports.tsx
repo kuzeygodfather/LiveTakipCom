@@ -181,6 +181,7 @@ export default function Reports() {
           responseTimeCount: 0,
           totalResolutionTime: 0,
           resolutionTimeCount: 0,
+          totalChats: 0,
         };
       }
 
@@ -192,6 +193,10 @@ export default function Reports() {
       if (curr.average_score > 0 && curr.total_chats > 0) {
         acc[groupKey].totalPersonnelScore += parseScore(curr.average_score) * curr.total_chats;
         acc[groupKey].personnelCount += curr.total_chats;
+      }
+
+      if (curr.total_chats > 0) {
+        acc[groupKey].totalChats += curr.total_chats;
       }
 
       if (curr.average_response_time > 0) {
@@ -213,6 +218,7 @@ export default function Reports() {
       personnelScore: item.personnelCount > 0 ? Math.round(item.totalPersonnelScore / item.personnelCount) : 0,
       responseTime: item.responseTimeCount > 0 ? Math.round(item.totalResponseTime / item.responseTimeCount) : 0,
       resolutionTime: item.resolutionTimeCount > 0 ? Math.round(item.totalResolutionTime / item.resolutionTimeCount) : 0,
+      totalChats: item.totalChats,
     })).sort((a: any, b: any) => b.date.localeCompare(a.date));
   };
 
@@ -456,7 +462,13 @@ export default function Reports() {
                       {displayDate}
                     </div>
                   </div>
-                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                  <div className="flex-1 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
+                    <div>
+                      <div className="text-xs text-slate-600 mb-0.5">Toplam Chat</div>
+                      <div className="text-base sm:text-lg font-bold text-blue-600">
+                        {item.totalChats}
+                      </div>
+                    </div>
                     <div>
                       <div className="text-xs text-slate-600 mb-0.5">Analiz Skor</div>
                       <div className={`text-base sm:text-lg font-bold ${
