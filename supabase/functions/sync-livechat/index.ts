@@ -7,6 +7,38 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 3, delayMs = 1000): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt}/${maxRetries}: Fetching ${url}`);
+      const response = await fetch(url, options);
+
+      if (response.ok) {
+        return response;
+      }
+
+      if (response.status >= 500) {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error as Error;
+      console.error(`Attempt ${attempt} failed:`, error);
+
+      if (attempt < maxRetries) {
+        const waitTime = delayMs * attempt;
+        console.log(`Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+
+  throw new Error(`Failed after ${maxRetries} attempts. Last error: ${lastError?.message}`);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -81,14 +113,19 @@ Deno.serve(async (req: Request) => {
 
     while (hasMorePages) {
       console.log(`Fetching page ${currentPage}...`);
-      const livechatResponse = await fetch(
+
+      const livechatResponse = await fetchWithRetry(
         `https://livechat.systemtest.store/api/v1/chats?page=${currentPage}&per_page=${perPage}&start_date=${startDate}&end_date=${endDate}&date_field=created_at`,
-        { headers: { "X-API-Key": settings.livechat_api_key } }
+        { headers: { "X-API-Key": settings.livechat_api_key } },
+        3,
+        2000
       );
 
       if (!livechatResponse.ok) {
         throw new Error(`LiveChat API error: ${livechatResponse.statusText}`);
       }
+
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const livechatData = await livechatResponse.json();
       const pageChats = livechatData.data || [];
