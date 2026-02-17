@@ -206,7 +206,7 @@ export default function Reports() {
         .or('sentiment.eq.negative,overall_score.lt.50')
         .gte('analysis_date', thirtyDaysAgoUTC)
         .order('analysis_date', { ascending: false })
-        .limit(500);
+        .limit(5000);
 
       const { data: sentFeedbacks } = await supabase
         .from('coaching_feedbacks')
