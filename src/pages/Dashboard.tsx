@@ -267,7 +267,7 @@ export default function Dashboard() {
 
       if (allChatsForAgents.length === 0) return;
 
-      const uniqueAgents = [...new Set(allChatsForAgents.map(c => c.agent_name))].slice(0, 5);
+      const uniqueAgents = [...new Set(allChatsForAgents.map(c => c.agent_name))];
 
       const trends: PersonnelTrend[] = [];
 
@@ -331,10 +331,10 @@ export default function Dashboard() {
             score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
           }));
 
-          if (scores.length >= 2) {
+          if (scores.length >= 1) {
             const firstScore = scores[0].score;
             const lastScore = scores[scores.length - 1].score;
-            const weeklyChange = firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
+            const weeklyChange = scores.length >= 2 && firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
             trends.push({
               agent_name: agentName,
