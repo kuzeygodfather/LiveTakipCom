@@ -6,6 +6,7 @@ import BarChart from '../components/BarChart';
 import DonutChart from '../components/DonutChart';
 import HeatMap from '../components/HeatMap';
 import Leaderboard from '../components/Leaderboard';
+import { Tooltip } from '../components/Tooltip';
 import { extractComplaintTopics } from '../lib/complaintCategories';
 import { getIstanbulDateStartUTC, convertIstanbulDateToUTC } from '../lib/utils';
 
@@ -763,6 +764,7 @@ export default function Dashboard() {
       icon: Users,
       color: 'bg-blue-500',
       change: 'Müşteri Oturumları',
+      tooltip: 'Farklı müşterilerle yapılan chat sayısı',
     },
     {
       title: 'Total Thread',
@@ -770,6 +772,7 @@ export default function Dashboard() {
       icon: MessageSquare,
       color: 'bg-cyan-500',
       change: `${stats.totalThreads - stats.uniqueChats} Tekrar`,
+      tooltip: 'Tekrar eden müşteriler dahil toplam chat sayısı',
     },
     {
       title: 'Analiz Edilen',
@@ -777,6 +780,7 @@ export default function Dashboard() {
       icon: CheckCircle,
       color: 'bg-green-500',
       change: `${stats.totalChats > 0 ? Math.round((stats.analyzedChats / stats.totalChats) * 100) : 0}%`,
+      tooltip: 'AI tarafından analiz edilen chat sayısı',
     },
     {
       title: 'Personel Sayısı',
@@ -784,6 +788,7 @@ export default function Dashboard() {
       icon: UserCircle,
       color: 'bg-purple-500',
       change: 'Aktif',
+      tooltip: 'Sistemdeki toplam aktif personel sayısı',
     },
     {
       title: 'Bekleyen Uyarı',
@@ -791,6 +796,7 @@ export default function Dashboard() {
       icon: AlertTriangle,
       color: 'bg-red-500',
       change: stats.pendingAlerts > 0 ? 'Dikkat!' : 'Normal',
+      tooltip: 'İncelenmesi gereken düşük skorlu chat sayısı',
     },
     {
       title: 'Ortalama Skor',
@@ -798,6 +804,7 @@ export default function Dashboard() {
       icon: TrendingUp,
       color: 'bg-emerald-500',
       change: stats.averageScore >= 80 ? 'Olumlu' : stats.averageScore >= 50 ? 'Notr' : 'Olumsuz',
+      tooltip: 'AI tarafından hesaplanan ortalama kalite skoru',
     },
     {
       title: 'Ort. Yanıt Süresi',
@@ -805,6 +812,7 @@ export default function Dashboard() {
       icon: Clock,
       color: 'bg-orange-500',
       change: stats.averageResponseTime < 60 ? 'Hızlı' : 'Yavaş',
+      tooltip: 'Personelin müşterilere ortalama yanıt süresi',
     },
     {
       title: 'Toplam Beğeni',
@@ -812,6 +820,7 @@ export default function Dashboard() {
       icon: ThumbsUp,
       color: 'bg-green-600',
       change: `${stats.totalChats > 0 ? Math.round((stats.totalLikes / stats.totalChats) * 100) : 0}%`,
+      tooltip: 'Müşteri tarafından beğenilen chat sayısı',
     },
     {
       title: 'Toplam Beğenilmeyen',
@@ -819,6 +828,7 @@ export default function Dashboard() {
       icon: ThumbsDown,
       color: 'bg-red-600',
       change: `${stats.totalChats > 0 ? Math.round((stats.totalDislikes / stats.totalChats) * 100) : 0}%`,
+      tooltip: 'Müşteri tarafından beğenilmeyen chat sayısı',
     },
     {
       title: 'Kaçan Chat',
@@ -826,6 +836,7 @@ export default function Dashboard() {
       icon: PhoneOff,
       color: 'bg-orange-600',
       change: stats.missedChats > 0 ? 'Dikkat!' : 'Normal',
+      tooltip: 'Personel tarafından cevaplanmayan chat sayısı',
     },
   ];
 
@@ -869,18 +880,20 @@ export default function Dashboard() {
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.title} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-lg transition-all hover:scale-105">
-              <div className="flex items-start justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-slate-600 truncate">{card.title}</p>
-                  <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-2">{card.value}</p>
-                  <p className="text-xs text-slate-500 mt-1">{card.change}</p>
-                </div>
-                <div className={`${card.color} p-2 rounded-lg flex-shrink-0 ml-2`}>
-                  <Icon className="w-4 h-4 text-white" />
+            <Tooltip key={card.title} content={card.tooltip} position="bottom">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-lg transition-all hover:scale-105 cursor-help">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-slate-600 truncate">{card.title}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-2">{card.value}</p>
+                    <p className="text-xs text-slate-500 mt-1">{card.change}</p>
+                  </div>
+                  <div className={`${card.color} p-2 rounded-lg flex-shrink-0 ml-2`}>
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Tooltip>
           );
         })}
       </div>

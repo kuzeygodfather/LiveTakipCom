@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter, Send, CheckCircle, TrendingUp, Users, Target } from 'lucide-react';
 import { getIstanbulDateStartUTC, formatDateInIstanbulTimezone } from '../lib/utils';
+import { useNotification } from '../lib/notifications';
 
 interface ReportData {
   daily: any[];
@@ -37,6 +38,7 @@ interface NegativeChat {
 type TabType = 'trends' | 'coaching' | 'improvement';
 
 export default function Reports() {
+  const { showSuccess, showError, showWarning, showInfo, showConfirm } = useNotification();
   const [reportData, setReportData] = useState<ReportData>({
     daily: [],
     weekly: [],
@@ -494,7 +496,7 @@ export default function Reports() {
       setNegativeChats(prev =>
         prev.map(c => c.id === chat.id ? { ...c, sending_feedback: false } : c)
       );
-      alert('Koçluk önerisi gönderilirken bir hata oluştu.');
+      showError('Koçluk önerisi gönderilirken bir hata oluştu.');
     }
   };
 
@@ -502,13 +504,22 @@ export default function Reports() {
     const chatsToGenerate = filteredChats.filter(c => !c.coaching && !c.loadingCoaching);
 
     if (chatsToGenerate.length === 0) {
-      alert('Tüm görünür chatler için koçluk önerisi zaten oluşturulmuş!');
+      showInfo('Tüm görünür chatler için koçluk önerisi zaten oluşturulmuş!');
       return;
     }
 
-    if (!confirm(`${chatsToGenerate.length} chat için koçluk önerisi oluşturulacak. Devam etmek istiyor musunuz?`)) {
-      return;
-    }
+    showConfirm(
+      'Toplu Koçluk Önerisi Oluştur',
+      `${chatsToGenerate.length} chat için koçluk önerisi oluşturulacak. Devam etmek istiyor musunuz?`,
+      async () => {
+        await executeBulkGeneration(chatsToGenerate);
+      },
+      'Oluştur',
+      'İptal'
+    );
+  };
+
+  const executeBulkGeneration = async (chatsToGenerate: NegativeChat[]) => {
 
     setBulkGenerating(true);
     setBulkProgress({ current: 0, total: chatsToGenerate.length, success: 0, failed: 0 });
@@ -561,20 +572,33 @@ export default function Reports() {
     await loadData();
 
     const resultMessage = `Toplam ${chatsToGenerate.length} chat işlendi:\n✓ Başarılı: ${successCount}\n✗ Başarısız: ${failedCount}`;
-    alert(resultMessage);
+    if (successCount > 0) {
+      showSuccess(resultMessage);
+    } else {
+      showError(resultMessage);
+    }
   };
 
   const bulkSendFeedback = async () => {
     const chatsToSend = filteredChats.filter(c => c.coaching && !c.sent_feedback && !c.sending_feedback);
 
     if (chatsToSend.length === 0) {
-      alert('İletilecek koçluk önerisi bulunamadı!');
+      showInfo('İletilecek koçluk önerisi bulunamadı!');
       return;
     }
 
-    if (!confirm(`${chatsToSend.length} koçluk önerisi personele iletilecek. Devam etmek istiyor musunuz?`)) {
-      return;
-    }
+    showConfirm(
+      'Koçluk Önerilerini İlet',
+      `${chatsToSend.length} koçluk önerisi personele iletilecek. Devam etmek istiyor musunuz?`,
+      async () => {
+        await executeBulkSendFeedback(chatsToSend);
+      },
+      'İlet',
+      'İptal'
+    );
+  };
+
+  const executeBulkSendFeedback = async (chatsToSend: NegativeChat[]) => {
 
     setBulkSending(true);
     setBulkProgress({ current: 0, total: chatsToSend.length, success: 0, failed: 0 });
@@ -623,7 +647,11 @@ export default function Reports() {
     await loadData();
 
     const resultMessage = `Toplam ${chatsToSend.length} öneri işlendi:\n✓ İletildi: ${successCount}\n✗ Başarısız: ${failedCount}`;
-    alert(resultMessage);
+    if (successCount > 0) {
+      showSuccess(resultMessage);
+    } else {
+      showError(resultMessage);
+    }
   };
 
   const loadImprovementReport = async (agentEmail: string) => {

@@ -13,6 +13,7 @@ import UserGuide from './pages/UserGuide';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './lib/auth';
 import { useBackgroundSync } from './lib/backgroundSync';
+import { NotificationProvider } from './lib/notifications';
 
 type Page = 'dashboard' | 'chats' | 'all-chats' | 'personnel' | 'reports' | 'monitoring' | 'bonus-settings' | 'bonus-reports' | 'user-guide' | 'settings';
 
@@ -82,7 +83,8 @@ function App() {
   const currentNav = navigation.find(n => n.id === currentPage);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <NotificationProvider>
+      <div className="min-h-screen bg-slate-50">
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => setSidebarOpen(true)}
@@ -182,6 +184,7 @@ function App() {
         </main>
       </div>
     </div>
+    </NotificationProvider>
   );
 }
 

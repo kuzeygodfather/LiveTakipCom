@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Plus, Edit2, Trash2, Check, X, DollarSign } from 'lucide-react';
+import { useNotification } from '../lib/notifications';
 
 interface BonusRule {
   id: string;
@@ -17,6 +18,7 @@ interface BonusRule {
 }
 
 export default function BonusSettings() {
+  const { showSuccess, showError, showConfirm } = useNotification();
   const [rules, setRules] = useState<BonusRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -132,16 +134,25 @@ export default function BonusSettings() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bu prim kuralını silmek istediğinizden emin misiniz?')) return;
+    showConfirm(
+      'Prim Kuralını Sil',
+      'Bu prim kuralını silmek istediğinizden emin misiniz?',
+      async () => {
+        const { error } = await supabase
+          .from('bonus_rules')
+          .delete()
+          .eq('id', id);
 
-    const { error } = await supabase
-      .from('bonus_rules')
-      .delete()
-      .eq('id', id);
-
-    if (!error) {
-      fetchRules();
-    }
+        if (!error) {
+          showSuccess('Prim kuralı başarıyla silindi.');
+          fetchRules();
+        } else {
+          showError('Prim kuralı silinirken bir hata oluştu.');
+        }
+      },
+      'Sil',
+      'İptal'
+    );
   };
 
   const toggleActive = async (rule: BonusRule) => {

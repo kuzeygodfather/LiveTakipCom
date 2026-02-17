@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { maskName } from '../lib/utils';
 import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff } from 'lucide-react';
 import type { Personnel } from '../types';
+import { useNotification } from '../lib/notifications';
 
 interface RatingInfo {
   liked_chats: Array<{ id: string; customer_name: string }>;
@@ -17,6 +18,7 @@ interface RatingInfo {
 }
 
 export default function PersonnelAnalytics() {
+  const { showSuccess, showError } = useNotification();
   const [personnel, setPersonnel] = useState<Personnel[]>([]);
   const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
   const [dailyStats, setDailyStats] = useState<any[]>([]);
@@ -216,9 +218,10 @@ export default function PersonnelAnalytics() {
       }
 
       console.log('Stats recalculated successfully!');
+      showSuccess('İstatistikler başarıyla yeniden hesaplandı!');
     } catch (error: any) {
       console.error('Error recalculating stats:', error);
-      alert(`Hata: ${error.message || 'Bilinmeyen hata'}`);
+      showError(`Hata: ${error.message || 'Bilinmeyen hata'}`);
     } finally {
       setRecalculating(false);
     }
