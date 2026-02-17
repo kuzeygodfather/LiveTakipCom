@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Users, TrendingUp, Settings, Activity, List, DollarSign, FileText, Menu, X, LogOut, RefreshCw, BookOpen } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Users, TrendingUp, Settings, Activity, List, DollarSign, FileText, Menu, X, LogOut, RefreshCw, BookOpen, GraduationCap } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import ChatAnalysisList from './pages/ChatAnalysisList';
 import ChatList from './pages/ChatList';
@@ -10,12 +10,13 @@ import Monitoring from './pages/Monitoring';
 import BonusSettings from './pages/BonusSettings';
 import BonusReports from './pages/BonusReports';
 import UserGuide from './pages/UserGuide';
+import CoachingCenter from './pages/CoachingCenter';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './lib/auth';
 import { useBackgroundSync } from './lib/backgroundSync';
 import { NotificationProvider } from './lib/notifications';
 
-type Page = 'dashboard' | 'chats' | 'all-chats' | 'personnel' | 'reports' | 'monitoring' | 'bonus-settings' | 'bonus-reports' | 'user-guide' | 'settings';
+type Page = 'dashboard' | 'chats' | 'all-chats' | 'personnel' | 'reports' | 'monitoring' | 'bonus-settings' | 'bonus-reports' | 'coaching' | 'user-guide' | 'settings';
 
 function App() {
   const { session, loading, signOut } = useAuth();
@@ -47,6 +48,7 @@ function App() {
     { id: 'monitoring', name: 'Canli Izleme', icon: Activity },
     { id: 'bonus-settings', name: 'Prim Ayarlari', icon: DollarSign },
     { id: 'bonus-reports', name: 'Prim Raporlari', icon: FileText },
+    { id: 'coaching', name: 'Kocluk Merkezi', icon: GraduationCap },
     { id: 'user-guide', name: 'Kullanim Kilavuzu', icon: BookOpen },
     { id: 'settings', name: 'Ayarlar', icon: Settings },
   ];
@@ -74,6 +76,8 @@ function App() {
         return <BonusSettings />;
       case 'bonus-reports':
         return <BonusReports />;
+      case 'coaching':
+        return <CoachingCenter />;
       case 'user-guide':
         return <UserGuide />;
       case 'settings':
