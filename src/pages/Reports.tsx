@@ -228,15 +228,15 @@ export default function Reports() {
       const processedChats = (chatsData || []).map((item: any) => {
         const agentName = item.chats?.agent_name || 'Unknown';
         const chatData = item.chats?.chat_data || {};
+        const fullChatData = chatData.properties?.full_chat_data || chatData;
+        const allMessages = fullChatData.all_messages || [];
 
-        const chatMessages = Array.isArray(chatData.messages)
-          ? chatData.messages
-              .filter((msg: any) => msg.text && msg.text.trim() !== '' && msg.type === 'message')
-              .map((msg: any) => ({
-                author: { name: msg.author_id && msg.author_id.includes('@') ? agentName : 'Müşteri' },
-                text: msg.text.trim()
-              }))
-          : [];
+        const chatMessages = allMessages
+          .filter((msg: any) => msg.text && msg.text.trim() !== '' && msg.type === 'message')
+          .map((msg: any) => ({
+            author: { name: msg.author_id && msg.author_id.includes('@') ? agentName : 'Müşteri' },
+            text: msg.text.trim()
+          }));
 
         return {
           id: item.id,
