@@ -122,9 +122,9 @@ export default function PersonnelAnalytics() {
               .in('chat_id', batchIds);
 
             if (batch) {
-              // Filter for negative chats only (low score OR negative sentiment)
+              // Filter for negative chats only (overall_score < 50)
               const negativeChats = batch.filter(
-                item => item.overall_score < 50 || item.sentiment === 'negative'
+                item => item.overall_score < 50
               );
               allWarningAnalyses = [...allWarningAnalyses, ...negativeChats];
             }
