@@ -51,8 +51,14 @@ export default function Reports() {
   const [selectedAgent, setSelectedAgent] = useState<string>('all');
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
   const [selectedIssue, setSelectedIssue] = useState<string>('all');
+  const [selectedCoachingStatus, setSelectedCoachingStatus] = useState<string>('all');
+  const [selectedFeedbackStatus, setSelectedFeedbackStatus] = useState<string>('all');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
+
+  const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [bulkSending, setBulkSending] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
 
   const [improvementReports, setImprovementReports] = useState<any[]>([]);
   const [loadingImprovements, setLoadingImprovements] = useState(false);
@@ -196,6 +202,7 @@ export default function Reports() {
           issues_detected,
           ai_summary,
           analysis_date,
+          coaching_suggestion,
           chats!inner (
             agent_name,
             created_at,
@@ -232,6 +239,7 @@ export default function Reports() {
           started_at: item.chats?.created_at,
           ended_at: item.chats?.ended_at,
           chat_data: item.chats?.chat_data || {},
+          coaching: item.coaching_suggestion,
           sent_feedback: sentChatIds.has(item.id),
         };
       });
@@ -383,6 +391,16 @@ export default function Reports() {
 
       const result = await response.json();
 
+      // Save coaching suggestion to database
+      const { error: updateError } = await supabase
+        .from('chat_analysis')
+        .update({ coaching_suggestion: result.suggestion })
+        .eq('id', chat.id);
+
+      if (updateError) {
+        console.error('Error saving coaching suggestion:', updateError);
+      }
+
       setNegativeChats(prev =>
         prev.map(c =>
           c.id === chat.id
@@ -437,6 +455,61 @@ export default function Reports() {
       );
       alert('Koçluk önerisi gönderilirken bir hata oluştu.');
     }
+  };
+
+  const bulkGenerateCoaching = async () => {
+    const chatsToGenerate = filteredChats.filter(c => !c.coaching && !c.loadingCoaching);
+
+    if (chatsToGenerate.length === 0) {
+      alert('Tüm görünür chatler için koçluk önerisi zaten oluşturulmuş!');
+      return;
+    }
+
+    if (!confirm(`${chatsToGenerate.length} chat için koçluk önerisi oluşturulacak. Devam etmek istiyor musunuz?`)) {
+      return;
+    }
+
+    setBulkGenerating(true);
+    setBulkProgress({ current: 0, total: chatsToGenerate.length });
+
+    for (let i = 0; i < chatsToGenerate.length; i++) {
+      const chat = chatsToGenerate[i];
+      setBulkProgress({ current: i + 1, total: chatsToGenerate.length });
+      await getCoachingSuggestion(chat);
+      // Wait a bit to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    setBulkGenerating(false);
+    setBulkProgress({ current: 0, total: 0 });
+    alert(`${chatsToGenerate.length} chat için koçluk önerisi oluşturuldu!`);
+  };
+
+  const bulkSendFeedback = async () => {
+    const chatsToSend = filteredChats.filter(c => c.coaching && !c.sent_feedback && !c.sending_feedback);
+
+    if (chatsToSend.length === 0) {
+      alert('İletilecek koçluk önerisi bulunamadı!');
+      return;
+    }
+
+    if (!confirm(`${chatsToSend.length} koçluk önerisi personele iletilecek. Devam etmek istiyor musunuz?`)) {
+      return;
+    }
+
+    setBulkSending(true);
+    setBulkProgress({ current: 0, total: chatsToSend.length });
+
+    for (let i = 0; i < chatsToSend.length; i++) {
+      const chat = chatsToSend[i];
+      setBulkProgress({ current: i + 1, total: chatsToSend.length });
+      await sendCoachingFeedback(chat);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    setBulkSending(false);
+    setBulkProgress({ current: 0, total: 0 });
+    alert(`${chatsToSend.length} koçluk önerisi iletildi!`);
   };
 
   const loadImprovementReport = async (agentEmail: string) => {
@@ -575,9 +648,19 @@ export default function Reports() {
         if (!issues.includes(selectedIssue)) return false;
       }
 
+      if (selectedCoachingStatus !== 'all') {
+        if (selectedCoachingStatus === 'generated' && !chat.coaching) return false;
+        if (selectedCoachingStatus === 'not_generated' && chat.coaching) return false;
+      }
+
+      if (selectedFeedbackStatus !== 'all') {
+        if (selectedFeedbackStatus === 'sent' && !chat.sent_feedback) return false;
+        if (selectedFeedbackStatus === 'not_sent' && chat.sent_feedback) return false;
+      }
+
       return true;
     });
-  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue, customStartDate, customEndDate]);
+  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue, selectedCoachingStatus, selectedFeedbackStatus, customStartDate, customEndDate]);
 
   const trendData = useMemo(() => {
     const data = getTrendData();
@@ -846,6 +929,34 @@ export default function Reports() {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Koçluk Önerisi Durumu</label>
+                    <select
+                      value={selectedCoachingStatus}
+                      onChange={(e) => setSelectedCoachingStatus(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="all">Tümü</option>
+                      <option value="generated">Öneri Oluşturulmuş ({negativeChats.filter(c => c.coaching).length})</option>
+                      <option value="not_generated">Öneri Oluşturulmamış ({negativeChats.filter(c => !c.coaching).length})</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">İletim Durumu</label>
+                    <select
+                      value={selectedFeedbackStatus}
+                      onChange={(e) => setSelectedFeedbackStatus(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="all">Tümü</option>
+                      <option value="sent">İletilmiş ({negativeChats.filter(c => c.sent_feedback).length})</option>
+                      <option value="not_sent">İletilmemiş ({negativeChats.filter(c => !c.sent_feedback).length})</option>
+                    </select>
+                  </div>
+                </div>
+
                 {selectedDateRange === 'custom' && (
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div>
@@ -869,7 +980,7 @@ export default function Reports() {
                   </div>
                 )}
 
-                {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all') && (
+                {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all' || selectedCoachingStatus !== 'all' || selectedFeedbackStatus !== 'all') && (
                   <div className="mt-4 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                     <span className="text-sm font-medium text-slate-700">
                       {filteredChats.length} sonuç gösteriliyor
@@ -879,6 +990,8 @@ export default function Reports() {
                         setSelectedAgent('all');
                         setSelectedDateRange('all');
                         setSelectedIssue('all');
+                        setSelectedCoachingStatus('all');
+                        setSelectedFeedbackStatus('all');
                         setCustomStartDate('');
                         setCustomEndDate('');
                       }}
@@ -890,12 +1003,77 @@ export default function Reports() {
                 )}
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                        <Lightbulb className="w-5 h-5 text-amber-600" />
+                        Toplu Koçluk Önerisi Oluştur
+                      </h3>
+                      <p className="text-sm text-slate-600">
+                        Filtrelenmiş tüm chatler için AI koçluk önerileri oluştur
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={bulkGenerateCoaching}
+                    disabled={bulkGenerating || filteredChats.filter(c => !c.coaching).length === 0}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white font-medium rounded-lg transition-colors shadow-sm"
+                  >
+                    {bulkGenerating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        {bulkProgress.current}/{bulkProgress.total} Oluşturuluyor...
+                      </>
+                    ) : (
+                      <>
+                        <Lightbulb className="w-5 h-5" />
+                        {filteredChats.filter(c => !c.coaching).length} Chat için Öneri Oluştur
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                        <Send className="w-5 h-5 text-green-600" />
+                        Toplu Öneri İletimi
+                      </h3>
+                      <p className="text-sm text-slate-600">
+                        Oluşturulmuş tüm önerileri personele ilet
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={bulkSendFeedback}
+                    disabled={bulkSending || filteredChats.filter(c => c.coaching && !c.sent_feedback).length === 0}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-medium rounded-lg transition-colors shadow-sm"
+                  >
+                    {bulkSending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        {bulkProgress.current}/{bulkProgress.total} İletiliyor...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        {filteredChats.filter(c => c.coaching && !c.sent_feedback).length} Öneriyi İlet
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <div className="flex gap-3">
                   <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-900">
                     <strong className="font-semibold">Nasıl Kullanılır:</strong> Bu bölüm, müşteri memnuniyetsizliği yaşanan görüşmeleri listeler.
                     Her görüşme için AI destekli iyileştirme önerileri oluşturabilir ve personele gönderebilirsiniz.
+                    Toplu işlem butonları ile tüm görünür chatler için aynı anda işlem yapabilirsiniz.
                   </div>
                 </div>
               </div>
@@ -911,6 +1089,8 @@ export default function Reports() {
                         setSelectedAgent('all');
                         setSelectedDateRange('all');
                         setSelectedIssue('all');
+                        setSelectedCoachingStatus('all');
+                        setSelectedFeedbackStatus('all');
                         setCustomStartDate('');
                         setCustomEndDate('');
                       }}
