@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History } from 'lucide-react';
+import { useNotification } from '../lib/notifications';
 
 interface BonusCalculation {
   id: string;
@@ -30,13 +31,17 @@ interface BonusCalculation {
 }
 
 export default function BonusReports() {
+  const { showSuccess, showError } = useNotification();
   const [calculations, setCalculations] = useState<BonusCalculation[]>([]);
+  const [savedReports, setSavedReports] = useState<BonusCalculation[]>([]);
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [periodType, setPeriodType] = useState('monthly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [viewMode, setViewMode] = useState<'preview' | 'saved'>('preview');
 
   useEffect(() => {
     const today = new Date();
@@ -52,9 +57,13 @@ export default function BonusReports() {
 
   useEffect(() => {
     if (startDate && endDate) {
-      fetchCalculations();
+      if (viewMode === 'preview') {
+        fetchCalculations();
+      } else {
+        fetchSavedReports();
+      }
     }
-  }, [periodType, startDate, endDate]);
+  }, [periodType, startDate, endDate, viewMode]);
 
   const fetchCalculations = async () => {
     setLoading(true);
@@ -110,19 +119,102 @@ export default function BonusReports() {
           period_type: periodType,
           period_start: `${startDate}T00:00:00.000Z`,
           period_end: `${endDate}T23:59:59.999Z`,
+          save_to_db: false,
         }),
       });
 
       if (response.ok) {
         await fetchCalculations();
+        showSuccess('Primler başarıyla hesaplandı');
       } else {
-        console.error('Bonus calculation failed');
+        showError('Prim hesaplama başarısız oldu');
       }
     } catch (error) {
       console.error('Error calculating bonuses:', error);
+      showError('Prim hesaplama sırasında hata oluştu');
     } finally {
       setCalculating(false);
     }
+  };
+
+  const saveBonusReport = async () => {
+    if (calculations.length === 0) {
+      showError('Kaydedilecek prim hesaplaması bulunamadı');
+      return;
+    }
+
+    setSaving(true);
+
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/calculate-bonuses`;
+
+    try {
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          period_type: periodType,
+          period_start: `${startDate}T00:00:00.000Z`,
+          period_end: `${endDate}T23:59:59.999Z`,
+          save_to_db: true,
+        }),
+      });
+
+      if (response.ok) {
+        showSuccess('Prim raporu başarıyla kaydedildi');
+        setViewMode('saved');
+      } else {
+        showError('Rapor kaydetme başarısız oldu');
+      }
+    } catch (error) {
+      console.error('Error saving bonus report:', error);
+      showError('Rapor kaydetme sırasında hata oluştu');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const fetchSavedReports = async () => {
+    setLoading(true);
+
+    let allData: any[] = [];
+    let from = 0;
+    const batchSize = 1000;
+
+    while (true) {
+      const { data: batch, error } = await supabase
+        .from('bonus_records')
+        .select('*')
+        .eq('period_type', periodType)
+        .gte('period_start', `${startDate}T00:00:00.000Z`)
+        .lte('period_end', `${endDate}T23:59:59.999Z`)
+        .order('saved_at', { ascending: false })
+        .range(from, from + batchSize - 1);
+
+      if (error) break;
+      if (!batch || batch.length === 0) break;
+      allData = [...allData, ...batch];
+      if (batch.length < batchSize) break;
+      from += batchSize;
+    }
+
+    const latestByPersonnel = new Map<string, any>();
+    for (const record of allData) {
+      if (!latestByPersonnel.has(record.personnel_id)) {
+        latestByPersonnel.set(record.personnel_id, {
+          ...record,
+          calculated_at: record.saved_at
+        });
+      }
+    }
+
+    const uniqueRecords = Array.from(latestByPersonnel.values());
+    uniqueRecords.sort((a, b) => b.total_bonus_amount - a.total_bonus_amount);
+
+    setSavedReports(uniqueRecords);
+    setLoading(false);
   };
 
   const toggleRow = (id: string) => {
@@ -135,8 +227,9 @@ export default function BonusReports() {
     setExpandedRows(newExpanded);
   };
 
-  const totalBonuses = calculations.reduce((sum, calc) => sum + calc.total_bonus_amount, 0);
-  const avgBonus = calculations.length > 0 ? totalBonuses / calculations.length : 0;
+  const displayData = viewMode === 'preview' ? calculations : savedReports;
+  const totalBonuses = displayData.reduce((sum, calc) => sum + calc.total_bonus_amount, 0);
+  const avgBonus = displayData.length > 0 ? totalBonuses / displayData.length : 0;
 
   const metricLabels: { [key: string]: string } = {
     total_chats: 'Toplam Chat',
@@ -153,6 +246,33 @@ export default function BonusReports() {
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Prim Raporlari</h1>
         <p className="text-sm sm:text-base text-gray-600 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-2 mb-6">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setViewMode('preview')}
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+              viewMode === 'preview'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <Calculator className="w-5 h-5" />
+            Prim Hesaplama (Önizleme)
+          </button>
+          <button
+            onClick={() => setViewMode('saved')}
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+              viewMode === 'saved'
+                ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <History className="w-5 h-5" />
+            Kayıtlı Raporlar
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -180,7 +300,7 @@ export default function BonusReports() {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <p className="text-slate-300 text-xs sm:text-sm font-medium">Personel</p>
-              <p className="text-xl sm:text-3xl font-bold mt-1 sm:mt-2">{calculations.length}</p>
+              <p className="text-xl sm:text-3xl font-bold mt-1 sm:mt-2">{displayData.length}</p>
             </div>
             <Users className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400 flex-shrink-0" />
           </div>
@@ -191,13 +311,15 @@ export default function BonusReports() {
             <div className="min-w-0">
               <p className="text-orange-100 text-xs sm:text-sm font-medium">En Yuksek</p>
               <p className="text-xl sm:text-3xl font-bold mt-1 sm:mt-2 truncate">
-                {calculations.length > 0 ? calculations[0].total_bonus_amount.toLocaleString('tr-TR') : '0'} TL
+                {displayData.length > 0 ? displayData[0].total_bonus_amount.toLocaleString('tr-TR') : '0'} TL
               </p>
             </div>
             <Calculator className="w-8 h-8 sm:w-12 sm:h-12 text-orange-200 flex-shrink-0" />
           </div>
         </div>
       </div>
+
+      {viewMode === 'preview' && (
 
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
         <h2 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
@@ -244,29 +366,44 @@ export default function BonusReports() {
             />
           </div>
 
-          <div className="flex items-end">
+          <div className="flex items-end gap-2 col-span-1 sm:col-span-2 md:col-span-1">
             <button
               onClick={calculateBonuses}
               disabled={calculating || !startDate || !endDate}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Calculator className="w-5 h-5" />
-              {calculating ? 'Hesaplanıyor...' : 'Primleri Hesapla'}
+              {calculating ? 'Hesaplanıyor...' : 'Hesapla'}
+            </button>
+            <button
+              onClick={saveBonusReport}
+              disabled={saving || calculating || calculations.length === 0}
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <Save className="w-5 h-5" />
+              {saving ? 'Kaydediliyor...' : 'Kaydet'}
             </button>
           </div>
         </div>
       </div>
+      )}
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-lg text-gray-600">Yükleniyor...</div>
           </div>
-        ) : calculations.length === 0 ? (
+        ) : displayData.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-            <Calculator className="w-16 h-16 mb-4 text-gray-300" />
-            <p className="text-lg">Bu dönem için hesaplanmış prim bulunamadı</p>
-            <p className="text-sm mt-2">Yukarıdaki parametreleri ayarlayıp "Primleri Hesapla" butonuna tıklayın</p>
+            {viewMode === 'preview' ? <Calculator className="w-16 h-16 mb-4 text-gray-300" /> : <History className="w-16 h-16 mb-4 text-gray-300" />}
+            <p className="text-lg">
+              {viewMode === 'preview'
+                ? 'Bu dönem için hesaplanmış prim bulunamadı'
+                : 'Bu dönem için kayıtlı rapor bulunamadı'}
+            </p>
+            {viewMode === 'preview' && (
+              <p className="text-sm mt-2">Yukarıdaki parametreleri ayarlayıp "Hesapla" butonuna tıklayın</p>
+            )}
           </div>
         ) : (
           <>
@@ -284,7 +421,7 @@ export default function BonusReports() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {calculations.map((calc) => (
+                {displayData.map((calc) => (
                   <React.Fragment key={calc.id}>
                     <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleRow(calc.id)}>
                       <td className="px-4 py-4 whitespace-nowrap">
@@ -369,7 +506,7 @@ export default function BonusReports() {
           </div>
 
           <div className="sm:hidden space-y-3 p-4">
-            {calculations.map((calc) => (
+            {displayData.map((calc) => (
               <div key={calc.id} className="border border-gray-200 rounded-lg overflow-hidden">
                 <div
                   className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"

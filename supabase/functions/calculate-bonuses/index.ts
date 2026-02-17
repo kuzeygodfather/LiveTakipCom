@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { period_type, period_start, period_end } = await req.json();
+    const { period_type, period_start, period_end, save_to_db = false } = await req.json();
 
     if (!period_type || !['daily', 'weekly', 'monthly'].includes(period_type)) {
       throw new Error("Invalid period_type. Must be 'daily', 'weekly', or 'monthly'");
@@ -181,10 +181,31 @@ Deno.serve(async (req: Request) => {
 
       if (!calcError && calculation) {
         calculations.push({
+          personnel_id: person.id,
           personnel_name: person.name,
           total_bonus: totalBonus,
           rules_applied: bonusDetails.length,
+          metrics: metrics,
+          details: bonusDetails,
         });
+
+        if (save_to_db) {
+          await supabase
+            .from('bonus_records')
+            .upsert({
+              personnel_id: person.id,
+              personnel_name: person.name,
+              period_type,
+              period_start: startStr,
+              period_end: endStr,
+              total_bonus_amount: totalBonus,
+              calculation_details: bonusDetails,
+              metrics_snapshot: metrics,
+              saved_at: new Date().toISOString(),
+            }, {
+              onConflict: 'personnel_id,period_type,period_start,period_end',
+            });
+        }
       }
     }
 
