@@ -171,6 +171,9 @@ export default function Reports() {
         average_resolution_time: day.resolution_time_count > 0 ? day.total_resolution_time / day.resolution_time_count : 0,
       }));
 
+      console.log('Daily Stats Loaded:', dailyArray.length, 'days');
+      console.log('Sample data:', dailyArray.slice(0, 3));
+
       setReportData({
         daily: dailyArray || [],
         weekly: dailyArray || [],
@@ -556,7 +559,12 @@ export default function Reports() {
     });
   }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue, customStartDate, customEndDate]);
 
-  const trendData = getTrendData();
+  const trendData = useMemo(() => {
+    const data = getTrendData();
+    console.log('Trend Data:', data);
+    console.log('Report Data Daily:', reportData.daily);
+    return data;
+  }, [reportData, timeRange]);
 
   if (loading) {
     return (
