@@ -156,98 +156,141 @@ function buildDetailedScript(
   const criticals = issues.filter(i => i.type === 'critical');
   const improvements = issues.filter(i => i.type === 'improvement');
 
-  let script = `KOÇLUK GÖRÜŞME NOTU\n`;
-  script += `Tarih: ${today} | Personel: ${agentName} | Hazırlayan: Koordinatör\n`;
-  script += `${'─'.repeat(60)}\n\n`;
+  const sep = '─'.repeat(62);
+  const thin = '·'.repeat(62);
 
-  script += `Merhaba ${firstName},\n\n`;
+  let s = `YÖNETİCİ–PERSONEL GÖRÜŞME SENARYOSU\n`;
+  s += `Tarih: ${today}  |  Personel: ${agentName}  |  Süre: ~15-20 dk\n`;
+  s += `${sep}\n`;
+  s += `NOT: Yönetici konuşmaları "Y:", personel beklenen yanıtlar "P:" ile işaretlenmiştir.\n`;
+  s += `     [...] = beklenen cevaba göre devam et\n\n`;
 
+  s += `${sep}\n`;
+  s += `BÖLÜM 0 — GİRİŞ\n`;
+  s += `${sep}\n\n`;
+
+  s += `Y: "${firstName}, bugün seninle ${dateRange} günlük performans değerlendirmesi yapmak istiyorum.\n`;
+  s += `   Seninle birlikte geçtiğimiz dönemde yaptığın ${totalChats} chati inceledim.\n`;
   if (avgScore >= 88) {
-    script += `Son ${dateRange} gunde yaptigin ${totalChats} chat analiz ettim. `;
-    script += `Genel ortalaman ${avgScore}/100 — bu gercekten iyi bir performans. `;
-    script += `Kucuk detaylari konusmak icin bu gorusmede bir aradayiz.\n\n`;
+    s += `   Genel ortalaman ${avgScore}/100 — bu iyi bir sonuç. Bazı ince noktaları birlikte konuşalım."\n\n`;
   } else if (avgScore >= 72) {
-    script += `Son ${dateRange} gunde yaptigin ${totalChats} chati inceledim. `;
-    script += `Ortalama skorun ${avgScore}/100. Iyi bir taban var ama birkac spesifik konuyu birlikte ele alacagiz. `;
-    script += `Konusmak istedigim seyleri somut chatlerden ornekleyecegim.\n\n`;
+    s += `   Genel ortalaman ${avgScore}/100 çıktı. Bazı konularda potansiyelinin altında kalıyorsun,\n`;
+    s += `   bunları somut örneklerle göstereceğim."\n\n`;
   } else {
-    script += `Son ${dateRange} gunde yaptigin ${totalChats} chati detayliyla inceledim. `;
-    script += `Ortalama skorun ${avgScore}/100 — hedef esinin altinda. Bu gorusmede `;
-    script += `somut ornekler uzerinden konusacagiz ve birlikte bir aksiyon plani cizecegiz.\n\n`;
+    s += `   Genel ortalaman ${avgScore}/100 — bu hedefin belirgin şekilde altında.\n`;
+    s += `   Seninle somut örnekler üzerinden konuşmak ve birlikte bir yol haritası çizmek istiyorum."\n\n`;
   }
 
+  s += `P: [Dinliyor, kabul eder ya da merakla sorar]\n\n`;
+  s += `Y: "Sana sadece genel bir değerlendirme değil, hangi chatleride ne olduğunu göstereceğim.\n`;
+  s += `   Verilerden konuşacağız, kişisel bir eleştiri değil bu."\n\n`;
+
   if (criticals.length > 0) {
-    script += `${'─'.repeat(60)}\n`;
-    script += `BÖLÜM 1 — KRİTİK KONULAR (${criticals.length} baslik)\n`;
-    script += `${'─'.repeat(60)}\n\n`;
+    s += `${sep}\n`;
+    s += `BÖLÜM 1 — KRİTİK HATALAR (${criticals.length} başlık)\n`;
+    s += `${sep}\n\n`;
 
-    criticals.forEach((issue, issueIdx) => {
-      script += `${issueIdx + 1}. ${issue.text.toUpperCase()}\n`;
-      script += `   Bu durum ${issue.count} farkli chatta tespit edildi.\n\n`;
+    criticals.forEach((issue, idx) => {
+      s += `${thin}\n`;
+      s += `KONU ${idx + 1}: ${issue.text.toUpperCase()}\n`;
+      s += `${thin}\n\n`;
 
-      issue.evidences.slice(0, 2).forEach((ev, evIdx) => {
-        script += `   Ornek ${evIdx + 1}: Chat #${shortChatId(ev.chatId)} | ${formatDate(ev.date)} | Musteri: ${ev.customerName || 'Belirtilmemis'} | Skor: ${ev.score}/100\n`;
+      s += `Y: "${firstName}, ${issue.count} farklı chatta tekrar eden bir konu dikkatimi çekti: ${issue.text.toLowerCase()}.\n`;
+      s += `   Sana somut bir örnek vermek istiyorum."\n\n`;
+
+      if (issue.evidences.length > 0) {
+        const ev = issue.evidences[0];
+        s += `Y: "${formatDate(ev.date)} tarihli, müşteri ${ev.customerName} ile yaptığın Chat #${shortChatId(ev.chatId)}'e baktım.\n`;
+        s += `   Bu chatın skoru ${ev.score}/100 olarak çıktı.\n`;
         if (ev.aiSummary) {
-          const summary = ev.aiSummary.length > 180 ? ev.aiSummary.slice(0, 180) + '...' : ev.aiSummary;
-          script += `   Sistem analizi: "${summary}"\n`;
+          const summary = ev.aiSummary.length > 200 ? ev.aiSummary.slice(0, 200) + '...' : ev.aiSummary;
+          s += `   Sistem analizi şunu söylüyor: '${summary}'\n`;
         }
-        if (ev.recommendation) {
-          const rec = ev.recommendation.length > 150 ? ev.recommendation.slice(0, 150) + '...' : ev.recommendation;
-          script += `   Spesifik oneri: ${rec}\n`;
-        }
-        script += '\n';
-      });
+        s += `   Bu durumu nasıl değerlendiriyorsun?"\n\n`;
+        s += `P: [Açıklama yapar / kabul eder / savunma yapar]\n\n`;
 
-      script += `   Dogru yaklasim: ${issue.correctApproach}\n\n`;
+        if (issue.evidences.length > 1) {
+          const ev2 = issue.evidences[1];
+          s += `Y: "Bu sadece o chata özgü değil. ${formatDate(ev2.date)} tarihli Chat #${shortChatId(ev2.chatId)}'de\n`;
+          s += `   de benzer bir durum var, müşteri ${ev2.customerName}, skor ${ev2.score}/100.\n`;
+          if (ev2.aiSummary) {
+            s += `   Orada da sistem: '${ev2.aiSummary.slice(0, 160)}' demiş.\n`;
+          }
+          s += `   Bu iki örneğe baktığında, ne fark ediyorsun?"\n\n`;
+          s += `P: [Kalıp fark eder veya sormaya devam et]\n\n`;
+        }
+      }
+
+      s += `Y: "Peki bu durumu bir sonraki chatlerde nasıl ele almalısın?\n`;
+      s += `   ${issue.correctApproach}"\n\n`;
+      s += `P: [Anlayıp anlamadığını söyler]\n\n`;
+      s += `Y: "Bunu bir sonraki görüşmemde kontrol edeceğim. Anlaştık mı?"\n\n`;
     });
   }
 
   if (improvements.length > 0) {
-    script += `${'─'.repeat(60)}\n`;
-    script += `BÖLÜM 2 — GELİŞTİRME ALANLARI (${improvements.length} baslik)\n`;
-    script += `${'─'.repeat(60)}\n\n`;
+    s += `${sep}\n`;
+    s += `BÖLÜM 2 — GELİŞTİRME ALANLARI (${improvements.length} başlık)\n`;
+    s += `${sep}\n\n`;
 
-    improvements.forEach((issue, issueIdx) => {
-      script += `${criticals.length + issueIdx + 1}. ${issue.text}\n`;
-      script += `   ${issue.count} chatta goruldu.\n\n`;
+    improvements.forEach((issue, idx) => {
+      s += `${thin}\n`;
+      s += `GELİŞTİRME ${idx + 1}: ${issue.text}\n`;
+      s += `${thin}\n\n`;
+
+      s += `Y: "Bir de şunu konuşalım: ${issue.text.toLowerCase()} konusunda ${issue.count} chatta\n`;
+      s += `   geliştirme alanı olduğunu görüyorum.\n`;
 
       if (issue.evidences.length > 0) {
         const ev = issue.evidences[0];
-        script += `   Referans Chat: #${shortChatId(ev.chatId)} | ${formatDate(ev.date)} | ${ev.customerName || 'Belirtilmemis'} | Skor: ${ev.score}/100\n`;
+        s += `   Örnek olarak ${formatDate(ev.date)} tarihli Chat #${shortChatId(ev.chatId)}'e bakarsak,\n`;
+        s += `   müşteri ${ev.customerName}, skor ${ev.score}/100.\n`;
         if (ev.aiSummary) {
-          script += `   "${ev.aiSummary.slice(0, 140)}..."\n`;
+          s += `   '${ev.aiSummary.slice(0, 150)}...'\n`;
         }
-        script += '\n';
       }
-
-      script += `   Onerim: ${issue.correctApproach}\n\n`;
+      s += `   Bu konuda kendini nasıl değerlendiriyorsun?"\n\n`;
+      s += `P: [...]\n\n`;
+      s += `Y: "${issue.correctApproach}"\n\n`;
     });
   }
 
   if (issues.length === 0) {
-    script += `${'─'.repeat(60)}\n`;
-    script += `GENEL DEĞERLENDİRME\n`;
-    script += `${'─'.repeat(60)}\n\n`;
-    script += `Analiz edilen ${totalChats} chatta spesifik bir hata tespit edilmedi. `;
-    script += `Performansini koruman icin en iyi uygulamalari surdurmeni oneririm.\n\n`;
+    s += `${sep}\n`;
+    s += `GENEL DEĞERLENDİRME\n`;
+    s += `${sep}\n\n`;
+    s += `Y: "Analiz ettiğim ${totalChats} chatta spesifik bir hata tespit etmedim.\n`;
+    s += `   Bu dönemde tutarlı bir performans sergiliyorsun.\n`;
+    s += `   Bunu devam ettirmek için hangi alışkanlıklarını sürdürmek istiyorsun?"\n\n`;
+    s += `P: [...]\n\n`;
   }
 
-  script += `${'─'.repeat(60)}\n`;
-  script += `AKSİYON PLANI\n`;
-  script += `${'─'.repeat(60)}\n\n`;
+  s += `${sep}\n`;
+  s += `BÖLÜM 3 — AKSİYON MUTABAKATI\n`;
+  s += `${sep}\n\n`;
+
+  s += `Y: "Bugün konuştuklarımızı özetleyeyim:\n`;
+  issues.slice(0, 3).forEach((issue, idx) => {
+    s += `   ${idx + 1}. ${issue.text}\n`;
+  });
+  s += `\n   Bunlar için şu adımları atmayı öneriyorum:"\n\n`;
 
   actionItems.forEach((item, idx) => {
-    script += `${idx + 1}. [ ] ${item}\n`;
+    s += `   ${idx + 1}. [ ] ${item}\n`;
   });
 
-  script += `\n`;
-  script += `Bu konular hakkinda sorularin var mi? Hangi kisimda daha fazla destege ihtiyac duyuyorsun?\n\n`;
-  script += `─────────────────────────────────────────\n`;
-  script += `Koordinator imzasi: ___________________\n`;
-  script += `Personel imzasi:    ___________________\n`;
-  script += `Gorussme tarihi:    ${today}`;
+  s += `\nY: "Bu adımları gerçekleştirmek için ne gibi desteğe ihtiyacın var?"\n\n`;
+  s += `P: [...]\n\n`;
+  s += `Y: "3 gün içinde kısa bir takip görüşmesi yapalım. Aynı konuların tekrar\n`;
+  s += `   etmemesini bekliyorum. Sorun olursa bana her zaman gelebilirsin."\n\n`;
+  s += `P: [Onaylar]\n\n`;
+  s += `${sep}\n`;
+  s += `İMZALAR\n`;
+  s += `${sep}\n\n`;
+  s += `Yönetici:   _______________________   Tarih: ${today}\n`;
+  s += `Personel:   _______________________   Tarih: ${today}\n`;
 
-  return script;
+  return s;
 }
 
 function determineUrgency(data: { avgScore: number; requiresAttentionCount: number; criticalCount: number }): 'high' | 'medium' | 'low' {
@@ -552,10 +595,10 @@ export default function CoachingCenter() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <BookOpen className="w-7 h-7 text-cyan-400" />
-            Koçluk Merkezi
+            Yönetici Koçluk Merkezi
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Somut chat kanıtlarıyla desteklenmiş koordinatör görüşme rehberi
+            Kanıt bazlı görüşme senaryoları — chat ID'leri ve AI analizleriyle desteklenmiş
           </p>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
@@ -738,7 +781,7 @@ export default function CoachingCenter() {
                     <div className="flex border-b border-slate-700/40">
                       {([
                         { id: 'issues', label: 'Kanıtlı Sorunlar', icon: AlertTriangle, count: agent.evidencedIssues.length },
-                        { id: 'script', label: 'Görüsme Metni', icon: FileText, count: null },
+                        { id: 'script', label: 'Görüşme Senaryosu', icon: FileText, count: null },
                         { id: 'actions', label: 'Aksiyon Planı', icon: ListChecks, count: agent.actionItems.length },
                       ] as const).map(t => (
                         <button
@@ -964,7 +1007,7 @@ export default function CoachingCenter() {
                       {tab === 'script' && (
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs text-slate-400">Kopyalayıp doğrudan görüşmede kullanabileceğiniz hazır metin</p>
+                            <p className="text-xs text-slate-400">Y: Yönetici konuşur — P: Personel cevaplar — Somut chat örnekleriyle hazır senaryo</p>
                             <button
                               onClick={() => copyScript(agent.agentName, agent.coachingScript)}
                               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200 border bg-slate-800/60 border-slate-700/50 hover:border-cyan-500/40 hover:text-cyan-300 text-slate-300"

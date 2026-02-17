@@ -48,7 +48,7 @@ function App() {
     { id: 'monitoring', name: 'Canli Izleme', icon: Activity },
     { id: 'bonus-settings', name: 'Prim Ayarlari', icon: DollarSign },
     { id: 'bonus-reports', name: 'Prim Raporlari', icon: FileText },
-    { id: 'coaching', name: 'Kocluk Merkezi', icon: GraduationCap },
+    { id: 'coaching', name: 'Yönetici Koçluk Merkezi', icon: GraduationCap },
     { id: 'user-guide', name: 'Kullanim Kilavuzu', icon: BookOpen },
     { id: 'settings', name: 'Ayarlar', icon: Settings },
   ];
