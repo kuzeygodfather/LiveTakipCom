@@ -233,7 +233,7 @@ export default function BonusSettings() {
                   type="text"
                   value={formData.rule_name}
                   onChange={(e) => setFormData({ ...formData, rule_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   placeholder="Örn: 100+ Chat Primi"
                 />
@@ -246,7 +246,7 @@ export default function BonusSettings() {
                 <select
                   value={formData.metric_type}
                   onChange={(e) => setFormData({ ...formData, metric_type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {metricTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -261,7 +261,7 @@ export default function BonusSettings() {
                 <select
                   value={formData.condition_type}
                   onChange={(e) => setFormData({ ...formData, condition_type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {conditionTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -277,7 +277,7 @@ export default function BonusSettings() {
                   type="number"
                   value={formData.threshold_min}
                   onChange={(e) => setFormData({ ...formData, threshold_min: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   step="0.01"
                 />
@@ -292,7 +292,7 @@ export default function BonusSettings() {
                     type="number"
                     value={formData.threshold_max || ''}
                     onChange={(e) => setFormData({ ...formData, threshold_max: e.target.value ? Number(e.target.value) : null })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required={formData.condition_type === 'between'}
                     step="0.01"
                   />
@@ -306,7 +306,7 @@ export default function BonusSettings() {
                 <select
                   value={formData.rule_type}
                   onChange={(e) => setFormData({ ...formData, rule_type: e.target.value as 'bonus' | 'penalty' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="bonus">Prim (Ödül)</option>
                   <option value="penalty">Ceza (Kesinti)</option>
@@ -321,7 +321,7 @@ export default function BonusSettings() {
                   type="number"
                   value={formData.bonus_amount}
                   onChange={(e) => setFormData({ ...formData, bonus_amount: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                   step="0.01"
                   min="0"
@@ -335,7 +335,7 @@ export default function BonusSettings() {
                 <select
                   value={formData.period_type}
                   onChange={(e) => setFormData({ ...formData, period_type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   {periodTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -370,7 +370,7 @@ export default function BonusSettings() {
                   setEditingRule(null);
                   resetForm();
                 }}
-                className="px-6 py-2 bg-gray-200 text-slate-200 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-2 bg-white/10 text-slate-300 rounded-lg hover:bg-white/15 transition-colors border border-white/10"
               >
                 İptal
               </button>
@@ -381,31 +381,31 @@ export default function BonusSettings() {
 
       <div className="glass-effect rounded-lg shadow-lg overflow-hidden">
         <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-white/10">
+            <thead className="bg-white/5">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kural Adi</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kosul</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prim/Ceza</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periyot</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Islemler</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Durum</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Kural Adi</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Kosul</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Prim/Ceza</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Periyot</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Islemler</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-white/10">
               {rules.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
                     Henuz prim kurali eklenmemis.
                   </td>
                 </tr>
               ) : (
                 rules.map((rule) => (
-                  <tr key={rule.id} className="hover:bg-gray-50">
+                  <tr key={rule.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-4 py-4 whitespace-nowrap">
                       <button
                         onClick={() => toggleActive(rule)}
-                        className={`flex items-center justify-center w-8 h-8 rounded-full ${rule.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-slate-200'}`}
+                        className={`flex items-center justify-center w-8 h-8 rounded-full ${rule.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-slate-400'}`}
                       >
                         {rule.is_active ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
                       </button>
@@ -414,26 +414,26 @@ export default function BonusSettings() {
                       <div className="text-sm font-medium text-white">{rule.rule_name}</div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-sm text-gray-600">{getConditionText(rule)}</div>
+                      <div className="text-sm text-slate-300">{getConditionText(rule)}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       {rule.bonus_amount >= 0 ? (
-                        <div className="text-sm font-semibold text-green-600">+{rule.bonus_amount.toLocaleString('tr-TR')} TL</div>
+                        <div className="text-sm font-semibold text-emerald-400">+{rule.bonus_amount.toLocaleString('tr-TR')} TL</div>
                       ) : (
-                        <div className="text-sm font-semibold text-red-600">{rule.bonus_amount.toLocaleString('tr-TR')} TL</div>
+                        <div className="text-sm font-semibold text-red-400">{rule.bonus_amount.toLocaleString('tr-TR')} TL</div>
                       )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
                         {periodTypes.find(p => p.value === rule.period_type)?.label}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm">
                       <div className="flex gap-2">
-                        <button onClick={() => handleEdit(rule)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                        <button onClick={() => handleEdit(rule)} className="p-2 text-blue-400 hover:bg-blue-500/15 rounded-lg transition-colors">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(rule.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <button onClick={() => handleDelete(rule.id)} className="p-2 text-red-400 hover:bg-red-500/15 rounded-lg transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -449,37 +449,37 @@ export default function BonusSettings() {
           {rules.length === 0 ? (
             <div className="p-8 text-center text-gray-500">Henuz prim kurali eklenmemis.</div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-white/10">
               {rules.map((rule) => (
-                <div key={rule.id} className="p-4">
+                <div key={rule.id} className="p-4 hover:bg-white/5 transition-colors">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <button
                           onClick={() => toggleActive(rule)}
-                          className={`flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0 ${rule.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-slate-200'}`}
+                          className={`flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0 ${rule.is_active ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-slate-400'}`}
                         >
                           {rule.is_active ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
                         </button>
                         <span className="font-medium text-sm text-white truncate">{rule.rule_name}</span>
                       </div>
-                      <div className="text-xs text-gray-600 mb-1">{getConditionText(rule)}</div>
+                      <div className="text-xs text-slate-300 mb-1">{getConditionText(rule)}</div>
                       <div className="flex items-center gap-2">
                         {rule.bonus_amount >= 0 ? (
-                          <span className="text-sm font-bold text-green-600">+{rule.bonus_amount.toLocaleString('tr-TR')} TL</span>
+                          <span className="text-sm font-bold text-emerald-400">+{rule.bonus_amount.toLocaleString('tr-TR')} TL</span>
                         ) : (
-                          <span className="text-sm font-bold text-red-600">{rule.bonus_amount.toLocaleString('tr-TR')} TL</span>
+                          <span className="text-sm font-bold text-red-400">{rule.bonus_amount.toLocaleString('tr-TR')} TL</span>
                         )}
-                        <span className="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-blue-800">
+                        <span className="px-1.5 py-0.5 text-xs rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
                           {periodTypes.find(p => p.value === rule.period_type)?.label}
                         </span>
                       </div>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button onClick={() => handleEdit(rule)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                      <button onClick={() => handleEdit(rule)} className="p-2 text-blue-400 hover:bg-blue-500/15 rounded-lg transition-colors">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(rule.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                      <button onClick={() => handleDelete(rule.id)} className="p-2 text-red-400 hover:bg-red-500/15 rounded-lg transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
