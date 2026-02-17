@@ -1234,7 +1234,9 @@ export default function Dashboard() {
                   return filteredData.map((data, index) => {
                   const negativePercent = data.analyzedChats > 0 ? (data.negative / data.analyzedChats) * 100 : 0;
                   const neutralPercent = data.analyzedChats > 0 ? (data.neutral / data.analyzedChats) * 100 : 0;
-                  const [day, month] = data.date.split('.');
+                  const dateParts = data.date.split(/[./\-]/);
+                  const day = dateParts[0] ?? '01';
+                  const month = dateParts[1] ?? '01';
                   const year = new Date().getFullYear();
                   const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                   return (
