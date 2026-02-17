@@ -47,6 +47,7 @@ export default function BonusReports() {
   const [selectedRecord, setSelectedRecord] = useState<BonusCalculation | null>(null);
   const [exportingPDF, setExportingPDF] = useState(false);
   const modalContentRef = useRef<HTMLDivElement>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null);
 
   useEffect(() => {
     const today = new Date();
@@ -232,13 +233,17 @@ export default function BonusReports() {
     setExpandedRows(newExpanded);
   };
 
-  const handleDateClick = (record: BonusCalculation, e: React.MouseEvent) => {
+  const handlePersonnelClick = (record: BonusCalculation, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedRecord(record);
   };
 
   const closeModal = () => {
     setSelectedRecord(null);
+  };
+
+  const closePeriodView = () => {
+    setSelectedPeriod(null);
   };
 
   const exportToPDF = async () => {
@@ -288,6 +293,32 @@ export default function BonusReports() {
   };
 
   const displayData = viewMode === 'preview' ? calculations : savedReports;
+
+  const groupByPeriod = (data: BonusCalculation[]) => {
+    const grouped = new Map<string, BonusCalculation[]>();
+
+    data.forEach(calc => {
+      const date = new Date(calc.period_start);
+      const periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+      if (!grouped.has(periodKey)) {
+        grouped.set(periodKey, []);
+      }
+      grouped.get(periodKey)!.push(calc);
+    });
+
+    return Array.from(grouped.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([period, records]) => ({
+        period,
+        records,
+        totalBonus: records.reduce((sum, r) => sum + r.total_bonus_amount, 0),
+        personnelCount: records.length,
+        avgBonus: records.reduce((sum, r) => sum + r.total_bonus_amount, 0) / records.length,
+      }));
+  };
+
+  const periodGroups = groupByPeriod(displayData);
   const totalBonuses = displayData.reduce((sum, calc) => sum + calc.total_bonus_amount, 0);
   const avgBonus = displayData.length > 0 ? totalBonuses / displayData.length : 0;
 
@@ -300,6 +331,17 @@ export default function BonusReports() {
     negative_chats_count: 'Negatif Chat',
     neutral_chats_count: 'Nötr Chat',
   };
+
+  const getPeriodLabel = (periodKey: string) => {
+    const [year, month] = periodKey.split('-');
+    const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+                        'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    return `${monthNames[parseInt(month) - 1]} ${year}`;
+  };
+
+  const selectedPeriodData = selectedPeriod
+    ? periodGroups.find(g => g.period === selectedPeriod)?.records || []
+    : [];
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -448,176 +490,187 @@ export default function BonusReports() {
       </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-lg text-gray-600">Yükleniyor...</div>
+      {!selectedPeriod ? (
+        <div>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-lg text-gray-600">Yükleniyor...</div>
+            </div>
+          ) : periodGroups.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-gray-500 bg-white rounded-lg shadow-md">
+              {viewMode === 'preview' ? <Calculator className="w-16 h-16 mb-4 text-gray-300" /> : <History className="w-16 h-16 mb-4 text-gray-300" />}
+              <p className="text-lg">
+                {viewMode === 'preview'
+                  ? 'Bu dönem için hesaplanmış prim bulunamadı'
+                  : 'Bu dönem için kayıtlı rapor bulunamadı'}
+              </p>
+              {viewMode === 'preview' && (
+                <p className="text-sm mt-2">Yukarıdaki parametreleri ayarlayıp "Hesapla" butonuna tıklayın</p>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {periodGroups.map((group) => (
+                <div
+                  key={group.period}
+                  onClick={() => setSelectedPeriod(group.period)}
+                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-transparent hover:border-blue-500 p-6 transform hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                        {getPeriodLabel(group.period)}
+                      </h3>
+                      <p className="text-sm text-gray-500">{group.personnelCount} Personel</p>
+                    </div>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                      <p className="text-xs font-medium text-green-700 mb-1">Toplam Prim</p>
+                      <p className="text-2xl font-bold text-green-900">
+                        {group.totalBonus.toLocaleString('tr-TR')} TL
+                      </p>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                      <p className="text-xs font-medium text-blue-700 mb-1">Ortalama Prim</p>
+                      <p className="text-xl font-bold text-blue-900">
+                        {group.avgBonus.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between text-sm">
+                    <span className="text-gray-600 font-medium">Detayları Görüntüle</span>
+                    <ChevronDown className="w-5 h-5 text-blue-600" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">{getPeriodLabel(selectedPeriod)}</h2>
+                <p className="text-blue-100">
+                  {selectedPeriodData.length} Personel - Toplam: {selectedPeriodData.reduce((sum, r) => sum + r.total_bonus_amount, 0).toLocaleString('tr-TR')} TL
+                </p>
+              </div>
+              <button
+                onClick={closePeriodView}
+                className="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <X className="w-5 h-5" />
+                Kapat
+              </button>
+            </div>
           </div>
-        ) : displayData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-            {viewMode === 'preview' ? <Calculator className="w-16 h-16 mb-4 text-gray-300" /> : <History className="w-16 h-16 mb-4 text-gray-300" />}
-            <p className="text-lg">
-              {viewMode === 'preview'
-                ? 'Bu dönem için hesaplanmış prim bulunamadı'
-                : 'Bu dönem için kayıtlı rapor bulunamadı'}
-            </p>
-            {viewMode === 'preview' && (
-              <p className="text-sm mt-2">Yukarıdaki parametreleri ayarlayıp "Hesapla" butonuna tıklayın</p>
-            )}
-          </div>
-        ) : (
-          <>
+
           <div className="hidden sm:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10"></th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personel</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Prim</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kural</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chat</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personel</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Prim</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chat</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kural</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {displayData.map((calc) => (
-                  <React.Fragment key={calc.id}>
-                    <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleRow(calc.id)}>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <button className="text-gray-400 hover:text-gray-600">
-                          {expandedRows.has(calc.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                        </button>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="text-sm font-bold text-green-600 flex items-center">
-                          {calc.total_bonus_amount.toLocaleString('tr-TR')} TL
+                {selectedPeriodData.map((calc) => (
+                  <tr key={calc.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                          {calc.metrics_snapshot?.personnel_name?.charAt(0) || '?'}
                         </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                          {calc.calculation_details?.length || 0} kural
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{calc.metrics_snapshot?.total_chats || 0}</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</td>
-                      <td
-                        className="px-4 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
-                        onClick={(e) => handleDateClick(calc, e)}
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-gray-900">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`text-lg font-bold ${calc.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {calc.total_bonus_amount >= 0 ? '+' : ''}{calc.total_bonus_amount.toLocaleString('tr-TR')} TL
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {calc.metrics_snapshot?.total_chats || 0}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                        {calc.calculation_details?.length || 0} kural
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={(e) => handlePersonnelClick(calc, e)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
                       >
-                        {new Date(calc.calculated_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
-                      </td>
-                    </tr>
-                    {expandedRows.has(calc.id) && (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-4 bg-gray-50">
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="font-semibold text-gray-900 mb-3">Uygulanan Kurallar:</h4>
-                              {calc.calculation_details && calc.calculation_details.length > 0 ? (
-                                <div className="space-y-2">
-                                  {calc.calculation_details.map((detail, idx) => (
-                                    <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
-                                      <div>
-                                        <p className="font-medium text-gray-900 text-sm">{detail.rule_name}</p>
-                                        <p className="text-xs text-gray-600 mt-1">
-                                          {metricLabels[detail.metric_type]}: {detail.metric_value.toFixed(2)}
-                                        </p>
-                                      </div>
-                                      <p className={`text-base font-bold ${detail.bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {detail.bonus_amount >= 0 ? '+' : ''}{detail.bonus_amount.toLocaleString('tr-TR')} TL
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-gray-500 text-sm">Hicbir kural uygulanmadi</p>
-                              )}
-                            </div>
-                            <div>
-                              <h4 className="font-semibold text-gray-900 mb-3">Performans Metrikleri:</h4>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                  <p className="text-xs text-gray-500">Toplam Chat</p>
-                                  <p className="text-lg font-semibold text-gray-900">{calc.metrics_snapshot?.total_chats || 0}</p>
-                                </div>
-                                <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                  <p className="text-xs text-gray-500">Ort. Skor</p>
-                                  <p className="text-lg font-semibold text-gray-900">{calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</p>
-                                </div>
-                                <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                  <p className="text-xs text-gray-500">Memnuniyet</p>
-                                  <p className="text-lg font-semibold text-gray-900">{calc.metrics_snapshot?.avg_satisfaction?.toFixed(1) || '0.0'}</p>
-                                </div>
-                                <div className="bg-white p-3 rounded-lg border border-gray-200">
-                                  <p className="text-xs text-gray-500">Yanit Suresi</p>
-                                  <p className="text-lg font-semibold text-gray-900">{calc.metrics_snapshot?.avg_response_time?.toFixed(0) || '0'}s</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
+                        <FileText className="w-4 h-4" />
+                        Detay
+                      </button>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <div className="sm:hidden space-y-3 p-4">
-            {displayData.map((calc) => (
-              <div key={calc.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                <div
-                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-                  onClick={() => toggleRow(calc.id)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm font-bold text-green-600">{calc.total_bonus_amount.toLocaleString('tr-TR')} TL</span>
-                      <span className="text-xs text-gray-500">{calc.metrics_snapshot?.total_chats || 0} chat</span>
-                      <span className="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-blue-800">{calc.calculation_details?.length || 0} kural</span>
+          <div className="sm:hidden p-4 space-y-3">
+            {selectedPeriodData.map((calc) => (
+              <div
+                key={calc.id}
+                className="bg-gradient-to-r from-white to-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      {calc.metrics_snapshot?.personnel_name?.charAt(0) || '?'}
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
+                      <p className="text-sm text-gray-500">{calc.metrics_snapshot?.total_chats || 0} chat</p>
                     </div>
                   </div>
-                  {expandedRows.has(calc.id) ? <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />}
+                  <span className={`text-lg font-bold ${calc.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {calc.total_bonus_amount >= 0 ? '+' : ''}{calc.total_bonus_amount.toLocaleString('tr-TR')} TL
+                  </span>
                 </div>
-                {expandedRows.has(calc.id) && (
-                  <div className="border-t border-gray-200 p-4 bg-gray-50 space-y-3">
-                    {calc.calculation_details && calc.calculation_details.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2 text-sm">Kurallar:</h4>
-                        {calc.calculation_details.map((detail, idx) => (
-                          <div key={idx} className="flex justify-between py-1 text-sm">
-                            <span className="text-gray-700">{detail.rule_name}</span>
-                            <span className={`font-bold ${detail.bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {detail.bonus_amount >= 0 ? '+' : ''}{detail.bonus_amount.toLocaleString('tr-TR')} TL
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-white p-2 rounded border border-gray-200">
-                        <p className="text-xs text-gray-500">Skor</p>
-                        <p className="text-sm font-semibold">{calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</p>
-                      </div>
-                      <div className="bg-white p-2 rounded border border-gray-200">
-                        <p className="text-xs text-gray-500">Yanit</p>
-                        <p className="text-sm font-semibold">{calc.metrics_snapshot?.avg_response_time?.toFixed(0) || '0'}s</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                    Skor: {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
+                  </span>
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                    {calc.calculation_details?.length || 0} kural
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => handlePersonnelClick(calc, e)}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Detayları Görüntüle
+                </button>
               </div>
             ))}
           </div>
-          </>
-        )}
-      </div>
+        </div>
+      )}
 
       {selectedRecord && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
