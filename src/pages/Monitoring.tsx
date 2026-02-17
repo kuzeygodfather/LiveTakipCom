@@ -231,7 +231,7 @@ export default function Monitoring() {
 
   useEffect(() => {
     loadStats();
-    addLog('Sistem baslatildi -- Sunucu tarafli otomatik senkronizasyon aktif (pg_cron)', 'info');
+    addLog('Sistem baslatildi -- Akilli senkronizasyon aktif (son cekilen chat sonrasi otomatik)', 'info');
 
     const statsInterval = setInterval(loadStats, 15000);
 
@@ -344,7 +344,7 @@ export default function Monitoring() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-slate-700">
                 <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <span><strong>Senkronizasyon:</strong> Her 10 dakikada bir (son 7 gün)</span>
+                <span><strong>Senkronizasyon:</strong> Her 2 dakikada bir (son senkronizasyondan sonrası)</span>
               </div>
               <div className="flex items-center gap-2 text-slate-700">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
