@@ -227,6 +227,17 @@ export default function Reports() {
 
       const processedChats = (chatsData || []).map((item: any) => {
         const agentName = item.chats?.agent_name || 'Unknown';
+        const chatData = item.chats?.chat_data || {};
+
+        const chatMessages = Array.isArray(chatData.messages)
+          ? chatData.messages
+              .filter((msg: any) => msg.text && msg.text.trim() !== '' && msg.type === 'message')
+              .map((msg: any) => ({
+                author: { name: msg.author_id && msg.author_id.includes('@') ? agentName : 'Müşteri' },
+                text: msg.text.trim()
+              }))
+          : [];
+
         return {
           id: item.id,
           chat_id: item.chat_id,
@@ -238,7 +249,8 @@ export default function Reports() {
           agent_email: generateAgentEmail(agentName),
           started_at: item.chats?.created_at,
           ended_at: item.chats?.ended_at,
-          chat_data: item.chats?.chat_data || {},
+          chat_data: chatData,
+          messages: chatMessages,
           coaching: item.coaching_suggestion,
           sent_feedback: sentChatIds.has(item.id),
         };
