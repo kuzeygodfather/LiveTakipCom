@@ -408,20 +408,43 @@ export default function Reports() {
       }
 
       const result = await response.json();
+      console.log('API Response for chat', chat.id, ':', {
+        hasSuggestion: !!result.suggestion,
+        suggestionLength: result.suggestion?.length,
+        fullResult: result
+      });
 
       if (!result.suggestion) {
+        console.error('No suggestion in API response:', result);
         throw new Error('API yanıtı beklenen formatta değil');
       }
 
       // Save coaching suggestion to database
-      const { error: updateError } = await supabase
+      console.log('Saving to database:', {
+        chatId: chat.id,
+        suggestionLength: result.suggestion.length
+      });
+
+      const { data: updateData, error: updateError } = await supabase
         .from('chat_analysis')
         .update({ coaching_suggestion: result.suggestion })
-        .eq('id', chat.id);
+        .eq('id', chat.id)
+        .select();
+
+      console.log('Database update result:', {
+        chatId: chat.id,
+        updated: updateData?.length,
+        error: updateError
+      });
 
       if (updateError) {
         console.error('Error saving coaching suggestion:', updateError);
         throw new Error(`Veritabanı hatası: ${updateError.message}`);
+      }
+
+      if (!updateData || updateData.length === 0) {
+        console.error('No rows updated for chat', chat.id);
+        throw new Error('Veritabanına kaydedilemedi - kayıt bulunamadı');
       }
 
       setNegativeChats(prev =>
