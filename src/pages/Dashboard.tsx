@@ -329,26 +329,7 @@ export default function Dashboard() {
       let from = 0;
       const batchSize = 1000;
 
-      while (true) {
-        const { data: batch } = await supabase
-          .from('chat_analysis')
-          .select(`
-            sentiment,
-            chat_id,
-            overall_score,
-            chats!inner(created_at)
-          `)
-          .gte('chats.created_at', thirtyDaysAgoUTC)
-          .gt('overall_score', 0)
-          .order('chats.created_at', { ascending: true })
-          .range(from, from + batchSize - 1);
-
-        if (!batch || batch.length === 0) break;
-        allAnalysis = [...allAnalysis, ...batch];
-        if (batch.length < batchSize) break;
-        from += batchSize;
-      }
-
+      // First, get all chats from the last 30 days
       from = 0;
       while (true) {
         const { data: batch } = await supabase
@@ -363,6 +344,34 @@ export default function Dashboard() {
         if (batch.length < batchSize) break;
         from += batchSize;
       }
+
+      // Then get all chat_analysis records that have corresponding chats
+      const chatIds = allChats.map(c => c.id);
+      if (chatIds.length === 0) {
+        setComplaintData([]);
+        return;
+      }
+
+      // Supabase has a limit on IN queries, so we need to batch
+      const IN_BATCH_SIZE = 1000;
+      for (let i = 0; i < chatIds.length; i += IN_BATCH_SIZE) {
+        const batchIds = chatIds.slice(i, i + IN_BATCH_SIZE);
+        const { data: analysisBatch } = await supabase
+          .from('chat_analysis')
+          .select('sentiment, chat_id, overall_score')
+          .in('chat_id', batchIds)
+          .gt('overall_score', 0);
+
+        if (analysisBatch) {
+          allAnalysis = [...allAnalysis, ...analysisBatch];
+        }
+      }
+
+      // Create a map of chat_id -> created_at for quick lookup
+      const chatDateMap = new Map<string, string>();
+      allChats.forEach(chat => {
+        chatDateMap.set(chat.id, chat.created_at);
+      });
 
       const dailyComplaints: { [key: string]: { negative: number; neutral: number; totalChats: number; analyzedChats: number } } = {};
 
@@ -391,7 +400,7 @@ export default function Dashboard() {
       });
 
       allAnalysis.forEach(item => {
-        const chatCreatedAt = (item as any).chats?.created_at;
+        const chatCreatedAt = chatDateMap.get(item.chat_id);
         if (!chatCreatedAt) return;
 
         const date = new Date(chatCreatedAt).toLocaleDateString('tr-TR', {
