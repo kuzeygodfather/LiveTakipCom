@@ -716,9 +716,9 @@ export default function Reports() {
   };
 
   const getSentimentColor = (sentiment: string, score: number) => {
-    if (sentiment === 'negative' || score < 40) return 'text-red-600 bg-red-50 border-red-200';
-    if (score < 60) return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+    if (sentiment === 'negative' || score < 40) return 'text-red-400 bg-red-500/15 border-red-500/30';
+    if (score < 60) return 'text-orange-400 bg-orange-500/15 border-orange-500/30';
+    return 'text-yellow-400 bg-yellow-500/15 border-yellow-500/30';
   };
 
   const getSentimentLabel = (sentiment: string) => {
@@ -728,9 +728,9 @@ export default function Reports() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 50) return 'text-blue-600 bg-blue-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return 'text-emerald-400 bg-emerald-500/15';
+    if (score >= 50) return 'text-blue-400 bg-blue-500/15';
+    return 'text-red-400 bg-red-500/15';
   };
 
   const getIssues = (chat: NegativeChat): string[] => {
@@ -864,7 +864,7 @@ export default function Reports() {
                 <Lightbulb className="w-4 h-4" />
                 Koçluk Önerileri
                 {negativeChats.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">
+                  <span className="ml-1 px-2 py-0.5 text-xs bg-red-500/20 text-red-400 rounded-full">
                     {negativeChats.length}
                   </span>
                 )}
@@ -882,7 +882,7 @@ export default function Reports() {
                 <Target className="w-4 h-4" />
                 Gelişim Takibi
                 {agentsWithCoaching.length > 0 && (
-                  <span className="ml-1 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                  <span className="ml-1 px-2 py-0.5 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
                     {agentsWithCoaching.length}
                   </span>
                 )}
@@ -901,7 +901,7 @@ export default function Reports() {
                 className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   timeRange === 'daily'
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-200 border border-slate-300 hover:border-blue-300'
+                    : 'bg-white/5 text-slate-300 border border-white/15 hover:border-blue-500/50 hover:bg-white/10'
                 }`}
               >
                 Günlük
@@ -911,7 +911,7 @@ export default function Reports() {
                 className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   timeRange === 'weekly'
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-200 border border-slate-300 hover:border-blue-300'
+                    : 'bg-white/5 text-slate-300 border border-white/15 hover:border-blue-500/50 hover:bg-white/10'
                 }`}
               >
                 Haftalık
@@ -921,7 +921,7 @@ export default function Reports() {
                 className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   timeRange === 'monthly'
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-200 border border-slate-300 hover:border-blue-300'
+                    : 'bg-white/5 text-slate-300 border border-white/15 hover:border-blue-500/50 hover:bg-white/10'
                 }`}
               >
                 Aylık
@@ -952,11 +952,11 @@ export default function Reports() {
                   }
 
                   return (
-                    <div key={item.date} className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl p-5 border border-slate-600/50 hover:shadow-md transition-shadow">
+                    <div key={item.date} className="bg-white/5 rounded-xl p-5 border border-white/10 hover:border-white/20 hover:bg-white/8 transition-all">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Calendar className="w-5 h-5 text-blue-600" />
+                          <div className="p-2 bg-blue-500/15 rounded-lg">
+                            <Calendar className="w-5 h-5 text-blue-400" />
                           </div>
                           <div>
                             <div className="text-lg font-bold text-white">{displayDate}</div>
@@ -982,16 +982,16 @@ export default function Reports() {
                           <div className="text-xs opacity-75 mt-1">/ 100</div>
                         </div>
 
-                        <div className="p-4 rounded-lg bg-slate-100 text-slate-200">
+                        <div className="p-4 rounded-lg bg-white/10 text-slate-200">
                           <div className="text-xs font-medium mb-1 opacity-75">Ort. Yanıt Süresi</div>
-                          <div className="text-2xl font-bold">
+                          <div className="text-2xl font-bold text-white">
                             {formatTime(item.responseTime)}
                           </div>
                         </div>
 
-                        <div className="p-4 rounded-lg bg-slate-100 text-slate-200">
+                        <div className="p-4 rounded-lg bg-white/10 text-slate-200">
                           <div className="text-xs font-medium mb-1 opacity-75">Ort. Çözüm Süresi</div>
-                          <div className="text-2xl font-bold">
+                          <div className="text-2xl font-bold text-white">
                             {formatTime(item.resolutionTime)}
                           </div>
                         </div>
@@ -1021,8 +1021,8 @@ export default function Reports() {
             <>
               <div className="glass-effect rounded-xl shadow-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Filter className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-blue-500/15 rounded-lg">
+                    <Filter className="w-5 h-5 text-blue-400" />
                   </div>
                   <h3 className="text-lg font-bold text-white">Filtreler</h3>
                 </div>
@@ -1033,7 +1033,7 @@ export default function Reports() {
                     <select
                       value={selectedAgent}
                       onChange={(e) => setSelectedAgent(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">Tümü ({negativeChats.length})</option>
                       {uniqueAgents.map(agent => (
@@ -1049,7 +1049,7 @@ export default function Reports() {
                     <select
                       value={selectedDateRange}
                       onChange={(e) => setSelectedDateRange(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">Tüm Zamanlar</option>
                       <option value="7">Son 7 Gün</option>
@@ -1064,7 +1064,7 @@ export default function Reports() {
                     <select
                       value={selectedIssue}
                       onChange={(e) => setSelectedIssue(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">Tüm Sorunlar</option>
                       {allIssues.map(issue => (
@@ -1082,7 +1082,7 @@ export default function Reports() {
                     <select
                       value={selectedCoachingStatus}
                       onChange={(e) => setSelectedCoachingStatus(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">Tümü</option>
                       <option value="generated">Öneri Oluşturulmuş ({negativeChats.filter(c => c.coaching).length})</option>
@@ -1095,7 +1095,7 @@ export default function Reports() {
                     <select
                       value={selectedFeedbackStatus}
                       onChange={(e) => setSelectedFeedbackStatus(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="all">Tümü</option>
                       <option value="sent">İletilmiş ({negativeChats.filter(c => c.sent_feedback).length})</option>
@@ -1105,14 +1105,14 @@ export default function Reports() {
                 </div>
 
                 {selectedDateRange === 'custom' && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                     <div>
                       <label className="block text-sm font-medium text-slate-200 mb-2">Başlangıç Tarihi</label>
                       <input
                         type="date"
                         value={customStartDate}
                         onChange={(e) => setCustomStartDate(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                     <div>
@@ -1121,15 +1121,15 @@ export default function Reports() {
                         type="date"
                         value={customEndDate}
                         onChange={(e) => setCustomEndDate(e.target.value)}
-                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
                 )}
 
                 {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all' || selectedCoachingStatus !== 'all' || selectedFeedbackStatus !== 'all') && (
-                  <div className="mt-4 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <span className="text-sm font-medium text-slate-200">
+                  <div className="mt-4 flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
+                    <span className="text-sm font-medium text-slate-300">
                       {filteredChats.length} sonuç gösteriliyor
                     </span>
                     <button
@@ -1151,14 +1151,14 @@ export default function Reports() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-5 shadow-sm">
+                <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl p-5 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                        <Lightbulb className="w-5 h-5 text-amber-600" />
+                        <Lightbulb className="w-5 h-5 text-amber-400" />
                         Toplu Koçluk Önerisi Oluştur
                       </h3>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-400">
                         Filtrelenmiş tüm chatler için AI koçluk önerileri oluştur
                       </p>
                     </div>
@@ -1189,14 +1189,14 @@ export default function Reports() {
                   </button>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
+                <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-5 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
-                        <Send className="w-5 h-5 text-green-600" />
+                        <Send className="w-5 h-5 text-emerald-400" />
                         Toplu Öneri İletimi
                       </h3>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-400">
                         Oluşturulmuş tüm önerileri personele ilet
                       </p>
                     </div>
@@ -1228,10 +1228,10 @@ export default function Reports() {
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
                 <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-blue-900">
+                  <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-slate-300">
                     <strong className="font-semibold">Nasıl Kullanılır:</strong> Bu bölüm, müşteri memnuniyetsizliği yaşanan görüşmeleri listeler.
                     Her görüşme için AI destekli iyileştirme önerileri oluşturabilir ve personele gönderebilirsiniz.
                     Toplu işlem butonları ile tüm görünür chatler için aynı anda işlem yapabilirsiniz.
@@ -1272,13 +1272,13 @@ export default function Reports() {
                       >
                         <button
                           onClick={() => toggleChat(chat.id)}
-                          className="w-full p-5 text-left hover:bg-slate-50 transition-colors"
+                          className="w-full p-5 text-left hover:bg-white/5 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-3 mb-3">
                                 <div className="flex items-center gap-2">
-                                  <Users className="w-4 h-4 text-slate-600" />
+                                  <Users className="w-4 h-4 text-slate-400" />
                                   <span className="font-bold text-white">{chat.agent_name}</span>
                                 </div>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getSentimentColor(chat.sentiment, chat.overall_score)}`}>
@@ -1297,7 +1297,7 @@ export default function Reports() {
                               {getIssues(chat).length > 0 && (
                                 <div className="flex flex-wrap gap-2">
                                   {getIssues(chat).slice(0, 4).map((issue, idx) => (
-                                    <span key={idx} className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
+                                    <span key={idx} className="text-xs bg-red-500/15 text-red-400 border border-red-500/20 px-3 py-1 rounded-full font-medium">
                                       {issue}
                                     </span>
                                   ))}
@@ -1339,23 +1339,23 @@ export default function Reports() {
 
                             <div className={`rounded-xl border p-5 ${
                               chat.sent_feedback
-                                ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300'
-                                : 'bg-gradient-to-br from-blue-50 to-sky-50 border-blue-300'
+                                ? 'bg-emerald-500/10 border-emerald-500/25'
+                                : 'bg-blue-500/10 border-blue-500/25'
                             }`}>
                               <div className="flex items-center justify-between mb-4">
                                 <h4 className="font-bold text-white flex items-center gap-2 text-lg">
                                   {chat.sent_feedback ? (
                                     <>
-                                      <div className="p-2 bg-green-100 rounded-lg">
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
+                                      <div className="p-2 bg-emerald-500/15 rounded-lg">
+                                        <CheckCircle className="w-5 h-5 text-emerald-400" />
                                       </div>
                                       AI Koçluk Önerileri
-                                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">İletildi</span>
+                                      <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/20 px-2 py-1 rounded-full">İletildi</span>
                                     </>
                                   ) : (
                                     <>
-                                      <div className="p-2 bg-blue-100 rounded-lg">
-                                        <Lightbulb className="w-5 h-5 text-blue-600" />
+                                      <div className="p-2 bg-blue-500/15 rounded-lg">
+                                        <Lightbulb className="w-5 h-5 text-blue-400" />
                                       </div>
                                       AI Koçluk Önerileri
                                     </>
@@ -1396,8 +1396,8 @@ export default function Reports() {
                                     {chat.coaching}
                                   </div>
                                   {chat.sent_feedback && (
-                                    <div className="mt-4 pt-4 border-t border-green-300">
-                                      <p className="text-sm text-green-800 flex items-center gap-2 font-medium">
+                                    <div className="mt-4 pt-4 border-t border-emerald-500/25">
+                                      <p className="text-sm text-emerald-400 flex items-center gap-2 font-medium">
                                         <CheckCircle className="w-4 h-4" />
                                         Bu öneriler personele iletildi. Gelişim takibi "Gelişim Takibi" sekmesinden yapılabilir.
                                       </p>
@@ -1440,12 +1440,12 @@ export default function Reports() {
             </div>
           ) : (
             <>
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5">
                 <div className="flex gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-                    <AlertCircle className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-blue-500/15 rounded-lg flex-shrink-0">
+                    <AlertCircle className="w-5 h-5 text-blue-400" />
                   </div>
-                  <div className="text-sm text-blue-900">
+                  <div className="text-sm text-slate-300">
                     <strong className="font-semibold text-base">Nasıl Çalışır:</strong>
                     <p className="mt-2 leading-relaxed">
                       Koçluk önerisi gönderilen personellerin, öneri öncesi 30 gün ve sonrası 30 günlük performans değişimini görebilirsiniz.
@@ -1460,7 +1460,7 @@ export default function Reports() {
                 <select
                   value={selectedImprovementAgent}
                   onChange={(e) => setSelectedImprovementAgent(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
                   <option value="">Bir personel seçin...</option>
                   {agentsWithCoaching.map(agent => (
@@ -1495,20 +1495,20 @@ export default function Reports() {
                     const isSlightImproved = (scoreDiff > 0 || analysisDiff > 0) && scoreDiff <= 5 && analysisDiff <= 5;
 
                     return (
-                      <div key={idx} className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 p-6 shadow-md">
+                      <div key={idx} className="bg-emerald-500/10 rounded-xl border border-emerald-500/25 p-6 shadow-md">
                         <div className="flex items-start justify-between mb-6">
                           <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 rounded-xl">
-                              <Target className="w-8 h-8 text-green-600" />
+                            <div className="p-3 bg-emerald-500/15 rounded-xl">
+                              <Target className="w-8 h-8 text-emerald-400" />
                             </div>
                             <div>
                               <h3 className="text-xl font-bold text-white">
                                 {agentsWithCoaching.find(a => a.email === report.agent_email)?.name}
                               </h3>
-                              <p className="text-sm text-slate-600 mt-1">
+                              <p className="text-sm text-slate-400 mt-1">
                                 İlk Koçluk: {new Date(report.first_coaching_date).toLocaleDateString('tr-TR')}
                               </p>
-                              <p className="text-sm text-green-700 font-semibold mt-1">
+                              <p className="text-sm text-emerald-400 font-semibold mt-1">
                                 {report.total_coaching_sent} koçluk önerisi gönderildi
                               </p>
                             </div>
@@ -1517,60 +1517,60 @@ export default function Reports() {
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                           <div className="bg-slate-800/30 rounded-xl border-2 border-slate-600/50 p-5 shadow-sm">
-                            <h4 className="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
-                              <Calendar className="w-5 h-5 text-slate-600" />
+                            <h4 className="text-base font-bold text-slate-300 mb-4 flex items-center gap-2">
+                              <Calendar className="w-5 h-5 text-slate-400" />
                               Öneri Öncesi (30 Gün)
                             </h4>
                             <div className="space-y-4">
                               <div className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
-                                <span className="text-sm font-medium text-slate-600">Personel Skoru</span>
+                                <span className="text-sm font-medium text-slate-400">Personel Skoru</span>
                                 <span className="text-xl font-bold text-white">{beforeAvgScore}/100</span>
                               </div>
                               <div className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
-                                <span className="text-sm font-medium text-slate-600">Analiz Skoru</span>
+                                <span className="text-sm font-medium text-slate-400">Analiz Skoru</span>
                                 <span className="text-xl font-bold text-white">{beforeAnalysisScore}/100</span>
                               </div>
                               <div className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
-                                <span className="text-sm font-medium text-slate-600">Toplam Chat</span>
+                                <span className="text-sm font-medium text-slate-400">Toplam Chat</span>
                                 <span className="text-xl font-bold text-white">{report.before_coaching?.total_chats || 0}</span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="bg-white rounded-xl border-2 border-green-200 p-5 shadow-sm">
-                            <h4 className="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
-                              <TrendingUp className="w-5 h-5 text-green-600" />
+                          <div className="bg-emerald-500/10 rounded-xl border border-emerald-500/25 p-5 shadow-sm">
+                            <h4 className="text-base font-bold text-slate-300 mb-4 flex items-center gap-2">
+                              <TrendingUp className="w-5 h-5 text-emerald-400" />
                               Öneri Sonrası (30 Gün)
                             </h4>
                             <div className="space-y-4">
-                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                                <span className="text-sm font-medium text-slate-600">Personel Skoru</span>
+                              <div className="flex justify-between items-center p-3 bg-emerald-500/10 rounded-lg">
+                                <span className="text-sm font-medium text-slate-400">Personel Skoru</span>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xl font-bold text-white">{afterAvgScore}/100</span>
                                   <span className={`text-sm font-bold px-2 py-1 rounded-full ${
-                                    scoreDiff > 0 ? 'bg-green-200 text-green-800' :
-                                    scoreDiff < 0 ? 'bg-red-200 text-red-800' :
-                                    'bg-slate-200 text-slate-600'
+                                    scoreDiff > 0 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
+                                    scoreDiff < 0 ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
+                                    'bg-white/10 text-slate-400 border border-white/15'
                                   }`}>
                                     {scoreDiff > 0 ? `+${scoreDiff}` : scoreDiff}
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                                <span className="text-sm font-medium text-slate-600">Analiz Skoru</span>
+                              <div className="flex justify-between items-center p-3 bg-emerald-500/10 rounded-lg">
+                                <span className="text-sm font-medium text-slate-400">Analiz Skoru</span>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xl font-bold text-white">{afterAnalysisScore}/100</span>
                                   <span className={`text-sm font-bold px-2 py-1 rounded-full ${
-                                    analysisDiff > 0 ? 'bg-green-200 text-green-800' :
-                                    analysisDiff < 0 ? 'bg-red-200 text-red-800' :
-                                    'bg-slate-200 text-slate-600'
+                                    analysisDiff > 0 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
+                                    analysisDiff < 0 ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
+                                    'bg-white/10 text-slate-400 border border-white/15'
                                   }`}>
                                     {analysisDiff > 0 ? `+${analysisDiff}` : analysisDiff}
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                                <span className="text-sm font-medium text-slate-600">Toplam Chat</span>
+                              <div className="flex justify-between items-center p-3 bg-emerald-500/10 rounded-lg">
+                                <span className="text-sm font-medium text-slate-400">Toplam Chat</span>
                                 <span className="text-xl font-bold text-white">{report.after_coaching?.total_chats || 0}</span>
                               </div>
                             </div>
@@ -1578,37 +1578,37 @@ export default function Reports() {
                         </div>
 
                         <div className={`p-5 rounded-xl ${
-                          isImproved ? 'bg-green-100 border-2 border-green-300' :
-                          isSlightImproved ? 'bg-blue-100 border-2 border-blue-300' :
-                          'bg-amber-100 border-2 border-amber-300'
+                          isImproved ? 'bg-emerald-500/10 border border-emerald-500/25' :
+                          isSlightImproved ? 'bg-blue-500/10 border border-blue-500/25' :
+                          'bg-amber-500/10 border border-amber-500/25'
                         }`}>
                           <div className="flex items-start gap-3">
                             {isImproved ? (
                               <>
-                                <CheckCircle className="w-6 h-6 text-green-700 flex-shrink-0 mt-0.5" />
+                                <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" />
                                 <div>
-                                  <h5 className="font-bold text-green-900 mb-1">Mükemmel Gelişme!</h5>
-                                  <p className="text-sm text-green-800">
+                                  <h5 className="font-bold text-emerald-300 mb-1">Mükemmel Gelişme!</h5>
+                                  <p className="text-sm text-emerald-400/80">
                                     Koçluk önerileri belirgin şekilde olumlu etki gösterdi. Personel performansında kayda değer iyileşme gözlemlendi.
                                   </p>
                                 </div>
                               </>
                             ) : isSlightImproved ? (
                               <>
-                                <AlertCircle className="w-6 h-6 text-blue-700 flex-shrink-0 mt-0.5" />
+                                <AlertCircle className="w-6 h-6 text-blue-400 flex-shrink-0 mt-0.5" />
                                 <div>
-                                  <h5 className="font-bold text-blue-900 mb-1">Küçük Gelişmeler Var</h5>
-                                  <p className="text-sm text-blue-800">
+                                  <h5 className="font-bold text-blue-300 mb-1">Küçük Gelişmeler Var</h5>
+                                  <p className="text-sm text-blue-400/80">
                                     Performansta hafif iyileşme görülüyor. Süreci takip etmeye devam edin ve gerekirse ek koçluk desteği sağlayın.
                                   </p>
                                 </div>
                               </>
                             ) : (
                               <>
-                                <AlertCircle className="w-6 h-6 text-amber-700 flex-shrink-0 mt-0.5" />
+                                <AlertCircle className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" />
                                 <div>
-                                  <h5 className="font-bold text-amber-900 mb-1">Gelişme Görülmedi</h5>
-                                  <p className="text-sm text-amber-800">
+                                  <h5 className="font-bold text-amber-300 mb-1">Gelişme Görülmedi</h5>
+                                  <p className="text-sm text-amber-400/80">
                                     Beklenen gelişme henüz gözlemlenmedi. Farklı koçluk yaklaşımları veya ek destek gerekebilir. Personelle birebir görüşme düşünülebilir.
                                   </p>
                                 </div>
