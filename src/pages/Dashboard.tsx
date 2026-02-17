@@ -494,12 +494,12 @@ export default function Dashboard() {
 
       allChats.forEach(chat => {
         const date = new Date(chat.created_at);
-        const istanbulTime = date.toLocaleString('en-US', {
+        const istanbulTimeStr = date.toLocaleString('en-US', {
           timeZone: 'Europe/Istanbul',
           hour12: false,
-          hour: '2-digit'
         });
-        const hour = parseInt(istanbulTime.split(',')[1]?.trim().split(':')[0] || '0');
+        const timePart = istanbulTimeStr.split(',')[1]?.trim();
+        const hour = timePart ? parseInt(timePart.split(':')[0]) : 0;
         hourCounts[hour].count++;
       });
 
