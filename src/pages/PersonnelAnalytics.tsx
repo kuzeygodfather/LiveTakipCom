@@ -334,9 +334,9 @@ export default function PersonnelAnalytics() {
 
   const getPerformanceLevel = (score: number | string) => {
     const numScore = parseScore(score);
-    if (numScore >= 80) return { label: 'Olumlu', color: 'text-green-600 bg-green-50' };
-    if (numScore >= 50) return { label: 'Notr', color: 'text-slate-600 bg-slate-50' };
-    return { label: 'Olumsuz', color: 'text-red-600 bg-red-50' };
+    if (numScore >= 80) return { label: 'Olumlu', color: 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/20' };
+    if (numScore >= 50) return { label: 'Notr', color: 'text-slate-300 bg-white/10 border border-white/15' };
+    return { label: 'Olumsuz', color: 'text-red-400 bg-red-500/15 border border-red-500/20' };
   };
 
   const getTierLabel = (tier: string) => {
@@ -398,13 +398,13 @@ export default function PersonnelAnalytics() {
                   onClick={() => setSelectedPersonnel(person)}
                   className={`w-full text-left p-4 rounded-lg border transition-all ${
                     selectedPersonnel?.id === person.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'border-blue-500 bg-blue-500/15'
+                      : 'border-white/10 hover:border-white/25 hover:bg-white/5'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-slate-600" />
+                      <User className="w-5 h-5 text-slate-400" />
                       <span className="font-semibold text-white">{person.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ export default function PersonnelAnalytics() {
                       {person.warning_count > 0 && (
                         <button
                           onClick={() => openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`)}
-                          className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <AlertTriangle className="w-3 h-3" />
                           {person.warning_count}
@@ -423,7 +423,7 @@ export default function PersonnelAnalytics() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-slate-600">{person.total_chats} chat</span>
+                    <span className="text-slate-400">{person.total_chats} chat</span>
                     <span className={`px-2 py-1 rounded text-xs font-medium ${performance.color}`}>
                       {Math.round(parseScore(statScore))}/100
                     </span>
@@ -441,7 +441,7 @@ export default function PersonnelAnalytics() {
                       {ratings.like_count > 0 && (
                         <button
                           onClick={() => openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`)}
-                          className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 hover:bg-green-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <ThumbsUp className="w-3 h-3" />
                           <span>{ratings.like_count}</span>
@@ -450,7 +450,7 @@ export default function PersonnelAnalytics() {
                       {ratings.dislike_count > 0 && (
                         <button
                           onClick={() => openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`)}
-                          className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <ThumbsDown className="w-3 h-3" />
                           <span>{ratings.dislike_count}</span>
@@ -478,13 +478,13 @@ export default function PersonnelAnalytics() {
                   <div>
                     <h2 className="text-xl sm:text-2xl font-bold text-white">{selectedPersonnel.name}</h2>
                     {selectedPersonnel.email && (
-                      <p className="text-slate-600 mt-1">{selectedPersonnel.email}</p>
+                      <p className="text-slate-400 mt-1">{selectedPersonnel.email}</p>
                     )}
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-400">
                         {getTierLabel(selectedPersonnel.reliability_tier)}
                       </span>
-                      <span className="text-sm text-slate-600">
+                      <span className="text-sm text-slate-400">
                         Güvenilirlik: {Math.round(parseScore(selectedPersonnel.confidence_level || 0))}%
                       </span>
                     </div>
@@ -496,18 +496,18 @@ export default function PersonnelAnalytics() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-600 mb-1">Toplam Chat</div>
+                    <div className="text-sm text-slate-400 mb-1">Toplam Chat</div>
                     <div className="text-2xl font-bold text-white">{selectedPersonnel.total_chats}</div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-600 mb-1">İstatistiksel Skor</div>
+                    <div className="text-sm text-slate-400 mb-1">İstatistiksel Skor</div>
                     <div className="text-2xl font-bold text-white">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-600 mb-1">Ham Skor</div>
-                    <div className="text-xl font-bold text-slate-600">
+                    <div className="text-sm text-slate-400 mb-1">Ham Skor</div>
+                    <div className="text-xl font-bold text-white">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
                   </div>
@@ -518,14 +518,14 @@ export default function PersonnelAnalytics() {
                         openChatModal('warning', ratings.warning_chats, `${selectedPersonnel.name} - Uyarı Alan Chatler`);
                       }
                     }}
-                    className="bg-slate-50 p-4 rounded-lg hover:bg-red-50 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
+                    className="bg-white/5 p-4 rounded-lg hover:bg-red-500/10 border border-white/10 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!ratingInfo[selectedPersonnel.name]?.warning_chats.length}
                   >
-                    <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
                       Uyari Sayisi
                     </div>
-                    <div className={`text-2xl font-bold ${selectedPersonnel.warning_count > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <div className={`text-2xl font-bold ${selectedPersonnel.warning_count > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                       {selectedPersonnel.warning_count}
                     </div>
                   </button>
@@ -536,14 +536,14 @@ export default function PersonnelAnalytics() {
                         openChatModal('like', ratings.liked_chats, `${selectedPersonnel.name} - Beğenilen Chatler`);
                       }
                     }}
-                    className="bg-slate-50 p-4 rounded-lg hover:bg-green-50 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
+                    className="bg-white/5 p-4 rounded-lg hover:bg-emerald-500/10 border border-white/10 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!ratingInfo[selectedPersonnel.name]?.liked_chats.length}
                   >
-                    <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
                       <ThumbsUp className="w-3 h-3" />
                       Beğeni
                     </div>
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-emerald-400">
                       {ratingInfo[selectedPersonnel.name]?.like_count || 0}
                     </div>
                   </button>
@@ -554,19 +554,19 @@ export default function PersonnelAnalytics() {
                         openChatModal('dislike', ratings.disliked_chats, `${selectedPersonnel.name} - Beğenilmeyen Chatler`);
                       }
                     }}
-                    className="bg-slate-50 p-4 rounded-lg hover:bg-red-50 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
+                    className="bg-white/5 p-4 rounded-lg hover:bg-red-500/10 border border-white/10 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
                     disabled={!ratingInfo[selectedPersonnel.name]?.disliked_chats.length}
                   >
-                    <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
                       <ThumbsDown className="w-3 h-3" />
                       Beğenmeme
                     </div>
-                    <div className="text-2xl font-bold text-red-600">
+                    <div className="text-2xl font-bold text-red-400">
                       {ratingInfo[selectedPersonnel.name]?.dislike_count || 0}
                     </div>
                   </button>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
                       <PhoneOff className="w-3 h-3" />
                       Kaçan Chat
                     </div>
@@ -575,7 +575,7 @@ export default function PersonnelAnalytics() {
                     </div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-600 mb-1">Ort. İlk Yanıt</div>
+                    <div className="text-sm text-slate-400 mb-1">Ort. İlk Yanıt</div>
                     <div className="text-xl font-bold text-blue-600">
                       {ratingInfo[selectedPersonnel.name]?.avg_first_response_time !== null && ratingInfo[selectedPersonnel.name]?.avg_first_response_time !== undefined
                         ? `${Math.floor(ratingInfo[selectedPersonnel.name].avg_first_response_time! / 60)}dk ${ratingInfo[selectedPersonnel.name].avg_first_response_time! % 60}s`
@@ -583,7 +583,7 @@ export default function PersonnelAnalytics() {
                     </div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-600 mb-1">Ort. Çözüm Süresi</div>
+                    <div className="text-sm text-slate-400 mb-1">Ort. Çözüm Süresi</div>
                     <div className="text-xl font-bold text-purple-600">
                       {ratingInfo[selectedPersonnel.name]?.avg_resolution_time !== null && ratingInfo[selectedPersonnel.name]?.avg_resolution_time !== undefined
                         ? `${Math.floor(ratingInfo[selectedPersonnel.name].avg_resolution_time! / 60)}dk ${ratingInfo[selectedPersonnel.name].avg_resolution_time! % 60}s`
@@ -603,10 +603,10 @@ export default function PersonnelAnalytics() {
                           <span className="text-sm font-medium text-slate-200">
                             {new Date(stat.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
                           </span>
-                          <span className="text-sm text-slate-600">{stat.total_chats} chat</span>
+                          <span className="text-sm text-slate-400">{stat.total_chats} chat</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-slate-600">
+                          <span className="text-sm text-slate-400">
                             Yanıt: {Math.round(stat.average_response_time)}s
                           </span>
                           <span className={`px-3 py-1 rounded font-medium ${getPerformanceLevel(stat.average_score).color}`}>
@@ -658,7 +658,7 @@ export default function PersonnelAnalytics() {
           ) : (
             <div className="glass-effect rounded-xl shadow-lg p-12 text-center">
               <User className="w-16 h-16 mx-auto text-slate-200 mb-4" />
-              <p className="text-slate-600">Personel seçin</p>
+              <p className="text-slate-400">Personel seçin</p>
             </div>
           )}
         </div>
@@ -667,7 +667,7 @@ export default function PersonnelAnalytics() {
       {/* Chat Details Modal */}
       {chatModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
+          <div className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
             <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="text-lg font-bold">{chatModal.title}</h3>
               <button
@@ -681,36 +681,36 @@ export default function PersonnelAnalytics() {
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
               {chatModal.chats.length === 0 ? (
-                <p className="text-center text-slate-100 py-8">Chat bulunamadı</p>
+                <p className="text-center text-slate-400 py-8">Chat bulunamadı</p>
               ) : (
                 <div className="space-y-3">
                   {chatModal.chats.map((chat) => (
                     <button
                       key={chat.id}
                       onClick={() => loadChatMessages(chat.chat_id || chat.id, chat.customer_name)}
-                      className="w-full text-left bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 rounded-lg p-4 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer"
+                      className="w-full text-left bg-white/5 border border-white/10 rounded-lg p-4 hover:shadow-lg hover:border-blue-500/40 hover:bg-white/8 transition-all cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono text-sm font-semibold text-blue-600">
+                          <span className="font-mono text-sm font-semibold text-blue-400">
                             #{chat.chat_id?.slice(0, 12) || chat.id.slice(0, 12)}
                           </span>
-                          <span className="text-slate-600 text-sm">
+                          <span className="text-slate-300 text-sm">
                             {maskName(chat.customer_name)}
                           </span>
                         </div>
                         {chatModal.type === 'warning' && chat.overall_score && (
                           <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            chat.overall_score < 40 ? 'bg-red-100 text-red-700' :
-                            chat.overall_score < 60 ? 'bg-orange-100 text-orange-700' :
-                            'bg-yellow-100 text-yellow-700'
+                            chat.overall_score < 40 ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
+                            chat.overall_score < 60 ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20' :
+                            'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20'
                           }`}>
                             {Math.round(chat.overall_score)}/100
                           </span>
                         )}
                       </div>
                       {chat.created_at && (
-                        <div className="text-xs text-slate-100 mt-2 flex items-center gap-2">
+                        <div className="text-xs text-slate-400 mt-2 flex items-center gap-2">
                           <span>{new Date(chat.created_at).toLocaleString('tr-TR')}</span>
                           <span className="text-blue-500">→ Mesajları görüntüle</span>
                         </div>
@@ -720,7 +720,7 @@ export default function PersonnelAnalytics() {
                 </div>
               )}
             </div>
-            <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-200">
+            <div className="bg-white/5 px-6 py-4 flex justify-end border-t border-white/10">
               <button
                 onClick={closeChatModal}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
@@ -735,8 +735,8 @@ export default function PersonnelAnalytics() {
       {/* Chat Messages Modal */}
       {messagesModal.isOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden animate-scale-in">
-            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-4 flex items-center justify-between">
+          <div className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden animate-scale-in">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 text-white px-6 py-4 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold">Chat Konuşması</h3>
                 <p className="text-sm text-blue-100 mt-0.5">
@@ -753,15 +753,15 @@ export default function PersonnelAnalytics() {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(85vh-140px)] bg-slate-50">
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-140px)] bg-black/20">
               {messagesModal.loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4" />
-                  <p className="text-slate-100">Mesajlar yükleniyor...</p>
+                  <p className="text-slate-400">Mesajlar yükleniyor...</p>
                 </div>
               ) : messagesModal.messages.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-100">Bu chat için mesaj bulunamadı</p>
+                  <p className="text-slate-400">Bu chat için mesaj bulunamadı</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -775,7 +775,7 @@ export default function PersonnelAnalytics() {
                         <div className={`max-w-[75%] ${isAgent ? 'order-2' : 'order-1'}`}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`text-xs font-medium ${
-                              isAgent ? 'text-blue-600' : 'text-slate-600'
+                              isAgent ? 'text-blue-400' : 'text-slate-400'
                             }`}>
                               {message.author_name || (isAgent ? 'Personel' : 'Müşteri')}
                             </span>
@@ -789,7 +789,7 @@ export default function PersonnelAnalytics() {
                           <div className={`rounded-2xl px-4 py-3 shadow-sm ${
                             isAgent
                               ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm'
-                              : 'bg-white border border-slate-200 text-white rounded-tl-sm'
+                              : 'bg-white/10 border border-white/15 text-white rounded-tl-sm'
                           }`}>
                             <p className="text-sm whitespace-pre-wrap break-words">
                               {message.text}
@@ -803,13 +803,13 @@ export default function PersonnelAnalytics() {
               )}
             </div>
 
-            <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-200">
-              <div className="text-sm text-slate-100">
+            <div className="bg-white/5 px-6 py-4 flex items-center justify-between border-t border-white/10">
+              <div className="text-sm text-slate-400">
                 Toplam {messagesModal.messages.length} mesaj
               </div>
               <button
                 onClick={closeChatMessagesModal}
-                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg"
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
               >
                 Kapat
               </button>
