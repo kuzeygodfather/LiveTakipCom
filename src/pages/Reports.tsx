@@ -432,11 +432,23 @@ export default function Reports() {
         )
       );
     } catch (error: any) {
-      console.error('Error getting coaching suggestion:', error);
+      console.error('=== COACHING ERROR DETAILS ===');
+      console.error('Chat ID:', chat.id);
+      console.error('Agent:', chat.agent_name);
+      console.error('Error Type:', error?.name);
+      console.error('Error Message:', error?.message);
+      console.error('Full Error:', error);
+      console.error('Formatted Messages Count:', formattedMessages?.length);
+      if (formattedMessages?.length > 0) {
+        console.error('First Message:', formattedMessages[0]);
+      }
+      console.error('==========================');
+
+      const errorMsg = error?.message || 'Bilinmeyen hata';
       setNegativeChats(prev =>
         prev.map(c =>
           c.id === chat.id
-            ? { ...c, coaching: null, loadingCoaching: false }
+            ? { ...c, coaching: `HATA: ${errorMsg}`, loadingCoaching: false }
             : c
         )
       );
