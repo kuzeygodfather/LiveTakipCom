@@ -9,8 +9,6 @@ interface SyncStatus {
   error: string | null;
 }
 
-const DEFAULT_SYNC_INTERVAL = 60000;
-const DEFAULT_ANALYZE_INTERVAL = 120000;
 const STATS_REFRESH_INTERVAL = 15000;
 
 export function useBackgroundSync() {
@@ -21,33 +19,52 @@ export function useBackgroundSync() {
     analyzing: false,
     error: null,
   });
-  const [pollingInterval, setPollingInterval] = useState(DEFAULT_SYNC_INTERVAL);
-  const syncingRef = useRef(false);
-  const analyzingRef = useRef(false);
+  const checkingRef = useRef(false);
 
-  const loadPollingInterval = useCallback(async () => {
+  // Check server-side sync status by looking at latest sync jobs
+  const checkSyncStatus = useCallback(async () => {
+    if (checkingRef.current) return;
+    checkingRef.current = true;
+
     try {
-      const { data } = await supabase
-        .from('settings')
-        .select('polling_interval')
+      // Get latest sync job
+      const { data: latestSync } = await supabase
+        .from('sync_jobs')
+        .select('status, completed_at, error')
+        .order('started_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (data?.polling_interval) {
-        setPollingInterval(data.polling_interval * 1000);
-      }
-    } catch {
-      // use default
+      // Get unanalyzed count to show analyzing status
+      const { count: unanalyzedCount } = await supabase
+        .from('chats')
+        .select('*', { count: 'exact', head: true })
+        .eq('analyzed', false);
+
+      setSyncStatus(prev => ({
+        ...prev,
+        syncing: latestSync?.status === 'processing',
+        analyzing: (unanalyzedCount || 0) > 0,
+        lastSyncTime: latestSync?.completed_at || prev.lastSyncTime,
+        error: latestSync?.status === 'failed' ? latestSync.error : null,
+      }));
+    } catch (err: any) {
+      setSyncStatus(prev => ({
+        ...prev,
+        error: err.message,
+      }));
+    } finally {
+      checkingRef.current = false;
     }
   }, []);
 
+  // Manual sync trigger (for UI buttons)
   const syncChats = useCallback(async () => {
-    if (syncingRef.current) return;
-    syncingRef.current = true;
     setSyncStatus(prev => ({ ...prev, syncing: true, error: null }));
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat?days=1`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat`,
         {
           headers: {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -68,14 +85,11 @@ export function useBackgroundSync() {
         syncing: false,
         error: err.message,
       }));
-    } finally {
-      syncingRef.current = false;
     }
   }, []);
 
+  // Manual analyze trigger (for UI buttons)
   const analyzeChats = useCallback(async () => {
-    if (analyzingRef.current) return;
-
     const { count } = await supabase
       .from('chats')
       .select('*', { count: 'exact', head: true })
@@ -83,7 +97,6 @@ export function useBackgroundSync() {
 
     if (!count || count === 0) return;
 
-    analyzingRef.current = true;
     setSyncStatus(prev => ({ ...prev, analyzing: true }));
 
     try {
@@ -109,29 +122,19 @@ export function useBackgroundSync() {
         analyzing: false,
         error: err.message,
       }));
-    } finally {
-      analyzingRef.current = false;
     }
   }, []);
 
+  // Only check status periodically, don't trigger sync
+  // Server-side cron handles automatic syncing
   useEffect(() => {
-    loadPollingInterval();
-  }, [loadPollingInterval]);
-
-  useEffect(() => {
-    syncChats();
-    analyzeChats();
-
-    const syncInterval = setInterval(syncChats, pollingInterval);
-    const analyzeInterval = setInterval(analyzeChats, Math.max(pollingInterval * 2, DEFAULT_ANALYZE_INTERVAL));
-    const settingsInterval = setInterval(loadPollingInterval, STATS_REFRESH_INTERVAL * 4);
+    checkSyncStatus();
+    const statusInterval = setInterval(checkSyncStatus, STATS_REFRESH_INTERVAL);
 
     return () => {
-      clearInterval(syncInterval);
-      clearInterval(analyzeInterval);
-      clearInterval(settingsInterval);
+      clearInterval(statusInterval);
     };
-  }, [pollingInterval, syncChats, analyzeChats, loadPollingInterval]);
+  }, [checkSyncStatus]);
 
   return { syncStatus, syncChats, analyzeChats };
 }
