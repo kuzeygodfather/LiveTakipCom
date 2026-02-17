@@ -1,1030 +1,732 @@
-import { BookOpen, BarChart3, MessageSquare, Users, Award, Settings, Eye, FileText, AlertTriangle, TrendingUp, Info } from 'lucide-react';
+import { useState } from 'react';
+import {
+  BookOpen, BarChart3, MessageSquare, Users, Award, Settings, Eye,
+  FileText, AlertTriangle, TrendingUp, Activity, GraduationCap,
+  ChevronRight, Info, Zap, Shield, CheckCircle, Clock, Star,
+  Database, Bell, Download, RefreshCw, Search, Filter, Target,
+  Brain, BarChart2, PieChart, Calendar, DollarSign, Layers,
+  ArrowRight, List, Hash
+} from 'lucide-react';
+
+interface Section {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+const sections: Section[] = [
+  { id: 'overview',       title: 'Genel Bakış',               icon: Info,          color: 'text-sky-400' },
+  { id: 'dashboard',      title: 'Dashboard',                  icon: BarChart3,     color: 'text-blue-400' },
+  { id: 'chats',          title: 'Chat Analizleri',            icon: MessageSquare, color: 'text-emerald-400' },
+  { id: 'personnel',      title: 'Personel Analizi',           icon: Users,         color: 'text-amber-400' },
+  { id: 'reports',        title: 'Raporlar',                   icon: TrendingUp,    color: 'text-cyan-400' },
+  { id: 'monitoring',     title: 'Canlı İzleme',               icon: Activity,      color: 'text-green-400' },
+  { id: 'bonus-settings', title: 'Prim Ayarları',              icon: DollarSign,    color: 'text-yellow-400' },
+  { id: 'bonus-reports',  title: 'Prim Raporları',             icon: Award,         color: 'text-orange-400' },
+  { id: 'coaching',       title: 'Yönetici Koçluk Merkezi',   icon: GraduationCap, color: 'text-teal-400' },
+  { id: 'ai-criteria',    title: 'AI Analiz Kriterleri',       icon: Brain,         color: 'text-blue-400' },
+  { id: 'settings',       title: 'Ayarlar',                    icon: Settings,      color: 'text-slate-400' },
+];
+
+function SectionHeader({ icon: Icon, title, color, id }: { icon: React.ElementType; title: string; color: string; id: string }) {
+  return (
+    <div id={id} className="flex items-center gap-3 mb-6 pt-2">
+      <div className="p-2 rounded-lg bg-slate-800 border border-slate-700/60">
+        <Icon className={`w-5 h-5 ${color}`} />
+      </div>
+      <h2 className="text-xl font-bold text-white">{title}</h2>
+    </div>
+  );
+}
+
+function InfoCard({ title, children, accent = 'blue' }: { title: string; children: React.ReactNode; accent?: string }) {
+  const accents: Record<string, string> = {
+    blue:    'border-blue-500/30 bg-blue-500/5',
+    emerald: 'border-emerald-500/30 bg-emerald-500/5',
+    amber:   'border-amber-500/30 bg-amber-500/5',
+    red:     'border-red-500/30 bg-red-500/5',
+    cyan:    'border-cyan-500/30 bg-cyan-500/5',
+    teal:    'border-teal-500/30 bg-teal-500/5',
+    slate:   'border-slate-600/50 bg-slate-800/60',
+  };
+  return (
+    <div className={`rounded-xl border p-5 ${accents[accent] ?? accents.slate}`}>
+      {title && <h3 className="text-sm font-semibold text-white mb-3 uppercase tracking-wide">{title}</h3>}
+      {children}
+    </div>
+  );
+}
+
+function Badge({ label, color = 'slate' }: { label: string; color?: string }) {
+  const colors: Record<string, string> = {
+    green:   'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+    blue:    'bg-blue-500/15 text-blue-300 border-blue-500/30',
+    amber:   'bg-amber-500/15 text-amber-300 border-amber-500/30',
+    red:     'bg-red-500/15 text-red-300 border-red-500/30',
+    slate:   'bg-slate-700/60 text-slate-300 border-slate-600/50',
+    cyan:    'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
+    teal:    'bg-teal-500/15 text-teal-300 border-teal-500/30',
+  };
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${colors[color] ?? colors.slate}`}>
+      {label}
+    </span>
+  );
+}
+
+function MetricRow({ label, value, desc }: { label: string; value?: string; desc: string }) {
+  return (
+    <div className="flex items-start gap-3 py-2 border-b border-slate-700/40 last:border-0">
+      <div className="w-44 shrink-0">
+        <span className="text-sm font-medium text-white">{label}</span>
+        {value && <span className="ml-2 text-xs text-slate-500">{value}</span>}
+      </div>
+      <span className="text-sm text-slate-400">{desc}</span>
+    </div>
+  );
+}
+
+function StepItem({ num, title, desc }: { num: number; title: string; desc: string }) {
+  return (
+    <div className="flex gap-4">
+      <div className="shrink-0 w-7 h-7 rounded-full bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-xs font-bold text-sky-300">{num}</div>
+      <div>
+        <p className="text-sm font-semibold text-white">{title}</p>
+        <p className="text-sm text-slate-400 mt-0.5">{desc}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function UserGuide() {
+  const [activeSection, setActiveSection] = useState('overview');
+
+  const scrollTo = (id: string) => {
+    setActiveSection(id);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-8 text-white">
-        <div className="flex items-center gap-3 mb-3">
-          <BookOpen className="w-10 h-10" />
-          <h1 className="text-3xl font-bold">Sistem Kullanım Kılavuzu</h1>
-        </div>
-        <p className="text-blue-100 text-lg">
-          LiveChat Kalite Kontrol ve Performans İzleme Sistemi Rehberi
-        </p>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          <Info className="w-6 h-6 text-blue-400" />
-          Sistem Genel Bakış
-        </h2>
-        <div className="space-y-3 text-slate-200">
-          <p>
-            Bu sistem, LiveChat üzerinden yapılan müşteri görüşmelerini otomatik olarak analiz eder,
-            personel performansını değerlendirir ve kalite kontrolü sağlar.
-          </p>
-          <p className="font-medium text-white">Temel Özellikler:</p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>Otomatik chat senkronizasyonu (her 2 dakikada bir)</li>
-            <li>AI destekli kalite analizi (Claude AI kullanarak)</li>
-            <li>Personel performans takibi ve puanlama</li>
-            <li>Bonus hesaplama sistemi</li>
-            <li>Telegram ile anlık uyarılar</li>
-            <li>Detaylı raporlama ve istatistikler</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6 text-blue-400" />
-          Dashboard (Ana Sayfa)
-        </h2>
-        <div className="space-y-4 text-slate-200">
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Genel İstatistikler</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Unique Chat:</span>
-                <span>Farklı müşterilerle yapılan toplam görüşme sayısı</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Total Thread:</span>
-                <span>Tek bir chat içindeki mesaj thread sayısı</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Ortalama Skor:</span>
-                <span>Tüm analizlerin genel skor ortalaması (0-100)</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Ortalama Yanıt Süresi:</span>
-                <span>Müşteriye ilk yanıt verme süresi (saniye)</span>
-              </div>
-            </div>
+    <div className="max-w-7xl mx-auto">
+      <div className="bg-gradient-to-r from-sky-900/60 to-slate-900/80 border border-sky-500/20 rounded-2xl p-8 mb-8 shadow-xl">
+        <div className="flex items-start gap-5">
+          <div className="p-3 rounded-xl bg-sky-500/20 border border-sky-500/30">
+            <BookOpen className="w-8 h-8 text-sky-400" />
           </div>
-
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Sentiment (Duygu) Dağılımı</h3>
-            <p className="text-sm mb-3">AI her chat'i analiz ederek müşteri memnuniyetini 3 kategoride değerlendirir:</p>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-emerald-500/100 rounded-full"></span>
-                <span className="font-medium">Pozitif:</span>
-                <span>Müşteri memnun, sorun çözüldü, iyi iletişim</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-yellow-500/100 rounded-full"></span>
-                <span className="font-medium">Nötr:</span>
-                <span>Normal görüşme, özel bir sorun yok</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-red-500/100 rounded-full"></span>
-                <span className="font-medium">Negatif:</span>
-                <span>Müşteri memnun değil, sorun çözülmedi, şikayet var</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Müşteri Değerlendirmeleri</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-emerald-400 font-medium">⭐ Rating Score:</span>
-                <span>Müşterinin chat sonunda verdiği 1-5 yıldız puanı</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-blue-400 font-medium">💬 Rating Comment:</span>
-                <span>Müşterinin yazılı geri bildirimi</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-red-600 font-medium">🚩 Complaint Flag:</span>
-                <span>Düşük puan (1-2 yıldız) otomatik şikayet olarak işaretlenir</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Personel Performans Karşılaştırması</h3>
-            <div className="space-y-2 text-sm">
-              <p className="mb-2"><strong>Haftanın En İyi Performansı:</strong> Son 7 günün en yüksek skorlu 5 personeli</p>
-              <p className="mb-2"><strong>Gelişim Gereken Personel:</strong> En düşük skorlu 5 personel</p>
-              <p className="text-xs text-slate-400 italic">
-                Her personel kartında chat sayısı, ortalama skor ve müşteri memnuniyet ortalaması görünür.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Personel Gelişim Trendleri</h3>
-            <p className="text-sm mb-2">Son 7 günün günlük performans grafiği:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2 text-sm">
-              <li>Her gün için ortalama skor hesaplanır</li>
-              <li>Haftalık değişim yüzdesi gösterilir (↑ veya ↓)</li>
-              <li>En az 2 günlük veri olması gerekir</li>
-            </ul>
-          </div>
-
-          <p className="text-sm italic text-slate-400">
-            💡 İpucu: Dashboard her açıldığında otomatik güncellenir ve güncel verileri gösterir.
-          </p>
-        </div>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <MessageSquare className="w-6 h-6 text-blue-400" />
-          Chat Listesi
-        </h2>
-        <div className="space-y-4 text-slate-200">
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-2">Filtreler ve Arama</h3>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li><strong>Tarih Seçimi:</strong> Belirli bir tarih aralığındaki chatleri görüntüleyin</li>
-              <li><strong>Personel Filtresi:</strong> Belirli bir temsilcinin chatlerini filtreleyin</li>
-              <li><strong>Müşteri Arama:</strong> Müşteri adına göre arama yapın</li>
-            </ul>
-          </div>
-          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-2">Chat Detayları</h3>
-            <p className="mb-2">Bir chat'e tıkladığınızda göreceğiniz bilgiler:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Tam mesaj geçmişi (müşteri ve temsilci mesajları)</li>
-              <li>AI analiz sonuçları ve puanlar</li>
-              <li>Tespit edilen sorunlar ve öneriler</li>
-              <li>Performans metrikleri (yanıt süreleri, çözüm kalitesi)</li>
-              <li>Dil ve üslup uyumu değerlendirmesi</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Users className="w-6 h-6 text-blue-400" />
-          Personel Performansı
-        </h2>
-        <div className="space-y-4">
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Puanlama Sistemi Nasıl Çalışır?</h3>
-            <div className="space-y-3 text-slate-200">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <p className="font-medium text-white">Ham Skor (Average Score)</p>
-                <p className="text-sm">Tüm chat analizlerinin basit ortalaması. Her chat'in aldığı puanların direkt ortalamasıdır.</p>
-              </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <p className="font-medium text-white">İstatistiksel Skor (Statistical Score)</p>
-                <p className="text-sm">
-                  Daha gelişmiş hesaplama ile bulunur. Chat sayısı, tutarlılık, güvenilirlik gibi faktörleri de hesaba katar.
-                  Bu skor personel sıralama ve değerlendirmede kullanılır.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Güvenilirlik Seviyeleri</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-green-100 text-emerald-400 rounded font-medium">A - En Güvenilir</span>
-                <span className="text-slate-400">Yüksek performans, tutarlı kalite</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-blue-100 text-blue-400 rounded font-medium">B - Güvenilir</span>
-                <span className="text-slate-400">İyi performans, kabul edilebilir kalite</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-400 rounded font-medium">C - Orta Güvenilir</span>
-                <span className="text-slate-400">Geliştirilmesi gereken alanlar var</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-red-100 text-red-400 rounded font-medium">D - Düşük Güvenilir</span>
-                <span className="text-slate-400">Ciddi kalite sorunları, acil müdahale gerekli</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-400" />
-              Uyarı Sistemi
-            </h3>
-            <p className="text-slate-200 mb-2">Uyarı alan chatler:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2 text-sm text-slate-400">
-              <li>Overall score 50'nin altında olan chatler otomatik uyarı alır</li>
-              <li>30'un altında ise "kritik" olarak işaretlenir</li>
-              <li>Bu chatler Telegram'a bildirim olarak gönderilir</li>
-              <li>Personel kartlarında uyarı sayısı görünür (kırmızı üçgen simgesi)</li>
-            </ul>
-          </div>
-
-          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Metrikler ve Anlamları</h3>
-            <div className="space-y-2 text-sm text-slate-200">
-              <div className="flex justify-between items-start">
-                <span className="font-medium w-48">Toplam Chat:</span>
-                <span className="flex-1">Personelin yönettiği toplam görüşme sayısı</span>
-              </div>
-              <div className="flex justify-between items-start">
-                <span className="font-medium w-48">Ortalama İlk Yanıt:</span>
-                <span className="flex-1">Müşterinin ilk mesajına ne kadar sürede yanıt verildiği</span>
-              </div>
-              <div className="flex justify-between items-start">
-                <span className="font-medium w-48">Çözüm Süresi:</span>
-                <span className="flex-1">Chat'in başından bitişine kadar geçen ortalama süre</span>
-              </div>
-              <div className="flex justify-between items-start">
-                <span className="font-medium w-48">Beğeni/Beğenmeme:</span>
-                <span className="flex-1">Müşteri tarafından verilen pozitif/negatif geri bildirimler</span>
-              </div>
-              <div className="flex justify-between items-start">
-                <span className="font-medium w-48">Kaçan Chat:</span>
-                <span className="flex-1">Cevaplanmayan veya kaçırılan görüşmeler</span>
-              </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-1">Sistem Kullanım Kılavuzu</h1>
+            <p className="text-sky-200/80 text-base mb-4">LiveChat Kalite Kontrol ve Performans İzleme Sistemi — Kapsamlı Yönetici Rehberi</p>
+            <div className="flex flex-wrap gap-2">
+              <Badge label="Versiyon 4.0" color="blue" />
+              <Badge label="Güncel" color="green" />
+              <Badge label="Türkçe" color="slate" />
+              <Badge label="Yönetici Rehberi" color="cyan" />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-blue-400" />
-          AI Analiz Kriterleri
-        </h2>
-        <div className="space-y-4">
-          <p className="text-slate-200">
-            Claude AI her chat'i aşağıdaki kriterlere göre 0-100 puan üzerinden değerlendirir:
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-2">1. Dil ve Üslup Uyumu</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Profesyonel dil kullanımı</li>
-                <li>Saygılı ve kibar üslup</li>
-                <li>Yasaklı kelime kontrolü</li>
-                <li>Kopyala-yapıştır tespiti</li>
-              </ul>
+      <div className="flex gap-8">
+        <aside className="hidden lg:block w-64 shrink-0">
+          <div className="sticky top-6 glass-effect rounded-xl border border-slate-700/50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-700/50">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">İçindekiler</p>
             </div>
-
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-green-900 mb-2">2. Chat Kalitesi</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Soruya gerçek cevap verildi mi?</li>
-                <li>Oyalama/geçiştirme var mı?</li>
-                <li>Gereksiz uzatma veya kısa kesme</li>
-                <li>Müşteri memnuniyeti</li>
-              </ul>
-            </div>
-
-            <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-900 mb-2">3. Performans Metrikleri</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>İlk yanıt kalitesi</li>
-                <li>Çözüm odaklılık</li>
-                <li>İletişim etkinliği</li>
-              </ul>
-            </div>
-
-            <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-orange-900 mb-2">4. Sorun Tespiti</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Kritik hatalar</li>
-                <li>Geliştirilmesi gereken alanlar</li>
-                <li>Eksik/yanlış bilgi</li>
-              </ul>
-            </div>
+            <nav className="p-2">
+              {sections.map((s) => {
+                const Icon = s.icon;
+                const active = activeSection === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => scrollTo(s.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left text-sm transition-all duration-150 mb-0.5 ${
+                      active
+                        ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 ${active ? s.color : ''}`} />
+                    <span className="leading-tight">{s.title}</span>
+                    {active && <ChevronRight className="w-3 h-3 ml-auto" />}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
+        </aside>
 
-          <div className="bg-slate-100 border border-slate-300 rounded-lg p-4 mt-4">
-            <h3 className="font-semibold text-white mb-2">Genel Puan Hesaplama</h3>
-            <p className="text-sm text-slate-200">
-              AI tüm bu kriterleri değerlendirerek 0-100 arası bir <strong>Overall Score</strong> verir.
-              Bu skorun yanında detaylı bir analiz raporu, tespit edilen sorunlar ve geliştirme önerileri de sunulur.
+        <main className="flex-1 min-w-0 space-y-10">
+
+          {/* ── GENEL BAKIŞ ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="overview" icon={Info} title="Genel Bakış" color="text-sky-400" />
+            <p className="text-slate-300 leading-relaxed mb-6">
+              Bu sistem, LiveChat üzerinden yürütülen tüm müşteri görüşmelerini yapay zeka destekli olarak
+              otomatik analiz eder; personel performansını puanlar, gelişim alanlarını tespit eder ve
+              yöneticilere veri bazlı karar alma imkânı sunar.
             </p>
-          </div>
-        </div>
-      </div>
 
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <AlertTriangle className="w-6 h-6 text-blue-400" />
-          Müşteri Şikayet Analizi
-        </h2>
-        <div className="space-y-4">
-          <p className="text-slate-200">
-            Sistem, negatif sentiment'e sahip chatleri analiz ederek müşterilerin gerçek şikayet konularını otomatik olarak kategorize eder.
-          </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {[
+                { icon: Zap,        color: 'text-yellow-400', title: 'Otomatik Senkronizasyon',   desc: 'LiveChat chatları her 10 dakikada bir otomatik çekilir' },
+                { icon: Brain,      color: 'text-blue-400',   title: 'AI Destekli Analiz',         desc: 'Claude AI her chati 0-100 puan üzerinden değerlendirir' },
+                { icon: Bell,       color: 'text-red-400',    title: 'Anlık Telegram Uyarıları',   desc: 'Kritik chatler tespit edildiğinde anında bildirim gönderilir' },
+                { icon: Award,      color: 'text-emerald-400',title: 'Otomatik Prim Hesaplama',    desc: 'Tanımladığınız kurallara göre primler otomatik hesaplanır' },
+                { icon: GraduationCap, color: 'text-teal-400', title: 'Koçluk Senaryoları',      desc: 'Her personel için hazır yönetici-personel görüşme senaryosu' },
+                { icon: Shield,     color: 'text-slate-400',  title: 'Güvenli Altyapı',            desc: 'Supabase RLS ile rol tabanlı veri erişim kontrolü' },
+              ].map((f) => (
+                <div key={f.title} className="flex gap-3 p-4 rounded-lg bg-slate-800/50 border border-slate-700/40">
+                  <f.icon className={`w-5 h-5 shrink-0 mt-0.5 ${f.color}`} />
+                  <div>
+                    <p className="text-sm font-semibold text-white">{f.title}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">En Çok Şikayet Edilen Konular (Top 10)</h3>
-            <p className="text-sm text-slate-200 mb-3">
-              AI, negatif chatlerdeki özet metinleri analiz ederek müşterilerin hangi konulardan şikayet ettiğini tespit eder.
+            <InfoCard title="Sistem Akışı" accent="slate">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                {['LiveChat API', 'Otomatik Senkronizasyon', 'Claude AI Analizi', 'Veritabanı', 'Dashboard / Raporlar / Koçluk'].map((step, i, arr) => (
+                  <span key={step} className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-lg bg-slate-700/60 border border-slate-600/50 text-xs font-medium">{step}</span>
+                    {i < arr.length - 1 && <ArrowRight className="w-3 h-3 text-slate-500" />}
+                  </span>
+                ))}
+              </div>
+            </InfoCard>
+          </section>
+
+          {/* ── DASHBOARD ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="dashboard" icon={BarChart3} title="Dashboard" color="text-blue-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Ana sayfada seçilen tarih aralığına ait tüm temel metrikler, grafikler ve personel karşılaştırmaları yer alır.
             </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h3 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
-                💰 Para Yatırma/Çekim
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Yatırım işleminin gecikmesi</li>
-                <li>Çekim talebinin onaylanmaması</li>
-                <li>Para transferi sorunları</li>
-                <li>Hesap yükleme problemleri</li>
-              </ul>
-            </div>
+            <div className="space-y-4">
+              <InfoCard title="Üst Bant — Temel Metrikler" accent="blue">
+                <div className="space-y-0.5">
+                  <MetricRow label="Unique Chat"           desc="Farklı müşterilerle açılmış toplam görüşme sayısı" />
+                  <MetricRow label="Total Thread"          desc="Tek bir chat içindeki mesaj thread adedi" />
+                  <MetricRow label="Ortalama Skor"         desc="Tüm AI analizlerinin genel puan ortalaması (0–100)" />
+                  <MetricRow label="Ortalama Yanıt Süresi" desc="Müşteriye ilk yanıt verilme süresi (saniye)" />
+                  <MetricRow label="Müşteri Memnuniyeti"   desc="Müşteri rating puanlarının yüzde ortalaması" />
+                </div>
+              </InfoCard>
 
-            <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
-              <h3 className="font-semibold text-pink-900 mb-2 flex items-center gap-2">
-                🎁 Bonus/Promosyon
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Bonus kodu kabul edilmiyor</li>
-                <li>Kampanya tanımlanmadı</li>
-                <li>Özel kod geçersiz</li>
-                <li>Bonus hesaba yansımadı</li>
-              </ul>
-            </div>
+              <InfoCard title="Sentiment Dağılımı" accent="emerald">
+                <p className="text-sm text-slate-400 mb-3">AI her chati müşteri memnuniyetine göre üç kategoriye atar:</p>
+                <div className="space-y-2">
+                  {[
+                    { dot: 'bg-emerald-500', label: 'Pozitif', desc: 'Sorun çözüldü, müşteri memnun, iletişim başarılı' },
+                    { dot: 'bg-yellow-500',  label: 'Nötr',    desc: 'Standart görüşme, özel bir sorun tespit edilmedi' },
+                    { dot: 'bg-red-500',     label: 'Negatif', desc: 'Müşteri memnun değil, sorun çözülmedi, şikayet var' },
+                  ].map(s => (
+                    <div key={s.label} className="flex items-center gap-3 text-sm">
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${s.dot}`} />
+                      <span className="text-white font-medium w-16">{s.label}</span>
+                      <span className="text-slate-400">{s.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
 
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-                🔐 Hesap Erişimi
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Giriş yapamama sorunu</li>
-                <li>Şifre sıfırlama problemi</li>
-                <li>Hesap askıya alındı</li>
-                <li>Oturum açma hatası</li>
-              </ul>
-            </div>
-
-            <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
-                ⏱️ İşlem Gecikmeleri
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Yavaş işlem süreleri</li>
-                <li>Para transferi gecikmesi</li>
-                <li>Onay bekleme süresi uzun</li>
-              </ul>
-            </div>
-
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-              <h3 className="font-semibold text-emerald-900 mb-2 flex items-center gap-2">
-                🛡️ Güvenlik/Lisans
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Lisans bilgisi eksikliği</li>
-                <li>Güvenlik şüphesi</li>
-                <li>Yasal sorunlar</li>
-              </ul>
-            </div>
-
-            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-cyan-900 mb-2 flex items-center gap-2">
-                👤 Müşteri Hizmetleri
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Otomatik yanıtlar/Bot</li>
-                <li>Yetersiz destek</li>
-                <li>Çözüm odaklı değil</li>
-                <li>İlgisiz temsilci</li>
-              </ul>
-            </div>
-
-            <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
-                🎮 Bahis/Oyun Sorunları
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>RTP oranları düşük</li>
-                <li>Oyun donması</li>
-                <li>Bahis kabul edilmedi</li>
-                <li>Kazanç yansımadı</li>
-              </ul>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                ⚙️ Teknik Sorunlar
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Site açılmıyor</li>
-                <li>Mobil uygulama hatası</li>
-                <li>Yavaş yüklenme</li>
-                <li>Sayfa çökmesi</li>
-              </ul>
-            </div>
-
-            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-              <h3 className="font-semibold text-indigo-900 mb-2 flex items-center gap-2">
-                📄 Doğrulama/KYC
-              </h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-                <li>Kimlik doğrulama sorunu</li>
-                <li>Belge kabul edilmedi</li>
-                <li>KYC süreci uzun</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
-            <h3 className="font-semibold text-white mb-2">Nasıl Çalışır?</h3>
-            <div className="space-y-2 text-sm text-slate-200">
-              <p><strong>1. AI Özet Analizi:</strong> Her negatif chat için AI'ın yazdığı özet metin analiz edilir</p>
-              <p><strong>2. Anahtar Kelime Tespiti:</strong> Önemli kelimeler ve ifadeler tespit edilir</p>
-              <p><strong>3. Otomatik Kategorizasyon:</strong> Şikayet en uygun kategoriye otomatik atanır</p>
-              <p><strong>4. İstatistiksel Analiz:</strong> En çok tekrar eden şikayet konuları Top 10'da gösterilir</p>
-            </div>
-          </div>
-
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-2">Dashboard'da Görüntüleme</h3>
-            <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
-              <li><strong>Günlük Şikayet Trendi:</strong> Son 7 günün günlük negatif ve nötr chat sayıları</li>
-              <li><strong>Saatlik Dağılım:</strong> Hangi saatlerde daha fazla şikayet alındığı</li>
-              <li><strong>Kategori Yüzdesi:</strong> Her şikayet kategorisinin toplam içindeki payı</li>
-            </ul>
-          </div>
-
-          <p className="text-sm text-slate-400 italic">
-            💡 İpucu: Bu analizler sayesinde müşterilerinizin gerçekte ne ile sorun yaşadığını anlayabilir ve
-            önlem alabilirsiniz. Personelin hataları değil, müşterilerin şikayetleri gösterilir.
-          </p>
-        </div>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Award className="w-6 h-6 text-blue-400" />
-          Bonus Sistemi
-        </h2>
-        <div className="space-y-4">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Nasıl Çalışır?</h3>
-            <div className="space-y-2 text-slate-200 text-sm">
-              <p>Bonus sistemi, belirlenen kurallara göre personele otomatik bonus hesaplar.</p>
-              <p className="font-medium mt-3">Kural Türleri:</p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li><strong>greater_than:</strong> Metrik değeri eşik değerinden büyükse bonus verilir</li>
-                <li><strong>less_than:</strong> Metrik değeri eşik değerinden küçükse bonus verilir</li>
-                <li><strong>between:</strong> Metrik değeri belirlenen aralıkta ise bonus verilir</li>
-                <li><strong>equals:</strong> Metrik değeri tam olarak eşitse bonus verilir</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-3">Değerlendirilebilir Metrikler</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-200">
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-600">•</span>
-                <span><strong>total_chats:</strong> Toplam chat sayısı</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoCard title="Haftanın En İyi Performansı" accent="amber">
+                  <p className="text-sm text-slate-400">Son 7 günün en yüksek istatistiksel skora sahip 5 personeli listelenir. Her kartta chat sayısı, ortalama skor ve müşteri memnuniyeti gösterilir.</p>
+                </InfoCard>
+                <InfoCard title="Gelişim Gereken Personel" accent="red">
+                  <p className="text-sm text-slate-400">En düşük skorlu 5 personel listelenir. Yöneticinin öncelikli dikkat etmesi gereken personeli hızlıca görüntülemesini sağlar.</p>
+                </InfoCard>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-600">•</span>
-                <span><strong>avg_score:</strong> Ortalama puan</span>
+
+              <InfoCard title="Müşteri Şikayet Analizi" accent="cyan">
+                <div className="space-y-1.5 text-sm">
+                  <p className="text-slate-400 mb-2">Dashboard'un alt bölümünde müşteri bazlı şikayet analizleri yer alır:</p>
+                  <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-cyan-400 shrink-0" /><span className="text-slate-300">Top 10 Şikayet Kategorisi — AI'ın negatif chatlerden otomatik çıkardığı kategori istatistikleri</span></div>
+                  <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-cyan-400 shrink-0" /><span className="text-slate-300">Günlük Şikayet Trendi — Son 7 günün saatlik ve günlük dağılımı</span></div>
+                  <div className="flex items-center gap-2"><CheckCircle className="w-4 h-4 text-cyan-400 shrink-0" /><span className="text-slate-300">Saatlik Dağılım Isı Haritası — Hangi saatlerde yoğunlaştığını gösterir</span></div>
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── CHAT ANALİZLERİ ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="chats" icon={MessageSquare} title="Chat Analizleri" color="text-emerald-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Tüm chatler tarih, personel ve sentiment'a göre filtrelenebilir. Herhangi bir chate tıklandığında
+              tam mesaj geçmişi ve AI analiz detayları açılır.
+            </p>
+
+            <div className="space-y-4">
+              <InfoCard title="Filtre Seçenekleri" accent="emerald">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  {[
+                    { icon: Calendar, label: 'Tarih Aralığı',   desc: 'Belirli tarihler arasındaki chatler' },
+                    { icon: Users,    label: 'Personel',         desc: 'Belirli bir temsilciye ait chatler' },
+                    { icon: PieChart, label: 'Sentiment',        desc: 'Pozitif / Nötr / Negatif filtresi' },
+                    { icon: Search,   label: 'Müşteri Arama',    desc: 'Müşteri adına göre arama' },
+                    { icon: Star,     label: 'Rating',           desc: '1–5 yıldız aralığı filtresi' },
+                    { icon: Filter,   label: 'Analiz Durumu',    desc: 'Analiz edilmiş / edilmemiş' },
+                  ].map(f => (
+                    <div key={f.label} className="flex items-center gap-2.5 p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
+                      <f.icon className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <div>
+                        <p className="text-white font-medium">{f.label}</p>
+                        <p className="text-xs text-slate-500">{f.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Chat Detay Paneli" accent="slate">
+                <p className="text-sm text-slate-400 mb-3">Bir chate tıkladığınızda sağ panelde şunlar görünür:</p>
+                <div className="space-y-2">
+                  {[
+                    'Tüm mesaj geçmişi — müşteri ve temsilci mesajları zaman damgasıyla',
+                    'AI Özet — Claude\'ın chati tek cümleyle özetlemesi',
+                    'Overall Score (0–100) ve alt skor dağılımı',
+                    'Tespit edilen sorunlar (kritik hatalar, geliştirme alanları)',
+                    'Koçluk önerisi — bu chat için üretilmişse görünür',
+                    'Müşteri rating yıldızı ve yorumu',
+                  ].map(item => (
+                    <div key={item} className="flex items-start gap-2 text-sm">
+                      <ChevronRight className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span className="text-slate-300">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Uyarı Eşikleri" accent="red">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-3"><Badge label="Skor < 50" color="amber" /><span className="text-slate-400">Uyarı işareti — Telegram bildirimi tetiklenir</span></div>
+                  <div className="flex items-center gap-3"><Badge label="Skor < 30" color="red" /><span className="text-slate-400">Kritik işareti — Acil müdahale gerekli</span></div>
+                  <div className="flex items-center gap-3"><Badge label="Rating 1–2" color="red" /><span className="text-slate-400">Müşteri şikayeti olarak otomatik işaretlenir</span></div>
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── PERSONEL ANALİZİ ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="personnel" icon={Users} title="Personel Analizi" color="text-amber-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Her personel için günlük / haftalık / aylık performans istatistikleri, skor trendleri,
+              uyarı geçmişi ve müşteri memnuniyeti verileri görüntülenir.
+            </p>
+
+            <div className="space-y-4">
+              <InfoCard title="Puanlama Sistemi" accent="amber">
+                <div className="space-y-4">
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <p className="text-sm font-semibold text-white">Ham Skor (Average Score)</p>
+                    <p className="text-sm text-slate-400 mt-1">Personelin tüm chat analizlerinin basit aritmetik ortalaması.</p>
+                  </div>
+                  <div className="border-l-4 border-emerald-500 pl-4">
+                    <p className="text-sm font-semibold text-white">İstatistiksel Skor (Statistical Score)</p>
+                    <p className="text-sm text-slate-400 mt-1">Chat sayısı, tutarlılık ve güvenilirlik faktörleri hesaba katılarak normalize edilmiş gelişmiş skor. Sıralama ve prim hesaplamalarında bu kullanılır.</p>
+                  </div>
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Güvenilirlik Seviyeleri" accent="slate">
+                <div className="space-y-2">
+                  {[
+                    { grade: 'A', label: 'En Güvenilir', color: 'text-emerald-400', desc: 'Yüksek ve tutarlı performans' },
+                    { grade: 'B', label: 'Güvenilir',     color: 'text-blue-400',    desc: 'İyi performans, kabul edilebilir kalite' },
+                    { grade: 'C', label: 'Orta',          color: 'text-amber-400',   desc: 'Geliştirilmesi gereken alanlar mevcut' },
+                    { grade: 'D', label: 'Düşük',         color: 'text-red-400',     desc: 'Ciddi kalite sorunları, acil müdahale' },
+                  ].map(g => (
+                    <div key={g.grade} className="flex items-center gap-3 py-2 border-b border-slate-700/40 last:border-0">
+                      <span className={`w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 flex items-center justify-center text-sm font-bold ${g.color}`}>{g.grade}</span>
+                      <span className="text-white text-sm font-medium w-28">{g.label}</span>
+                      <span className="text-slate-400 text-sm">{g.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Metrik Referansı" accent="slate">
+                <div className="space-y-0.5">
+                  <MetricRow label="Toplam Chat"          desc="Personelin yönettiği toplam görüşme sayısı" />
+                  <MetricRow label="Ortalama İlk Yanıt"   desc="Müşterinin ilk mesajına verilen yanıt süresi" />
+                  <MetricRow label="Çözüm Süresi"         desc="Chatın başından kapanışına kadar geçen ortalama süre" />
+                  <MetricRow label="Uyarı Sayısı"         desc="Düşük skor (< 50) alan chat adedi" />
+                  <MetricRow label="Kaçan Chat"           desc="Cevapsız kalan veya kaçırılan görüşmeler" />
+                  <MetricRow label="Beğeni / Beğenmeme"   desc="Müşteri pozitif / negatif geri bildirimleri" />
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── RAPORLAR ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="reports" icon={TrendingUp} title="Raporlar" color="text-cyan-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Seçilen tarih aralığı ve personel için detaylı performans raporları ve koçluk öneri geçmişi sunulur.
+            </p>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { icon: BarChart2,  color: 'text-cyan-400',   title: 'Trend Analizi',     desc: 'Zaman içindeki skor ve chat hacmi değişimleri, haftalık karşılaştırmalar' },
+                  { icon: Target,     color: 'text-emerald-400',title: 'Koçluk Önerileri',  desc: 'Negatif chatler için AI tarafından üretilmiş bireysel gelişim önerileri' },
+                  { icon: Layers,     color: 'text-amber-400',  title: 'Koçluk Etki Raporu',desc: 'Koçluk öncesi ve sonrası performans karşılaştırması, gelişim kanıtı' },
+                ].map(r => (
+                  <div key={r.title} className="p-4 rounded-xl bg-slate-800/50 border border-slate-700/40">
+                    <r.icon className={`w-5 h-5 ${r.color} mb-3`} />
+                    <p className="text-sm font-semibold text-white mb-1">{r.title}</p>
+                    <p className="text-xs text-slate-400">{r.desc}</p>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-600">•</span>
-                <span><strong>avg_satisfaction:</strong> Müşteri memnuniyeti</span>
+
+              <InfoCard title="Koçluk Öneri Akışı" accent="cyan">
+                <div className="space-y-3">
+                  <StepItem num={1} title="Negatif Chat Listesi" desc="Düşük skorlu veya sorunlu chatler otomatik listelenir, personele göre filtrelenebilir." />
+                  <StepItem num={2} title="AI Öneri Üretimi" desc="Seçili chat için Claude AI analizi esas alarak kişiselleştirilmiş gelişim önerisi üretir." />
+                  <StepItem num={3} title="Toplu Üretim" desc="Tüm filtrelenmiş chatler için tek tıkla toplu öneri üretimi yapılabilir." />
+                  <StepItem num={4} title="Telegram'a İlet" desc="Oluşturulan öneriler Telegram'a veya doğrudan personele iletilebilir." />
+                  <StepItem num={5} title="Koçluk Etki İzleme" desc="Gönderilen öneriler sonrası performans değişimi Koçluk Etki Raporu sekmesinde takip edilir." />
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── CANLI İZLEME ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="monitoring" icon={Activity} title="Canlı İzleme" color="text-green-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Sistem arka planda otomatik çalışır. Bu sayfa, manuel müdahale gereken durumlarda
+              ve sistem sağlığını kontrol etmek için kullanılır.
+            </p>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { icon: RefreshCw, color: 'text-blue-400',   title: 'Manuel Senkronizasyon', desc: 'LiveChat\'ten chatları hemen çek. Otomatik senkronizasyonu beklemek istemediğinizde kullanın.' },
+                  { icon: Brain,     color: 'text-emerald-400',title: 'Manuel Analiz',          desc: 'Bekleyen chatleri hemen analiz et. Yoğun dönemlerde AI kuyruğunu hızlandırır.' },
+                  { icon: Bell,      color: 'text-amber-400',  title: 'Uyarı Gönderimi',        desc: 'Bekleyen Telegram uyarılarını anında gönder.' },
+                  { icon: Database,  color: 'text-slate-400',  title: 'Sistem Durumu',          desc: 'Son senkronizasyon zamanı, son analiz zamanı ve kuyruk durumu.' },
+                ].map(m => (
+                  <div key={m.title} className="flex gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/40">
+                    <m.icon className={`w-5 h-5 shrink-0 mt-0.5 ${m.color}`} />
+                    <div>
+                      <p className="text-sm font-semibold text-white">{m.title}</p>
+                      <p className="text-xs text-slate-400 mt-1">{m.desc}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-600">•</span>
-                <span><strong>avg_response_time:</strong> Ortalama yanıt süresi</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-600">•</span>
-                <span><strong>positive_chats_count:</strong> Pozitif chat sayısı</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-cyan-600">•</span>
-                <span><strong>negative_chats_count:</strong> Negatif chat sayısı</span>
+
+              <InfoCard title="Otomatik Zamanlama" accent="slate">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-3 py-2 border-b border-slate-700/40">
+                    <Clock className="w-4 h-4 text-blue-400 shrink-0" />
+                    <span className="text-white w-48">Chat Senkronizasyonu</span>
+                    <Badge label="Her 10 dakika" color="blue" />
+                  </div>
+                  <div className="flex items-center gap-3 py-2 border-b border-slate-700/40">
+                    <Brain className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span className="text-white w-48">AI Analizi</span>
+                    <Badge label="Senkronizasyon sonrası" color="green" />
+                  </div>
+                  <div className="flex items-center gap-3 py-2">
+                    <Bell className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span className="text-white w-48">Telegram Bildirimleri</span>
+                    <Badge label="Kritik chat tespitinde" color="amber" />
+                  </div>
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── PRİM AYARLARI ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="bonus-settings" icon={DollarSign} title="Prim Ayarları" color="text-yellow-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Prim kuralları bu sayfadan tanımlanır. Her kural bir performans metriğini belirli bir koşula
+              göre değerlendirir ve koşul sağlanırsa belirlenen tutarda prim verilir.
+            </p>
+
+            <div className="space-y-4">
+              <InfoCard title="Kural Koşul Türleri" accent="amber">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  {[
+                    { op: 'greater_than', desc: 'Metrik değeri eşikten büyükse prim verilir',          ex: 'Skor > 85 → +500 TL' },
+                    { op: 'less_than',    desc: 'Metrik değeri eşikten küçükse prim verilir',           ex: 'Yanıt süresi < 30sn → +300 TL' },
+                    { op: 'between',      desc: 'Metrik belirlenen aralıkta ise prim verilir',          ex: 'Chat 100–150 arası → +400 TL' },
+                    { op: 'equals',       desc: 'Metrik tam olarak belirtilen değere eşitse prim',      ex: 'Skor = 100 → +1000 TL' },
+                  ].map(r => (
+                    <div key={r.op} className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/40">
+                      <code className="text-xs text-yellow-400 font-mono">{r.op}</code>
+                      <p className="text-slate-300 text-xs mt-1">{r.desc}</p>
+                      <p className="text-slate-500 text-xs mt-1 italic">{r.ex}</p>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Değerlendirilebilir Metrikler" accent="slate">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                  {[
+                    ['total_chats',           'Toplam chat sayısı'],
+                    ['avg_score',             'Ortalama AI puanı'],
+                    ['avg_satisfaction',      'Müşteri memnuniyeti %'],
+                    ['avg_response_time',     'Ortalama yanıt süresi (sn)'],
+                    ['positive_chats_count',  'Pozitif chat adedi'],
+                    ['negative_chats_count',  'Negatif chat adedi'],
+                    ['warning_count',         'Uyarı alan chat adedi'],
+                    ['neutral_chats_count',   'Nötr chat adedi'],
+                  ].map(([key, label]) => (
+                    <div key={key} className="p-2 rounded bg-slate-800/50 border border-slate-700/40">
+                      <code className="text-yellow-400 font-mono">{key}</code>
+                      <p className="text-slate-500 mt-0.5">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Periyot Türleri" accent="slate">
+                <div className="flex flex-wrap gap-2">
+                  <Badge label="Günlük" color="blue" />
+                  <Badge label="Haftalık" color="cyan" />
+                  <Badge label="Aylık" color="amber" />
+                </div>
+                <p className="text-sm text-slate-400 mt-2">Her kural için ayrı bir periyot belirlenebilir. Farklı periyottaki kurallar aynı anda aktif olabilir.</p>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── PRİM RAPORLARI ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="bonus-reports" icon={Award} title="Prim Raporları" color="text-orange-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Prim hesaplamalarını yönetin, aylık dönemleri karşılaştırın ve her personel için PDF raporu oluşturun.
+            </p>
+
+            <div className="space-y-4">
+              <InfoCard title="Adım Adım Kullanım" accent="orange">
+                <div className="space-y-4">
+                  <StepItem num={1} title="Mod Seçimi" desc="'Prim Hesaplama' yeni hesaplama yapar; 'Kayıtlı Raporlar' geçmiş dönemleri gösterir." />
+                  <StepItem num={2} title="Periyot ve Tarih Aralığı" desc="Hesaplama modunda periyot tipi (günlük/haftalık/aylık), başlangıç ve bitiş tarihi seçin." />
+                  <StepItem num={3} title="Hesapla" desc="Hesapla butonuna tıklayın. Sonuçlar önizleme olarak görüntülenir — henüz kaydedilmez." />
+                  <StepItem num={4} title="Kaydet" desc="Önizlemeyi onayladıktan sonra Kaydet butonuyla veritabanına kaydedin." />
+                  <StepItem num={5} title="Ay Kartı Seçimi" desc="Aylara göre gruplandırılmış kartlardan istediğiniz dönemi seçin." />
+                  <StepItem num={6} title="Personel Detayı" desc="Tabloda personelin satırındaki Detay butonuna tıklayın — tüm metrikler ve uygulanan kurallar görünür." />
+                  <StepItem num={7} title="PDF İndirme" desc="Popup içinde PDF Olarak İndir butonuna basın. Dosya otomatik isimlendirilip bilgisayarınıza indirilir." />
+                </div>
+              </InfoCard>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoCard title="PDF İçeriği" accent="slate">
+                  <div className="space-y-1.5 text-sm">
+                    {['Personel adı ve dönem bilgileri', '8 adet performans metriği kartı', 'Uygulanan tüm prim kuralları ve tutarları', 'A4 boyutunda yüksek çözünürlüklü çıktı', 'Çok sayfalı destek'].map(item => (
+                      <div key={item} className="flex items-center gap-2">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span className="text-slate-300">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </InfoCard>
+
+                <InfoCard title="Önemli Notlar" accent="amber">
+                  <div className="space-y-2 text-sm text-slate-400">
+                    <p>Hesapla ile yapılan önizlemeler geçicidir, Kaydet ile kalıcı hale gelir.</p>
+                    <p>Aynı dönem için birden fazla hesaplama yapılabilir; raporlarda en son kayıt gösterilir.</p>
+                    <p>Personel hiçbir kuralı karşılamıyorsa prim 0 TL olabilir.</p>
+                  </div>
+                </InfoCard>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <h3 className="font-semibold text-white mb-2">Periyod Türleri</h3>
-            <div className="flex gap-4 text-sm">
-              <span className="px-3 py-1 bg-white border border-amber-300 rounded">📅 Günlük (Daily)</span>
-              <span className="px-3 py-1 bg-white border border-amber-300 rounded">📅 Haftalık (Weekly)</span>
-              <span className="px-3 py-1 bg-white border border-amber-300 rounded">📅 Aylık (Monthly)</span>
+          {/* ── YÖNETİCİ KOÇLUK MERKEZİ ── */}
+          <section className="glass-effect rounded-xl p-6 border border-teal-500/20">
+            <SectionHeader id="coaching" icon={GraduationCap} title="Yönetici Koçluk Merkezi" color="text-teal-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Sistemin en güçlü özelliklerinden biridir. Her personel için gerçek chat kanıtlarına dayalı
+              yönetici–personel görüşme senaryosu otomatik oluşturulur. Yöneticinin yalnızca senaryoyu
+              okuyarak görüşmeyi yürütmesi yeterlidir.
+            </p>
+
+            <div className="space-y-4">
+              <InfoCard title="Sistem Nasıl Çalışır?" accent="teal">
+                <div className="space-y-4">
+                  <StepItem num={1} title="Veri Toplama" desc="Seçilen zaman aralığındaki tüm chatler analiz edilir. AI skorları, tespit edilen sorunlar ve chat kanıtları toplanır." />
+                  <StepItem num={2} title="Sorun Tespiti" desc="Kritik hatalar (skor < 60) ve geliştirme alanları (60–75) ayrı kategorilere ayrılır. Her sorun için en az iki chat kanıtı listelenir." />
+                  <StepItem num={3} title="Aksiyon Planı" desc="Tespit edilen sorunlara göre somut, uygulanabilir aksiyon maddeleri oluşturulur." />
+                  <StepItem num={4} title="Senaryo Üretimi" desc="Yönetici (Y:) ve personel (P:) diyaloğu olarak yapılandırılmış, chat ID ve AI özeti içeren tam görüşme senaryosu yazılır." />
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Görüşme Senaryosu Formatı" accent="slate">
+                <div className="space-y-3 text-sm">
+                  <p className="text-slate-400">Senaryo sekmesi açıldığında aşağıdaki bölümleri içeren hazır diyalog metni görünür:</p>
+                  <div className="rounded-lg bg-slate-900/80 border border-slate-700/40 p-4 font-mono text-xs space-y-2">
+                    <p className="text-slate-500">── BÖLÜM 0: GİRİŞ ──</p>
+                    <p className="text-teal-300">Y: "Ali, bugün seninle 7 günlük performansı değerlendirmek istiyorum..."</p>
+                    <p className="text-slate-400">P: [Dinliyor, kabul eder ya da merakla sorar]</p>
+                    <p className="text-slate-500 mt-2">── BÖLÜM 1: KRİTİK HATALAR ──</p>
+                    <p className="text-teal-300">Y: "14 Şubat tarihli müşteri [Ad] ile Chat #AB1234'e baktım..."</p>
+                    <p className="text-teal-300">   Sistem analizi: '...' Bu durumu nasıl değerlendiriyorsun?"</p>
+                    <p className="text-slate-400">P: [Açıklama yapar / kabul eder / savunma yapar]</p>
+                    <p className="text-slate-500 mt-2">── BÖLÜM 2: GELİŞTİRME ALANLARI ──</p>
+                    <p className="text-slate-500 mt-2">── BÖLÜM 3: AKSİYON MUTABAKATI ──</p>
+                    <p className="text-slate-500 mt-2">── İMZALAR ──</p>
+                  </div>
+                </div>
+              </InfoCard>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <InfoCard title="Kanıtlı Sorunlar Sekmesi" accent="red">
+                  <p className="text-sm text-slate-400">Her sorun için chat ID, tarih, müşteri adı, skor ve AI analizi bir arada gösterilir. Görüşmede somut delil olarak kullanılır.</p>
+                </InfoCard>
+                <InfoCard title="Aksiyon Planı Sekmesi" accent="cyan">
+                  <p className="text-sm text-slate-400">Personelin yapması gereken somut adımlar listelenir. Görüşmede mutabık kalınan maddeler için tablo oluşturulur.</p>
+                </InfoCard>
+                <InfoCard title="Aciliyet Sınıflandırması" accent="amber">
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex items-center gap-2"><Badge label="Yüksek" color="red" /><span className="text-slate-400">Ort. skor &lt; 70</span></div>
+                    <div className="flex items-center gap-2"><Badge label="Orta" color="amber" /><span className="text-slate-400">Skor 70–82</span></div>
+                    <div className="flex items-center gap-2"><Badge label="Düşük" color="green" /><span className="text-slate-400">Skor &gt; 82</span></div>
+                  </div>
+                </InfoCard>
+              </div>
+
+              <InfoCard title="Görüşme Sonrası Takip" accent="teal">
+                <div className="space-y-2 text-sm">
+                  <p className="text-slate-400">Senaryoyu kopyalayın ve görüşmeyi yürütün. Görüşme tamamlandığında:</p>
+                  <div className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" /><span className="text-slate-300">Geri Bildirim Gönderildi butonuna basın — görüşme tarihi kayıt altına alınır</span></div>
+                  <div className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" /><span className="text-slate-300">Raporlar sayfasındaki Koçluk Etki Raporu ile görüşme öncesi ve sonrası skor değişimi takip edilir</span></div>
+                  <div className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" /><span className="text-slate-300">3 gün içinde takip görüşmesi planlamak için hatırlatıcı not ekleyin</span></div>
+                </div>
+              </InfoCard>
             </div>
-          </div>
+          </section>
 
-          <p className="text-sm text-slate-400 italic">
-            💡 İpucu: Bonus Ayarları sayfasından yeni kurallar ekleyebilir, mevcut kuralları düzenleyebilir
-            ve bonus hesaplamaları yapabilirsiniz.
-          </p>
-        </div>
-      </div>
+          {/* ── AI ANALİZ KRİTERLERİ ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="ai-criteria" icon={Brain} title="AI Analiz Kriterleri" color="text-blue-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Claude AI her chati aşağıdaki dört ana başlık üzerinden değerlendirir ve 0–100 puan verir.
+            </p>
 
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <FileText className="w-6 h-6 text-blue-400" />
-          Raporlar
-        </h2>
-        <div className="space-y-3 text-slate-200">
-          <p>Raporlar sayfası, seçtiğiniz tarih aralığı için detaylı performans raporları sunar:</p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>Genel İstatistikler:</strong> Toplam chat, ortalama skor, uyarı sayısı</li>
-            <li><strong>Personel Karşılaştırması:</strong> Tüm personelin performansını yan yana görüntüleme</li>
-            <li><strong>Trend Analizi:</strong> Zaman içindeki performans değişimlerini izleme</li>
-            <li><strong>Top Performerlar:</strong> En yüksek performans gösteren temsilciler</li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Award className="w-6 h-6 text-blue-400" />
-          Prim Raporları - Detaylı Kullanım Kılavuzu
-        </h2>
-        <div className="space-y-4">
-          <p className="text-slate-200">
-            Prim Raporları sayfası, personel primlerini hesaplamak, görüntülemek ve PDF olarak indirmek için kullanılır.
-            Sistem üç aşamalı bir yapıya sahiptir.
-          </p>
-
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-5 rounded-lg">
-            <h3 className="font-bold text-blue-900 mb-3 text-lg flex items-center gap-2">
-              📊 1. ADIM: Prim Hesaplama veya Kayıtlı Raporları Görüntüleme
-            </h3>
-            <div className="space-y-3 text-slate-200 text-sm">
-              <p className="font-medium text-white">İki farklı görünüm modu vardır:</p>
-
-              <div className="bg-white/5 p-4 rounded-lg border border-blue-500/20">
-                <h4 className="font-semibold text-blue-300 mb-2">🧮 Prim Hesaplama (Önizleme) Modu</h4>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Yeni prim hesaplamaları yapabilirsiniz</li>
-                  <li>Sonuçları kaydetmeden önce önizleyebilirsiniz</li>
-                  <li>Farklı tarih aralıkları ve periyotlarla test edebilirsiniz</li>
-                </ul>
-                <div className="mt-3 bg-blue-500/10 p-3 rounded">
-                  <p className="font-medium text-blue-900 mb-2">Hesaplama Parametreleri:</p>
-                  <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li><strong>Periyot Tipi:</strong> Günlük, Haftalık veya Aylık seçin</li>
-                    <li><strong>Başlangıç Tarihi:</strong> Hesaplama yapılacak dönemin başlangıcı</li>
-                    <li><strong>Bitiş Tarihi:</strong> Hesaplama yapılacak dönemin sonu</li>
-                    <li><strong>Hesapla Butonu:</strong> Seçilen parametrelere göre primleri hesaplar</li>
-                    <li><strong>Kaydet Butonu:</strong> Hesaplanan primleri veritabanına kaydeder</li>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              {[
+                { num: '1', title: 'Dil ve Üslup Uyumu',   color: 'border-blue-500', items: ['Profesyonel ve kibar dil kullanımı', 'Yasaklı kelime kontrolü', 'Kopyala-yapıştır şablonu tespiti', 'Müşteriye saygılı hitap'] },
+                { num: '2', title: 'Chat Kalitesi',         color: 'border-emerald-500', items: ['Soruya gerçek cevap verildi mi?', 'Oyalama veya geçiştirme var mı?', 'Gereksiz uzatma veya erken kapanış', 'Müşteri memnuniyeti sonucu'] },
+                { num: '3', title: 'Performans Metrikleri', color: 'border-amber-500', items: ['İlk yanıt kalitesi ve hızı', 'Çözüm odaklı yaklaşım', 'İletişim etkinliği', 'Müşteri yönlendirme becerisi'] },
+                { num: '4', title: 'Sorun Tespiti',         color: 'border-red-500', items: ['Kritik hatalar (büyük puan kesintisi)', 'Geliştirme alanları (küçük puan kesintisi)', 'Eksik veya hatalı bilgi verme', 'Yönlendirme hataları'] },
+              ].map(c => (
+                <div key={c.num} className={`p-4 rounded-xl border-l-4 bg-slate-800/50 border ${c.color} border-slate-700/40`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white`}>{c.num}</span>
+                    <h3 className="text-sm font-semibold text-white">{c.title}</h3>
+                  </div>
+                  <ul className="space-y-1">
+                    {c.items.map(item => (
+                      <li key={item} className="flex items-center gap-2 text-xs text-slate-400">
+                        <ChevronRight className="w-3 h-3 shrink-0" />{item}
+                      </li>
+                    ))}
                   </ul>
                 </div>
-              </div>
-
-              <div className="bg-white/5 p-4 rounded-lg border border-emerald-500/20">
-                <h4 className="font-semibold text-emerald-300 mb-2">📂 Kayıtlı Raporlar Modu</h4>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Daha önce kaydedilmiş prim raporlarını görüntüleyin</li>
-                  <li>Geçmiş dönemlerin prim hesaplamalarına erişin</li>
-                  <li>Aylara göre organize edilmiş raporları inceleyin</li>
-                </ul>
-              </div>
-
-              <div className="bg-yellow-500/10 border border-yellow-300 p-3 rounded-lg mt-3">
-                <p className="text-xs text-yellow-900">
-                  <strong>💡 ÖNEMLİ:</strong> "Hesapla" butonu ile yapılan hesaplamalar geçicidir ve veritabanına kaydedilmez.
-                  Kaydetmek için "Kaydet" butonuna tıklamanız gerekir!
-                </p>
-              </div>
+              ))}
             </div>
-          </div>
 
-          <div className="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-5 rounded-lg">
-            <h3 className="font-bold text-green-900 mb-3 text-lg flex items-center gap-2">
-              📅 2. ADIM: Ay Kartları ile Dönem Seçimi
-            </h3>
-            <div className="space-y-3 text-slate-200 text-sm">
-              <p>Hesaplamalar veya kayıtlı raporlar yüklendikten sonra <strong>aylara göre gruplandırılmış kartlar</strong> görünür.</p>
-
-              <div className="bg-white/5 p-4 rounded-lg border border-emerald-500/20">
-                <h4 className="font-semibold text-emerald-300 mb-3">Ay Kartında Görünen Bilgiler:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">📆</span>
-                    <div>
-                      <p className="font-medium text-white">Ay ve Yıl</p>
-                      <p className="text-xs text-slate-400">Örnek: Şubat 2026, Mart 2026</p>
-                    </div>
+            <InfoCard title="Puan Yorumlama Rehberi" accent="slate">
+              <div className="space-y-2">
+                {[
+                  { range: '90–100', label: 'Mükemmel',   color: 'text-emerald-400', desc: 'Üstün kalite, örnek alınacak seviye' },
+                  { range: '80–89',  label: 'İyi',        color: 'text-blue-400',    desc: 'Hedef performans, küçük geliştirmeler yapılabilir' },
+                  { range: '65–79',  label: 'Orta',       color: 'text-amber-400',   desc: 'Geliştirilmesi gereken belirgin alanlar var' },
+                  { range: '50–64',  label: 'Düşük',      color: 'text-orange-400',  desc: 'Önemli eksiklikler, koçluk görüşmesi önerilir' },
+                  { range: '0–49',   label: 'Kritik',     color: 'text-red-400',     desc: 'Ciddi sorunlar, acil müdahale ve izleme gerekli' },
+                ].map(p => (
+                  <div key={p.range} className="flex items-center gap-3 py-1.5 border-b border-slate-700/30 last:border-0">
+                    <code className={`text-sm font-mono font-bold ${p.color} w-16`}>{p.range}</code>
+                    <span className="text-white text-sm w-20">{p.label}</span>
+                    <span className="text-slate-400 text-sm">{p.desc}</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">👥</span>
-                    <div>
-                      <p className="font-medium text-white">Personel Sayısı</p>
-                      <p className="text-xs text-slate-400">O ayda prim alan personel sayısı</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">💰</span>
-                    <div>
-                      <p className="font-medium text-white">Toplam Prim</p>
-                      <p className="text-xs text-slate-400">O ay için hesaplanan toplam prim tutarı</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold">📊</span>
-                    <div>
-                      <p className="font-medium text-white">Ortalama Prim</p>
-                      <p className="text-xs text-slate-400">Personel başına düşen ortalama prim</p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
+            </InfoCard>
+          </section>
 
-              <div className="bg-emerald-500/10 border border-green-300 p-3 rounded-lg">
-                <p className="text-sm font-medium text-green-900 mb-2">✨ Kart Özellikleri:</p>
-                <ul className="list-disc list-inside space-y-1 text-xs text-slate-200">
-                  <li>Kartların üzerine geldiğinizde <strong>gölge efekti</strong> ve <strong>mavi border</strong> belirir</li>
-                  <li>Kart <strong>hafifçe yukarı kalkar</strong> (hover animasyonu)</li>
-                  <li>Herhangi bir ay kartına <strong>tıklayarak</strong> o ayın detaylarına geçersiniz</li>
-                </ul>
-              </div>
-
-              <div className="bg-white/5 border border-emerald-500/20 p-3 rounded-lg">
-                <p className="text-xs text-slate-200">
-                  <strong>Örnek:</strong> "Mart 2026" kartına tıkladığınızda, Mart ayında prim alan tüm personellerin
-                  listesi ve detayları görünür.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-purple-50 to-purple-100 border-l-4 border-purple-500 p-5 rounded-lg">
-            <h3 className="font-bold text-purple-900 mb-3 text-lg flex items-center gap-2">
-              👤 3. ADIM: Personel Tablosu ve Detay Görünümü
-            </h3>
-            <div className="space-y-3 text-slate-200 text-sm">
-              <p>Bir ay kartına tıkladıktan sonra <strong>o ayın personel tablosu</strong> açılır.</p>
-
-              <div className="bg-white/5 p-4 rounded-lg border border-violet-500/20">
-                <h4 className="font-semibold text-violet-300 mb-3">Tablo Başlığı (Mavi Header)</h4>
-                <ul className="list-disc list-inside space-y-1 ml-2 text-xs">
-                  <li><strong>Ay Adı:</strong> Şubat 2026, Mart 2026 vb.</li>
-                  <li><strong>Özet Bilgi:</strong> "8 Personel - Toplam: 14.250 TL" gibi</li>
-                  <li><strong>Kapat Butonu:</strong> Ay kartlarına geri dönmek için (X butonu)</li>
-                </ul>
-              </div>
-
-              <div className="bg-white/5 p-4 rounded-lg border border-violet-500/20">
-                <h4 className="font-semibold text-violet-300 mb-3">Tabloda Görünen Bilgiler</h4>
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
-                        E
-                      </span>
-                      <div>
-                        <p className="font-medium">Avatar</p>
-                        <p className="text-slate-400">İsmin ilk harfi</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">Personel Adı</p>
-                      <p className="text-slate-400">Tam isim görünür</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-emerald-400">Toplam Prim</p>
-                      <p className="text-slate-400">+1.000 TL formatında</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-white">Chat Sayısı</p>
-                      <p className="text-slate-400">Dönemdeki toplam chat</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-blue-400">Skor</p>
-                      <p className="text-slate-400">Ortalama performans skoru</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-400">Kural Sayısı</p>
-                      <p className="text-slate-400">Kaç kural uygulandı</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-violet-500/10 border border-purple-300 p-3 rounded-lg">
-                <p className="text-sm font-medium text-purple-900 mb-2">🔍 Detay Butonu</p>
-                <p className="text-xs text-slate-200 mb-2">
-                  Her personelin satırında <strong>"Detay"</strong> butonu vardır. Bu butona tıkladığınızda:
-                </p>
-                <ul className="list-disc list-inside space-y-1 text-xs text-slate-200 ml-2">
-                  <li>Detaylı performans metrikleri popup olarak açılır</li>
-                  <li>Uygulanan tüm prim kuralları listelenir</li>
-                  <li>PDF olarak indirme seçeneği sunulur</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-500 p-5 rounded-lg">
-            <h3 className="font-bold text-orange-900 mb-3 text-lg flex items-center gap-2">
-              📄 POPUP: Detaylı Prim Raporu ve PDF İndirme
-            </h3>
-            <div className="space-y-3 text-slate-200 text-sm">
-              <p>"Detay" butonuna tıkladığınızda <strong>tam ekran popup modal</strong> açılır.</p>
-
-              <div className="bg-white/5 p-4 rounded-lg border border-orange-500/20">
-                <h4 className="font-semibold text-orange-300 mb-3">Popup İçeriği (Üstten Alta)</h4>
-
-                <div className="space-y-4">
-                  <div className="border-l-4 border-blue-500 pl-3">
-                    <p className="font-medium text-white">1️⃣ Başlık Bölümü</p>
-                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-400 ml-2 mt-1">
-                      <li><strong>Prim Detay Raporu</strong> başlığı</li>
-                      <li>Hesaplama tarihi (örn: 17 Şubat 2026)</li>
-                      <li>Kapat butonu (X) - Sağ üst köşede</li>
-                    </ul>
-                  </div>
-
-                  <div className="border-l-4 border-slate-500 pl-3">
-                    <p className="font-medium text-white">2️⃣ Özet Bilgi Kartı (Gri Arka Plan)</p>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="bg-white/5 p-2 rounded text-xs">
-                        <p className="text-slate-400">Personel</p>
-                        <p className="font-bold">Ela</p>
-                      </div>
-                      <div className="bg-white/5 p-2 rounded text-xs">
-                        <p className="text-slate-400">Toplam Prim</p>
-                        <p className="font-bold text-emerald-400">+1.000 TL</p>
-                      </div>
-                      <div className="bg-white/5 p-2 rounded text-xs">
-                        <p className="text-slate-400">Dönem Tipi</p>
-                        <p className="font-bold">Aylık</p>
-                      </div>
-                      <div className="bg-white/5 p-2 rounded text-xs">
-                        <p className="text-slate-400">Dönem</p>
-                        <p className="font-bold">01.02.2026 - 28.02.2026</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-l-4 border-blue-500 pl-3">
-                    <p className="font-medium text-white mb-2">3️⃣ Performans Metrikleri (8 Renkli Kart)</p>
-                    <div className="grid grid-cols-4 gap-2">
-                      <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-center">
-                        <p className="text-[10px] text-blue-400">Toplam Chat</p>
-                        <p className="text-sm font-bold text-blue-900">136</p>
-                      </div>
-                      <div className="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded text-center">
-                        <p className="text-[10px] text-emerald-400">Ort. Skor</p>
-                        <p className="text-sm font-bold text-green-900">84.2</p>
-                      </div>
-                      <div className="bg-violet-500/10 border border-violet-500/20 p-2 rounded text-center">
-                        <p className="text-[10px] text-violet-400">Memnuniyet</p>
-                        <p className="text-sm font-bold text-purple-900">95.5%</p>
-                      </div>
-                      <div className="bg-orange-500/10 border border-orange-500/20 p-2 rounded text-center">
-                        <p className="text-[10px] text-orange-400">Yanıt Süresi</p>
-                        <p className="text-sm font-bold text-orange-900">45s</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-2">+ 4 kart daha (Pozitif/Negatif/Nötr Chat, Uygulanan Kural)</p>
-                  </div>
-
-                  <div className="border-l-4 border-green-500 pl-3">
-                    <p className="font-medium text-white mb-2">4️⃣ Uygulanan Prim Kuralları</p>
-                    <div className="bg-white/5 border border-white/10 p-3 rounded space-y-2">
-                      <div className="flex items-center justify-between text-xs border-l-4 border-blue-500 pl-2">
-                        <div>
-                          <p className="font-bold text-white">Chat Sayısı Primi</p>
-                          <div className="flex gap-2 mt-1">
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-400 rounded-full text-[10px]">Toplam Chat</span>
-                            <span className="px-2 py-0.5 bg-gray-100 text-slate-200 rounded-full text-[10px]">Değer: 136.00</span>
-                          </div>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-400">+500 TL</p>
-                      </div>
-                      <div className="flex items-center justify-between text-xs border-l-4 border-blue-500 pl-2">
-                        <div>
-                          <p className="font-bold text-white">Yüksek Performans Primi</p>
-                          <div className="flex gap-2 mt-1">
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-400 rounded-full text-[10px]">Ortalama Skor</span>
-                            <span className="px-2 py-0.5 bg-gray-100 text-slate-200 rounded-full text-[10px]">Değer: 84.20</span>
-                          </div>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-400">+500 TL</p>
-                      </div>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-2">Her kural için hangi metrik kullanıldı ve ne kadar prim kazandırıldı net bir şekilde gösterilir.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-orange-500/10 border border-orange-300 p-4 rounded-lg">
-                <h4 className="font-semibold text-orange-300 mb-2 flex items-center gap-2">
-                  📥 PDF İndirme Özelliği
-                </h4>
-                <div className="space-y-2 text-xs text-slate-200">
-                  <p className="font-medium text-white">Popup'ın en altında iki buton vardır:</p>
-                  <div className="flex gap-2 mt-2">
-                    <div className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded text-center text-xs font-medium">
-                      📥 PDF Olarak İndir
-                    </div>
-                    <div className="bg-gray-200 text-slate-200 p-2 rounded text-center text-xs font-medium">
-                      Kapat
-                    </div>
-                  </div>
-
-                  <div className="bg-white/5 border border-orange-500/20 p-3 rounded mt-3">
-                    <p className="font-medium text-orange-900 mb-2">PDF İndirme Nasıl Çalışır?</p>
-                    <ol className="list-decimal list-inside space-y-1 text-xs">
-                      <li>"PDF Olarak İndir" butonuna tıklayın</li>
-                      <li>Sistem popup'taki tüm içeriği otomatik olarak PDF'e dönüştürür</li>
-                      <li>PDF dosyası şu formatta otomatik isimlendirilir:<br/>
-                          <code className="bg-slate-100 px-2 py-1 rounded text-[10px]">Prim_Raporu_[PersonelAdı]_[Tarih].pdf</code>
-                      </li>
-                      <li>Örnek: <code className="bg-slate-100 px-1 rounded text-[10px]">Prim_Raporu_Ela_17.02.2026.pdf</code></li>
-                      <li>Dosya otomatik olarak bilgisayarınıza indirilir</li>
-                    </ol>
-                  </div>
-
-                  <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded">
-                    <p className="font-medium text-blue-900 mb-1">✨ PDF İçeriği:</p>
-                    <ul className="list-disc list-inside space-y-1 text-[10px]">
-                      <li>Personel adı ve genel bilgiler</li>
-                      <li>Tüm performans metrikleri (8 kart)</li>
-                      <li>Uygulanan tüm prim kuralları ve tutarları</li>
-                      <li>Yüksek kaliteli (A4 boyutunda)</li>
-                      <li>Çok sayfalı destek (uzun içerik otomatik sayfalara bölünür)</li>
-                      <li>Yazdırılabilir ve paylaşılabilir format</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-emerald-500/10 border border-green-300 p-3 rounded-lg">
-                <p className="text-xs text-green-900">
-                  <strong>💡 İPUCU:</strong> PDF'i indirdikten sonra personele e-posta ile gönderebilir,
-                  yazdırıp fiziksel olarak teslim edebilir veya muhasebe kayıtlarınızda saklayabilirsiniz.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-cyan-50 to-cyan-100 border-l-4 border-cyan-500 p-5 rounded-lg">
-            <h3 className="font-bold text-cyan-900 mb-3 text-lg flex items-center gap-2">
-              🎯 Kullanım Senaryosu (Adım Adım Örnek)
-            </h3>
-            <div className="space-y-3 text-sm">
-              <div className="bg-white/5 p-3 rounded-lg border border-cyan-500/20">
-                <p className="font-semibold text-cyan-900 mb-2">Senaryo: Şubat 2026 Aylık Prim Raporu Oluşturma</p>
-                <ol className="list-decimal list-inside space-y-2 text-xs text-slate-200">
-                  <li className="pl-2">
-                    <strong>Sayfa Aç:</strong> "Prim Raporları" sayfasına gidin
-                  </li>
-                  <li className="pl-2">
-                    <strong>Mod Seç:</strong> "Kayıtlı Raporlar" sekmesine tıklayın
-                  </li>
-                  <li className="pl-2">
-                    <strong>Ay Seç:</strong> "Şubat 2026" kartına tıklayın
-                    <div className="bg-white/5 p-2 rounded mt-1 text-[10px]">
-                      Kartta görecekleriniz: 8 Personel, Toplam: 14.250 TL, Ortalama: 1.781 TL
-                    </div>
-                  </li>
-                  <li className="pl-2">
-                    <strong>Personel Seç:</strong> Tabloda "Ela" personelinin satırındaki "Detay" butonuna tıklayın
-                    <div className="bg-white/5 p-2 rounded mt-1 text-[10px]">
-                      Ela: +1.000 TL, 136 chat, Skor: 84.2
-                    </div>
-                  </li>
-                  <li className="pl-2">
-                    <strong>İncele:</strong> Açılan popup'ta tüm detayları inceleyin
-                    <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
-                      <li>8 farklı performans metriği</li>
-                      <li>2 adet prim kuralı (her biri +500 TL)</li>
-                      <li>Toplam prim: 1.000 TL</li>
-                    </ul>
-                  </li>
-                  <li className="pl-2">
-                    <strong>PDF İndir:</strong> "PDF Olarak İndir" butonuna tıklayın
-                    <div className="bg-emerald-500/10 p-2 rounded mt-1 text-[10px]">
-                      Dosya adı: Prim_Raporu_Ela_17.02.2026.pdf
-                    </div>
-                  </li>
-                  <li className="pl-2">
-                    <strong>Kapat:</strong> "Kapat" butonuna basarak popup'ı kapatın
-                  </li>
-                  <li className="pl-2">
-                    <strong>Devam Et:</strong> Aynı tabloda diğer personeller için de aynı işlemi tekrarlayın
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-slate-100 border-l-4 border-slate-500 p-4 rounded-lg">
-            <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-              ⚙️ Teknik Detaylar ve Notlar
-            </h3>
-            <div className="space-y-2 text-xs text-slate-200">
-              <div className="flex items-start gap-2">
-                <span className="text-blue-400 font-bold">•</span>
-                <p><strong>Otomatik Gruplama:</strong> Sistem tüm prim kayıtlarını otomatik olarak aya göre gruplar</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-400 font-bold">•</span>
-                <p><strong>En Son Kayıt:</strong> Aynı dönem için birden fazla hesaplama varsa en son kayıt gösterilir</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-400 font-bold">•</span>
-                <p><strong>Sıralama:</strong> Aylar en yeniden en eskiye, personeller prim miktarına göre büyükten küçüğe sıralanır</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-400 font-bold">•</span>
-                <p><strong>Mobil Uyumlu:</strong> Tüm görünümler mobil cihazlarda da mükemmel çalışır</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-400 font-bold">•</span>
-                <p><strong>PDF Kalitesi:</strong> PDF'ler 2x scale ile yüksek çözünürlükte oluşturulur (yazdırma kalitesi)</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-blue-400 font-bold">•</span>
-                <p><strong>Çoklu Sayfa:</strong> Uzun içerik otomatik olarak birden fazla sayfaya bölünür</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-yellow-500/10 border border-yellow-300 p-4 rounded-lg">
-            <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
-              ⚠️ Önemli Hatırlatmalar
-            </h3>
-            <ul className="list-disc list-inside space-y-1 text-xs text-slate-200">
-              <li>Prim hesaplamaları <strong>Bonus Ayarları</strong> sayfasında tanımlanan kurallara göre yapılır</li>
-              <li>Kural yoksa veya personel hiçbir kuralı karşılamıyorsa prim 0 TL olabilir</li>
-              <li>"Hesapla" ile yapılan önizlemeler <strong>geçicidir</strong>, "Kaydet" ile kalıcı hale gelir</li>
-              <li>PDF indirme sırasında internet bağlantısı gerekir (görsel render için)</li>
-              <li>Aynı dönem için birden fazla hesaplama yapabilirsiniz, ancak sadece en son kaydedilen gösterilir</li>
-            </ul>
-          </div>
-
-          <p className="text-sm text-slate-400 italic bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
-            💡 <strong>Profesyonel İpucu:</strong> Her ay sonunda personel primlerini hesaplayın, PDF olarak indirin
-            ve hem personele hem de muhasebe departmanına gönderin. Bu sayede şeffaf ve takip edilebilir bir prim
-            sistemi oluşturmuş olursunuz.
-          </p>
-        </div>
-      </div>
-
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Eye className="w-6 h-6 text-blue-400" />
-          İzleme (Monitoring)
-        </h2>
-        <div className="space-y-3 text-slate-200">
-          <p>Gerçek zamanlı sistem izleme ve senkronizasyon kontrolleri:</p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>Manuel Senkronizasyon:</strong> LiveChat'ten anında chat çekme</li>
-            <li><strong>Manuel Analiz:</strong> Bekleyen chatleri hemen analiz etme</li>
-            <li><strong>Uyarı Gönderimi:</strong> Bekleyen uyarıları Telegram'a gönderme</li>
-            <li><strong>Sistem Durumu:</strong> Son senkronizasyon ve analiz zamanlarını görme</li>
-          </ul>
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-3">
-            <p className="text-sm text-blue-900">
-              <strong>Not:</strong> Sistem arka planda otomatik çalışır (her 2 dakikada senkronizasyon,
-              her 5 dakikada analiz). Manuel butonlar acil durumlar için kullanılabilir.
+          {/* ── AYARLAR ── */}
+          <section className="glass-effect rounded-xl p-6 border border-slate-700/40">
+            <SectionHeader id="settings" icon={Settings} title="Ayarlar" color="text-slate-400" />
+            <p className="text-slate-300 mb-6 leading-relaxed">
+              Sistemin çalışması için gerekli API anahtarları ve yapılandırma parametreleri bu sayfadan yönetilir.
             </p>
-          </div>
-        </div>
-      </div>
 
-      <div className="glass-effect rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Settings className="w-6 h-6 text-blue-400" />
-          Ayarlar
-        </h2>
-        <div className="space-y-4">
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-            <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              Önemli: API Anahtarları
-            </h3>
-            <p className="text-sm text-slate-200 mb-3">
-              Sistemin çalışması için gerekli API anahtarları:
-            </p>
-            <ul className="list-disc list-inside space-y-1 text-sm text-slate-200 ml-2">
-              <li><strong>Claude API Key:</strong> Chat analizleri için (zorunlu)</li>
-              <li><strong>LiveChat API Key:</strong> Chat senkronizasyonu için (zorunlu)</li>
-              <li><strong>Telegram Bot Token:</strong> Uyarı bildirimleri için (opsiyonel)</li>
-              <li><strong>Telegram Chat ID:</strong> Bildirimlerin gönderileceği grup ID (opsiyonel)</li>
-            </ul>
-          </div>
-          <p className="text-sm text-slate-400">
-            Ayarlar güvenli bir şekilde veritabanında saklanır ve sadece yetkili kullanıcılar tarafından görülebilir.
-          </p>
-        </div>
-      </div>
+            <div className="space-y-4">
+              <InfoCard title="Gerekli API Anahtarları" accent="red">
+                <div className="space-y-3">
+                  {[
+                    { key: 'Claude API Key',       required: true,  desc: 'Chat analizleri için zorunludur. Anthropic hesabından edinilir.' },
+                    { key: 'LiveChat API Key',      required: true,  desc: 'Chat senkronizasyonu için zorunludur. LiveChat yönetim panelinden alınır.' },
+                    { key: 'Telegram Bot Token',   required: false, desc: 'Uyarı bildirimleri için opsiyoneldir. BotFather üzerinden oluşturulur.' },
+                    { key: 'Telegram Chat ID',     required: false, desc: 'Bildirimlerin gönderileceği Telegram grup veya kanal ID\'si.' },
+                  ].map(a => (
+                    <div key={a.key} className="flex items-start gap-3 py-2.5 border-b border-slate-700/40 last:border-0">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white">{a.key}</span>
+                          <Badge label={a.required ? 'Zorunlu' : 'Opsiyonel'} color={a.required ? 'red' : 'slate'} />
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1">{a.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </InfoCard>
 
-      <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-xl shadow-lg p-6 text-white">
-        <h2 className="text-xl font-bold mb-3">Yardıma mı İhtiyacınız Var?</h2>
-        <p className="text-slate-100 mb-4">
-          Bu kılavuzda bulamadığınız bir konu varsa veya teknik destek gerekiyorsa lütfen sistem yöneticinizle iletişime geçin.
-        </p>
-        <div className="flex items-center gap-2 text-sm text-slate-200">
-          <BookOpen className="w-4 h-4" />
-          <span>Sistem Versiyonu: 3.0 - Gelişmiş Prim Raporlama ve PDF Export</span>
-        </div>
+              <InfoCard title="Yapılandırma Parametreleri" accent="slate">
+                <div className="space-y-0.5">
+                  <MetricRow label="Skor Uyarı Eşiği"    desc="Bu değerin altındaki chatler uyarı alır (varsayılan: 50)" />
+                  <MetricRow label="Uyarı Sayısı Eşiği"  desc="Kaç uyarıdan sonra personel kırmızı işaret alır" />
+                  <MetricRow label="Zaman Dilimi"         desc="Tüm istatistikler bu zaman dilimine göre hesaplanır (varsayılan: Avrupa/İstanbul)" />
+                  <MetricRow label="Analiz Dili"          desc="AI analizinin yapıldığı dil (varsayılan: Türkçe)" />
+                </div>
+              </InfoCard>
+
+              <InfoCard title="Kullanıcı Yönetimi" accent="slate">
+                <p className="text-sm text-slate-400 mb-3">Sisteme yönetici kullanıcı eklemek için Ayarlar sayfasındaki Kullanıcı Oluştur bölümünü kullanın.</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <Shield className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-400">Tüm ayarlar şifrelenmiş olarak veritabanında saklanır. Yetkisiz erişim RLS politikaları ile engellenir.</span>
+                </div>
+              </InfoCard>
+            </div>
+          </section>
+
+          {/* ── ALT BANNER ── */}
+          <div className="bg-gradient-to-r from-slate-800 to-slate-900 border border-slate-700/50 rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-white font-semibold mb-1">Yardıma mı İhtiyacınız Var?</p>
+              <p className="text-slate-400 text-sm">Kılavuzda bulamadığınız bir konu veya teknik sorun için sistem yöneticinizle iletişime geçin.</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="p-2 rounded-lg bg-slate-700/60 border border-slate-600/50">
+                <Hash className="w-4 h-4 text-slate-400" />
+              </div>
+              <div>
+                <p className="text-xs text-slate-500">Versiyon</p>
+                <p className="text-sm font-semibold text-slate-300">4.0 — Yönetici Koçluk Merkezi</p>
+              </div>
+            </div>
+          </div>
+
+        </main>
       </div>
     </div>
   );
