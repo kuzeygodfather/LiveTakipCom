@@ -866,13 +866,13 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <TrendChart
+          <BarChart
             data={complaintData.map(d => ({
               label: d.date,
               value: d.negative + d.neutral,
+              color: '#ef4444',
             }))}
             title="📊 Günlük Şikayet Trendi (Son 30 Gün)"
-            color="#ef4444"
             height={250}
           />
         </div>
