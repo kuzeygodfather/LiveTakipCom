@@ -35,6 +35,14 @@ export function useBackgroundSync() {
         .limit(1)
         .maybeSingle();
 
+      // Get latest synced chat time (more accurate than job completion time)
+      const { data: latestChat } = await supabase
+        .from('chats')
+        .select('created_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       // Get unanalyzed count to show analyzing status
       const { count: unanalyzedCount } = await supabase
         .from('chats')
@@ -45,7 +53,7 @@ export function useBackgroundSync() {
         ...prev,
         syncing: latestSync?.status === 'processing',
         analyzing: (unanalyzedCount || 0) > 0,
-        lastSyncTime: latestSync?.completed_at || prev.lastSyncTime,
+        lastSyncTime: latestChat?.created_at || prev.lastSyncTime,
         error: latestSync?.status === 'failed' ? latestSync.error : null,
       }));
     } catch (err: any) {
