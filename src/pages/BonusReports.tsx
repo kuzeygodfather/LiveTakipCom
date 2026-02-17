@@ -350,14 +350,14 @@ export default function BonusReports() {
         <p className="text-sm sm:text-base text-slate-200 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-2 mb-6">
+      <div className="glass-effect rounded-lg shadow-md p-2 mb-6">
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('preview')}
             className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
               viewMode === 'preview'
                 ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10'
             }`}
           >
             <Calculator className="w-5 h-5" />
@@ -367,8 +367,8 @@ export default function BonusReports() {
             onClick={() => setViewMode('saved')}
             className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
               viewMode === 'saved'
-                ? 'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md'
-                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10'
             }`}
           >
             <History className="w-5 h-5" />
@@ -436,7 +436,7 @@ export default function BonusReports() {
             <select
               value={periodType}
               onChange={(e) => setPeriodType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="daily">Günlük</option>
               <option value="weekly">Haftalık</option>
@@ -452,7 +452,7 @@ export default function BonusReports() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -464,7 +464,7 @@ export default function BonusReports() {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -709,7 +709,7 @@ export default function BonusReports() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-slate-400 mb-1">Toplam Prim</p>
-                    <p className={`text-2xl font-bold ${selectedRecord.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`text-2xl font-bold ${selectedRecord.total_bonus_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                       {selectedRecord.total_bonus_amount >= 0 ? '+' : ''}{selectedRecord.total_bonus_amount.toLocaleString('tr-TR')} TL
                     </p>
                   </div>
@@ -728,7 +728,7 @@ export default function BonusReports() {
 
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  <TrendingUp className="w-5 h-5 text-blue-400" />
                   Performans Metrikleri
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
