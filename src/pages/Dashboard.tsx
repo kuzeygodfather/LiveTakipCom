@@ -33,7 +33,8 @@ interface ComplaintData {
   date: string;
   negative: number;
   neutral: number;
-  total: number;
+  totalChats: number;
+  analyzedChats: number;
 }
 
 interface CategoryComplaint {
@@ -324,6 +325,7 @@ export default function Dashboard() {
       const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
 
       let allAnalysis: any[] = [];
+      let allChats: any[] = [];
       let from = 0;
       const batchSize = 1000;
 
@@ -342,9 +344,45 @@ export default function Dashboard() {
         from += batchSize;
       }
 
-      if (allAnalysis.length === 0) return;
+      from = 0;
+      while (true) {
+        const { data: batch } = await supabase
+          .from('chats')
+          .select('created_at, id')
+          .gte('created_at', thirtyDaysAgoUTC)
+          .order('created_at', { ascending: true })
+          .range(from, from + batchSize - 1);
 
-      const dailyComplaints: { [key: string]: { negative: number; neutral: number; total: number } } = {};
+        if (!batch || batch.length === 0) break;
+        allChats = [...allChats, ...batch];
+        if (batch.length < batchSize) break;
+        from += batchSize;
+      }
+
+      const dailyComplaints: { [key: string]: { negative: number; neutral: number; totalChats: number; analyzedChats: number } } = {};
+
+      const today = new Date();
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toLocaleDateString('tr-TR', {
+          timeZone: 'Europe/Istanbul',
+          day: '2-digit',
+          month: '2-digit'
+        });
+        dailyComplaints[dateStr] = { negative: 0, neutral: 0, totalChats: 0, analyzedChats: 0 };
+      }
+
+      allChats.forEach(chat => {
+        const date = new Date(chat.created_at).toLocaleDateString('tr-TR', {
+          timeZone: 'Europe/Istanbul',
+          day: '2-digit',
+          month: '2-digit'
+        });
+        if (dailyComplaints[date]) {
+          dailyComplaints[date].totalChats++;
+        }
+      });
 
       allAnalysis.forEach(item => {
         const date = new Date(item.analysis_date).toLocaleDateString('tr-TR', {
@@ -352,18 +390,25 @@ export default function Dashboard() {
           day: '2-digit',
           month: '2-digit'
         });
-        if (!dailyComplaints[date]) {
-          dailyComplaints[date] = { negative: 0, neutral: 0, total: 0 };
+        if (dailyComplaints[date]) {
+          dailyComplaints[date].analyzedChats++;
+          if (item.sentiment === 'negative') dailyComplaints[date].negative++;
+          if (item.sentiment === 'neutral') dailyComplaints[date].neutral++;
         }
-        dailyComplaints[date].total++;
-        if (item.sentiment === 'negative') dailyComplaints[date].negative++;
-        if (item.sentiment === 'neutral') dailyComplaints[date].neutral++;
       });
 
-      const complaintArray = Object.entries(dailyComplaints).map(([date, data]) => ({
-        date,
-        ...data,
-      }));
+      const complaintArray = Object.entries(dailyComplaints)
+        .map(([date, data]) => ({
+          date,
+          ...data,
+        }))
+        .sort((a, b) => {
+          const [dayA, monthA] = a.date.split('.');
+          const [dayB, monthB] = b.date.split('.');
+          const dateA = new Date(today.getFullYear(), parseInt(monthA) - 1, parseInt(dayA));
+          const dateB = new Date(today.getFullYear(), parseInt(monthB) - 1, parseInt(dayB));
+          return dateA.getTime() - dateB.getTime();
+        });
 
       setComplaintData(complaintArray);
     } catch (error) {
@@ -854,6 +899,7 @@ export default function Dashboard() {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Toplam Chat</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Analiz Edilen</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negatif</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nötr</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negatif %</th>
@@ -862,12 +908,13 @@ export default function Dashboard() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {complaintData.map((data, index) => {
-                  const negativePercent = (data.negative / data.total) * 100;
-                  const neutralPercent = (data.neutral / data.total) * 100;
+                  const negativePercent = data.analyzedChats > 0 ? (data.negative / data.analyzedChats) * 100 : 0;
+                  const neutralPercent = data.analyzedChats > 0 ? (data.neutral / data.analyzedChats) * 100 : 0;
                   return (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{data.date}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{data.total}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 font-semibold">{data.totalChats}</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{data.analyzedChats}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full font-semibold">
                           {data.negative}
