@@ -80,29 +80,45 @@ Deno.serve(async (req: Request) => {
 
     console.log("LiveChat API key status:", settings.livechat_api_key ? "SET" : "NOT SET");
 
-    let daysToFetch = 7; // Reduced from 30 to avoid timeout
+    let startDate: string;
+    let endDate: string;
+
     try {
       const url = new URL(req.url);
+      const startParam = url.searchParams.get("start_date");
+      const endParam = url.searchParams.get("end_date");
       const daysParam = url.searchParams.get("days");
-      if (daysParam) {
-        const parsed = parseInt(daysParam, 10);
-        if (!isNaN(parsed) && parsed > 0 && parsed <= 90) {
-          daysToFetch = parsed;
-        }
-      }
-    } catch (_) {}
 
-    const now = new Date();
-    const startDate = new Date(now.getTime() - (daysToFetch * 24 * 60 * 60 * 1000)).toISOString();
-    const endDate = now.toISOString();
+      if (startParam && endParam) {
+        startDate = new Date(startParam).toISOString();
+        endDate = new Date(endParam).toISOString();
+      } else if (daysParam) {
+        const daysToFetch = parseInt(daysParam, 10);
+        if (!isNaN(daysToFetch) && daysToFetch > 0 && daysToFetch <= 90) {
+          const now = new Date();
+          startDate = new Date(now.getTime() - (daysToFetch * 24 * 60 * 60 * 1000)).toISOString();
+          endDate = now.toISOString();
+        } else {
+          throw new Error("Invalid days parameter");
+        }
+      } else {
+        const now = new Date();
+        startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+        endDate = now.toISOString();
+      }
+    } catch (e) {
+      const now = new Date();
+      startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+      endDate = now.toISOString();
+    }
 
     // Calculate Istanbul timezone for logging
     const istanbulOffset = 3 * 60 * 60 * 1000; // UTC+3
-    const istanbulNow = new Date(now.getTime() + istanbulOffset);
+    const istanbulNow = new Date(new Date().getTime() + istanbulOffset);
     const istanbulStartDate = new Date(new Date(startDate).getTime() + istanbulOffset);
     const istanbulEndDate = new Date(new Date(endDate).getTime() + istanbulOffset);
 
-    console.log(`Fetching chats from ${startDate} to ${endDate} (last ${daysToFetch} days + 1 day margin)`);
+    console.log(`Fetching chats from ${startDate} to ${endDate}`);
     console.log(`Istanbul Time: ${istanbulNow.toISOString().replace('T', ' ').substring(0, 19)}`);
     console.log(`Istanbul Range: ${istanbulStartDate.toISOString().replace('T', ' ').substring(0, 19)} to ${istanbulEndDate.toISOString().replace('T', ' ').substring(0, 19)}`);
 

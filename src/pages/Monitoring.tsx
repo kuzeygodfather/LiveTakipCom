@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { Activity, Play, RefreshCw, Send, CheckCircle, XCircle, Clock, Zap, ChevronDown } from 'lucide-react';
+import { Activity, Play, RefreshCw, Send, CheckCircle, XCircle, Clock, Zap, ChevronDown, Calendar } from 'lucide-react';
 
 interface PipelineResult {
   success: boolean;
@@ -31,6 +31,9 @@ export default function Monitoring() {
   const [pendingAlerts, setPendingAlerts] = useState(0);
   const [stats, setStats] = useState({ total: 0, analyzed: 0, unanalyzed: 0 });
   const [syncDropdownOpen, setSyncDropdownOpen] = useState(false);
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
 
   const syncOptions = [
     { label: 'Bugun', days: 1, description: 'Son 24 saat' },
@@ -107,21 +110,30 @@ export default function Monitoring() {
     }
   }, [addLog, loadStats, stats.unanalyzed]);
 
-  const runPipeline = useCallback(async (days?: number) => {
+  const runPipeline = useCallback(async (days?: number, customRange?: { start: string; end: string }) => {
     setRunning(true);
-    const daysParam = days || 7;
-    const label = syncOptions.find(o => o.days === daysParam)?.label || `${daysParam} gun`;
+    let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat`;
+    let label = '';
+
+    if (customRange) {
+      const start = new Date(customRange.start).toLocaleDateString('tr-TR');
+      const end = new Date(customRange.end).toLocaleDateString('tr-TR');
+      label = `${start} - ${end}`;
+      url += `?start_date=${customRange.start}&end_date=${customRange.end}`;
+    } else {
+      const daysParam = days || 7;
+      label = syncOptions.find(o => o.days === daysParam)?.label || `${daysParam} gun`;
+      url += `?days=${daysParam}`;
+    }
+
     addLog(`Senkronizasyon baslatildi (${label})...`, 'info');
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat?days=${daysParam}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
 
       console.log('Sync Response Status:', response.status);
 
@@ -320,6 +332,23 @@ export default function Monitoring() {
                     <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">{option.days} gun</span>
                   </button>
                 ))}
+                <div className="border-t border-slate-200" />
+                <button
+                  onClick={() => {
+                    setSyncDropdownOpen(false);
+                    setShowCustomDatePicker(true);
+                  }}
+                  disabled={running}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-purple-50 transition-colors text-left disabled:opacity-50"
+                >
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-purple-600" />
+                    <div>
+                      <div className="text-sm font-medium text-slate-900">Özel Tarih Aralığı</div>
+                      <div className="text-xs text-slate-500">Başlangıç ve bitiş tarihi seç</div>
+                    </div>
+                  </div>
+                </button>
               </div>
             </>
           )}
@@ -420,6 +449,82 @@ export default function Monitoring() {
           )}
         </div>
       </div>
+
+      {showCustomDatePicker && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowCustomDatePicker(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Calendar className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Özel Tarih Aralığı</h3>
+                  <p className="text-sm text-slate-600">Senkronizasyon için tarih seçin</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Başlangıç Tarihi
+                  </label>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Bitiş Tarihi
+                  </label>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    min={customStartDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => setShowCustomDatePicker(false)}
+                  className="flex-1 px-4 py-3 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors"
+                >
+                  İptal
+                </button>
+                <button
+                  onClick={() => {
+                    if (customStartDate && customEndDate) {
+                      const start = new Date(customStartDate);
+                      start.setHours(0, 0, 0, 0);
+                      const end = new Date(customEndDate);
+                      end.setHours(23, 59, 59, 999);
+
+                      setShowCustomDatePicker(false);
+                      runPipeline(undefined, {
+                        start: start.toISOString(),
+                        end: end.toISOString()
+                      });
+                    }
+                  }}
+                  disabled={!customStartDate || !customEndDate}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Senkronize Et
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
