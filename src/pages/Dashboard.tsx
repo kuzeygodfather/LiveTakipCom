@@ -285,7 +285,11 @@ export default function Dashboard() {
           const dailyScores: { [key: string]: number[] } = {};
 
           agentAnalysis.forEach(stat => {
-            const date = new Date(stat.analysis_date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+            const date = new Date(stat.analysis_date).toLocaleDateString('tr-TR', {
+              timeZone: 'Europe/Istanbul',
+              day: '2-digit',
+              month: '2-digit'
+            });
             if (!dailyScores[date]) dailyScores[date] = [];
             dailyScores[date].push(stat.overall_score || 0);
           });
@@ -343,7 +347,11 @@ export default function Dashboard() {
       const dailyComplaints: { [key: string]: { negative: number; neutral: number; total: number } } = {};
 
       allAnalysis.forEach(item => {
-        const date = new Date(item.analysis_date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+        const date = new Date(item.analysis_date).toLocaleDateString('tr-TR', {
+          timeZone: 'Europe/Istanbul',
+          day: '2-digit',
+          month: '2-digit'
+        });
         if (!dailyComplaints[date]) {
           dailyComplaints[date] = { negative: 0, neutral: 0, total: 0 };
         }
@@ -440,7 +448,13 @@ export default function Dashboard() {
       const hourCounts = Array(24).fill(0).map((_, i) => ({ hour: i, count: 0 }));
 
       allChats.forEach(chat => {
-        const hour = new Date(chat.created_at).getHours();
+        const date = new Date(chat.created_at);
+        const istanbulTime = date.toLocaleString('en-US', {
+          timeZone: 'Europe/Istanbul',
+          hour12: false,
+          hour: '2-digit'
+        });
+        const hour = parseInt(istanbulTime.split(',')[1]?.trim().split(':')[0] || '0');
         hourCounts[hour].count++;
       });
 

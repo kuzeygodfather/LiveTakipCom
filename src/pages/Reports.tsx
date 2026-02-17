@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter, Send, CheckCircle, TrendingUp, Users, Target } from 'lucide-react';
-import { getIstanbulDateStartUTC } from '../lib/utils';
+import { getIstanbulDateStartUTC, formatDateInIstanbulTimezone } from '../lib/utils';
 
 interface ReportData {
   daily: any[];
@@ -129,7 +129,7 @@ export default function Reports() {
       const dailyStats: any = {};
 
       (chatsRaw || []).forEach((chat: any) => {
-        const dateStr = new Date(chat.created_at).toISOString().split('T')[0];
+        const dateStr = formatDateInIstanbulTimezone(chat.created_at);
 
         if (!dailyStats[dateStr]) {
           dailyStats[dateStr] = {

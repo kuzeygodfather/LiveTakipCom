@@ -32,3 +32,15 @@ export function getIstanbulDateEndUTC(daysAgo: number = 0): string {
 
   return utcEquivalent.toISOString();
 }
+
+export function formatDateInIstanbulTimezone(utcDateString: string): string {
+  const date = new Date(utcDateString);
+  const istanbulDateString = date.toLocaleString('en-US', {
+    timeZone: 'Europe/Istanbul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const [month, day, year] = istanbulDateString.split(/[\/,\s]+/);
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+}
