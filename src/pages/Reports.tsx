@@ -367,26 +367,39 @@ export default function Reports() {
         throw new Error('Chat mesajları bulunamadı veya uygun formatta değil');
       }
 
+      const requestBody = {
+        chatId: chat.id,
+        messages: formattedMessages,
+        analysis: {
+          sentiment: chat.sentiment,
+          score: chat.overall_score,
+          issues: chat.issues_detected?.improvement_areas || [],
+          summary: chat.ai_summary,
+        },
+      };
+
+      console.log('Sending coaching request:', {
+        chatId: chat.id,
+        messageCount: formattedMessages.length,
+        firstMessage: formattedMessages[0],
+      });
+
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-coaching`;
       const headers = {
         'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
       };
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          chatId: chat.id,
-          messages: formattedMessages,
-          analysis: {
-            sentiment: chat.sentiment,
-            score: chat.overall_score,
-            issues: chat.issues_detected?.improvement_areas || [],
-            summary: chat.ai_summary,
-          },
+      const response = await Promise.race([
+        fetch(apiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestBody),
         }),
-      });
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000)
+        )
+      ]) as Response;
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -494,13 +507,16 @@ export default function Reports() {
         await getCoachingSuggestion(chat);
 
         // Verify that the coaching was saved to database
-        const { data: verifyData } = await supabase
+        const { data: verifyData, error: verifyError } = await supabase
           .from('chat_analysis')
           .select('coaching_suggestion')
           .eq('id', chat.id)
-          .single();
+          .maybeSingle();
 
-        if (verifyData?.coaching_suggestion) {
+        if (verifyError) {
+          console.error(`Verification error for chat ${chat.id}:`, verifyError);
+          failedCount++;
+        } else if (verifyData?.coaching_suggestion) {
           successCount++;
         } else {
           failedCount++;
@@ -519,7 +535,7 @@ export default function Reports() {
       });
 
       // Wait a bit to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     setBulkGenerating(false);
@@ -561,7 +577,7 @@ export default function Reports() {
           .from('coaching_feedbacks')
           .select('id')
           .eq('chat_id', chat.id)
-          .single();
+          .maybeSingle();
 
         if (verifyData) {
           successCount++;
