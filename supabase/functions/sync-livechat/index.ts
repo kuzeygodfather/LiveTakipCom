@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
       const daysParam = url.searchParams.get("days");
       if (daysParam) {
         const parsed = parseInt(daysParam, 10);
-        if (!isNaN(parsed) && parsed > 0 && parsed <= 30) {
+        if (!isNaN(parsed) && parsed > 0 && parsed <= 90) {
           daysToFetch = parsed;
         }
       }
@@ -62,7 +62,7 @@ Deno.serve(async (req: Request) => {
 
     const now = new Date();
     const startDate = new Date(now.getTime() - (daysToFetch * 24 * 60 * 60 * 1000)).toISOString();
-    const endDate = new Date(now.getTime() + (1 * 24 * 60 * 60 * 1000)).toISOString();
+    const endDate = now.toISOString();
 
     // Calculate Istanbul timezone for logging
     const istanbulOffset = 3 * 60 * 60 * 1000; // UTC+3

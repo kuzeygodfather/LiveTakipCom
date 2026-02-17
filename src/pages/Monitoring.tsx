@@ -35,8 +35,9 @@ export default function Monitoring() {
   const syncOptions = [
     { label: 'Bugun', days: 1, description: 'Son 24 saat' },
     { label: 'Bu Hafta', days: 7, description: 'Son 7 gun' },
+    { label: 'Son 10 Gun', days: 10, description: 'Son 10 gun' },
     { label: 'Bu Ay', days: 30, description: 'Son 30 gun' },
-    { label: 'Tum Zamanlar', days: 365, description: 'Son 1 yil' },
+    { label: 'Son 90 Gun', days: 90, description: 'Son 90 gun' },
   ];
 
   const addLog = useCallback((message: string, type: LogEntry['type']) => {
@@ -108,7 +109,7 @@ export default function Monitoring() {
 
   const runPipeline = useCallback(async (days?: number) => {
     setRunning(true);
-    const daysParam = days || 2;
+    const daysParam = days || 7;
     const label = syncOptions.find(o => o.days === daysParam)?.label || `${daysParam} gun`;
     addLog(`Senkronizasyon baslatildi (${label})...`, 'info');
 
