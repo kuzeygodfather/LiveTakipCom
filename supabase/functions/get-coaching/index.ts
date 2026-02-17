@@ -34,9 +34,17 @@ Deno.serve(async (req: Request) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { chatId, messages, analysis }: CoachingRequest = await req.json();
+    const body = await req.json();
+    console.log('Request body received:', {
+      chatId: body.chatId,
+      messageCount: body.messages?.length,
+      hasAnalysis: !!body.analysis
+    });
+
+    const { chatId, messages, analysis }: CoachingRequest = body;
 
     if (!messages || messages.length === 0) {
+      console.error('No messages provided');
       return new Response(
         JSON.stringify({ error: "Messages are required" }),
         {

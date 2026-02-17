@@ -357,11 +357,15 @@ export default function Reports() {
       const allMessages = fullChatData.all_messages || [];
 
       const formattedMessages = allMessages
-        .filter((msg: any) => msg.text && msg.type === 'message')
+        .filter((msg: any) => msg.text && msg.text.trim() !== '' && msg.type === 'message')
         .map((msg: any) => ({
-          author: { name: msg.author_id.includes('@') ? chat.agent_name : 'Müşteri' },
-          text: msg.text
+          author: { name: msg.author_id && msg.author_id.includes('@') ? chat.agent_name : 'Müşteri' },
+          text: msg.text.trim()
         }));
+
+      if (formattedMessages.length === 0) {
+        throw new Error('Chat mesajları bulunamadı veya uygun formatta değil');
+      }
 
       const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-coaching`;
       const headers = {
@@ -386,7 +390,8 @@ export default function Reports() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`API hatası: ${response.status}`);
+        console.error('API Error Response:', response.status, errorText);
+        throw new Error(`API hatası: ${response.status} - ${errorText.substring(0, 100)}`);
       }
 
       const result = await response.json();
