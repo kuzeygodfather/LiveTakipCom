@@ -31,29 +31,38 @@ export default function PersonnelAnalytics() {
 
   useEffect(() => {
     if (selectedPersonnel) {
+      console.log(`Selected personnel changed: ${selectedPersonnel.name}`);
       loadPersonnelDetails(selectedPersonnel.name);
     }
-  }, [selectedPersonnel]);
+  }, [selectedPersonnel?.name]);
 
   const loadPersonnel = async () => {
     try {
+      console.log('Loading personnel data...');
       let allPersonnel: any[] = [];
       let from = 0;
       const batchSize = 1000;
 
       while (true) {
-        const { data: batch } = await supabase
+        const { data: batch, error } = await supabase
           .from('personnel')
           .select('*')
           .neq('name', 'Unknown')
           .order('average_score', { ascending: false })
           .range(from, from + batchSize - 1);
 
+        if (error) {
+          console.error('Error fetching personnel batch:', error);
+          throw error;
+        }
+
         if (!batch || batch.length === 0) break;
         allPersonnel = [...allPersonnel, ...batch];
         if (batch.length < batchSize) break;
         from += batchSize;
       }
+
+      console.log(`Loaded ${allPersonnel.length} personnel records`);
 
       if (allPersonnel.length > 0) {
         setPersonnel(allPersonnel);
@@ -187,10 +196,18 @@ export default function PersonnelAnalytics() {
   const recalculateStats = async () => {
     setRecalculating(true);
     try {
-      console.log('Recalculating personnel stats...');
-      await supabase.rpc('recalculate_personnel_stats');
+      console.log('Starting recalculation...');
 
+      const { data, error } = await supabase.rpc('recalculate_personnel_stats');
+
+      if (error) {
+        console.error('RPC Error:', error);
+        throw error;
+      }
+
+      console.log('RPC completed successfully:', data);
       console.log('Reloading personnel data...');
+
       await loadPersonnel();
 
       if (selectedPersonnel) {
@@ -198,9 +215,10 @@ export default function PersonnelAnalytics() {
         await loadPersonnelDetails(selectedPersonnel.name);
       }
 
-      console.log('Stats recalculated successfully');
-    } catch (error) {
+      console.log('Stats recalculated successfully!');
+    } catch (error: any) {
       console.error('Error recalculating stats:', error);
+      alert(`Hata: ${error.message || 'Bilinmeyen hata'}`);
     } finally {
       setRecalculating(false);
     }
@@ -208,13 +226,20 @@ export default function PersonnelAnalytics() {
 
   const loadPersonnelDetails = async (personnelName: string) => {
     try {
-      const { data } = await supabase
+      console.log(`Loading daily stats for ${personnelName}...`);
+      const { data, error } = await supabase
         .from('personnel_daily_stats')
         .select('*')
         .eq('personnel_name', personnelName)
         .order('date', { ascending: false })
         .limit(30);
 
+      if (error) {
+        console.error('Error loading personnel details:', error);
+        throw error;
+      }
+
+      console.log(`Loaded ${data?.length || 0} daily stats records for ${personnelName}`);
       setDailyStats(data || []);
     } catch (error) {
       console.error('Error loading personnel details:', error);
