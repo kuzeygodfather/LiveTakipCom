@@ -23,6 +23,7 @@ interface ChatMessage {
 
 interface SentimentChatsModalProps {
   sentiment: 'negative' | 'neutral' | 'positive' | null;
+  date?: string | null;
   onClose: () => void;
 }
 
@@ -50,7 +51,7 @@ const SENTIMENT_CONFIG = {
   },
 };
 
-export default function SentimentChatsModal({ sentiment, onClose }: SentimentChatsModalProps) {
+export default function SentimentChatsModal({ sentiment, date, onClose }: SentimentChatsModalProps) {
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedChat, setSelectedChat] = useState<ChatItem | null>(null);
@@ -59,19 +60,29 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
 
   useEffect(() => {
     if (!sentiment) return;
+    setSelectedChat(null);
+    setMessages([]);
     loadChats();
-  }, [sentiment]);
+  }, [sentiment, date]);
 
   const loadChats = async () => {
     if (!sentiment) return;
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      let query = supabase
         .from('chat_analysis')
-        .select('chat_id, overall_score')
+        .select('chat_id, overall_score, created_at')
         .eq('sentiment', sentiment)
         .order('overall_score', { ascending: true });
 
+      if (date) {
+        const dayStart = new Date(`${date}T00:00:00+03:00`).toISOString();
+        const dayEnd = new Date(`${date}T23:59:59+03:00`).toISOString();
+        query = query.gte('created_at', dayStart).lte('created_at', dayEnd);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
       if (!data || data.length === 0) {
@@ -131,6 +142,16 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
 
   const config = SENTIMENT_CONFIG[sentiment];
 
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleString('tr-TR', {
+      timeZone: 'Europe/Istanbul',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -152,7 +173,14 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
             ) : (
               <>
                 <div className={`w-3 h-3 rounded-full ${config.dot}`} />
-                <h2 className="text-lg font-bold text-white">{config.label} Chatler</h2>
+                <h2 className="text-lg font-bold text-white">
+                  {config.label} Chatler
+                  {date && (
+                    <span className="ml-2 text-sm font-normal text-slate-300">
+                      — {new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </span>
+                  )}
+                </h2>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${config.badgeBg}`}>
                   {chats.length} chat
                 </span>
@@ -167,7 +195,6 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
         {/* Content */}
         <div className="flex-1 overflow-hidden flex">
           {!selectedChat ? (
-            /* Chat List */
             <div className="flex-1 overflow-y-auto p-4">
               {loading ? (
                 <div className="flex items-center justify-center h-48">
@@ -175,7 +202,7 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
                 </div>
               ) : chats.length === 0 ? (
                 <div className="flex items-center justify-center h-48 text-slate-400">
-                  Chat bulunamadı
+                  Bu tarihte chat bulunamadı
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -211,14 +238,7 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
                       <div className="flex items-center gap-3 text-xs text-slate-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
-                          {new Date(chat.created_at).toLocaleString('tr-TR', {
-                            timeZone: 'Europe/Istanbul',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatDate(chat.created_at)}
                         </div>
                         <div className="flex items-center gap-1">
                           <MessageSquare className="w-3 h-3" />
@@ -231,16 +251,16 @@ export default function SentimentChatsModal({ sentiment, onClose }: SentimentCha
               )}
             </div>
           ) : (
-            /* Message View */
             <div className="flex-1 overflow-y-auto p-4">
               <div className="mb-4 p-3 rounded-xl bg-slate-800/50 border border-slate-700">
-                <div className="flex items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 text-sm flex-wrap">
                   <User className="w-4 h-4 text-slate-400" />
                   <span className="text-white font-medium">{maskName(selectedChat.customer_name)}</span>
                   <span className="text-slate-500">→</span>
                   <span className="text-slate-300">{selectedChat.agent_name}</span>
                   <span className="ml-auto text-xs text-slate-500 font-mono">#{selectedChat.id.slice(0, 10)}</span>
                 </div>
+                <div className="mt-1 text-xs text-slate-500">{formatDate(selectedChat.created_at)}</div>
               </div>
 
               {loadingMessages ? (

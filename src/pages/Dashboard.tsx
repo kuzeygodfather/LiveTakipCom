@@ -68,7 +68,7 @@ export default function Dashboard() {
   const [bottomPerformers, setBottomPerformers] = useState<any[]>([]);
   const [sentimentDistribution, setSentimentDistribution] = useState<{ label: string; value: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sentimentModal, setSentimentModal] = useState<'negative' | 'neutral' | 'positive' | null>(null);
+  const [sentimentModal, setSentimentModal] = useState<{ type: 'negative' | 'neutral' | 'positive'; date?: string } | null>(null);
 
   const [complaintTrendDays, setComplaintTrendDays] = useState(30);
   const [topComplaintsFilter, setTopComplaintsFilter] = useState(30);
@@ -917,7 +917,7 @@ export default function Dashboard() {
         <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
             <button
-              onClick={() => setSentimentModal('positive')}
+              onClick={() => setSentimentModal({ type: 'positive' })}
               className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/30 hover:scale-105 hover:border-emerald-300 transition-all cursor-pointer text-left w-full"
             >
               <Smile className="w-5 h-5 text-emerald-300" />
@@ -927,7 +927,7 @@ export default function Dashboard() {
               </div>
             </button>
             <button
-              onClick={() => setSentimentModal('neutral')}
+              onClick={() => setSentimentModal({ type: 'neutral' })}
               className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl border-2 border-amber-400/50 shadow-lg shadow-amber-500/30 hover:scale-105 hover:border-amber-300 transition-all cursor-pointer text-left w-full"
             >
               <Meh className="w-5 h-5 text-amber-300" />
@@ -937,7 +937,7 @@ export default function Dashboard() {
               </div>
             </button>
             <button
-              onClick={() => setSentimentModal('negative')}
+              onClick={() => setSentimentModal({ type: 'negative' })}
               className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/30 to-red-500/30 rounded-xl border-2 border-rose-400/50 shadow-lg shadow-rose-500/30 hover:scale-105 hover:border-rose-300 transition-all cursor-pointer text-left w-full"
             >
               <Frown className="w-5 h-5 text-rose-300" />
@@ -1234,20 +1234,31 @@ export default function Dashboard() {
                   return filteredData.map((data, index) => {
                   const negativePercent = data.analyzedChats > 0 ? (data.negative / data.analyzedChats) * 100 : 0;
                   const neutralPercent = data.analyzedChats > 0 ? (data.neutral / data.analyzedChats) * 100 : 0;
+                  const [day, month] = data.date.split('.');
+                  const year = new Date().getFullYear();
+                  const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                   return (
                     <tr key={index} className="hover:bg-slate-700/50 transition-colors">
                       <td className="px-4 py-3 text-sm font-semibold text-white">{data.date}</td>
                       <td className="px-4 py-3 text-sm text-white font-bold">{data.totalChats}</td>
                       <td className="px-4 py-3 text-sm text-slate-200 font-medium">{data.analyzedChats}</td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-rose-500/30 text-rose-100 rounded-full font-bold border-2 border-rose-400/50">
+                        <button
+                          disabled={data.negative === 0}
+                          onClick={() => data.negative > 0 && setSentimentModal({ type: 'negative', date: isoDate })}
+                          className={`px-2 py-1 bg-rose-500/30 text-rose-100 rounded-full font-bold border-2 border-rose-400/50 transition-all ${data.negative > 0 ? 'hover:bg-rose-500/50 hover:scale-110 cursor-pointer' : 'opacity-50 cursor-default'}`}
+                        >
                           {data.negative}
-                        </span>
+                        </button>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-amber-500/30 text-amber-100 rounded-full font-bold border-2 border-amber-400/50">
+                        <button
+                          disabled={data.neutral === 0}
+                          onClick={() => data.neutral > 0 && setSentimentModal({ type: 'neutral', date: isoDate })}
+                          className={`px-2 py-1 bg-amber-500/30 text-amber-100 rounded-full font-bold border-2 border-amber-400/50 transition-all ${data.neutral > 0 ? 'hover:bg-amber-500/50 hover:scale-110 cursor-pointer' : 'opacity-50 cursor-default'}`}
+                        >
                           {data.neutral}
-                        </span>
+                        </button>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
@@ -1336,7 +1347,8 @@ export default function Dashboard() {
       </div>
 
       <SentimentChatsModal
-        sentiment={sentimentModal}
+        sentiment={sentimentModal?.type ?? null}
+        date={sentimentModal?.date}
         onClose={() => setSentimentModal(null)}
       />
     </div>
