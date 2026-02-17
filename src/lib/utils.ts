@@ -44,3 +44,20 @@ export function formatDateInIstanbulTimezone(utcDateString: string): string {
   const [month, day, year] = istanbulDateString.split(/[\/,\s]+/);
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
+
+export function convertIstanbulDateToUTC(dateString: string, isEndOfDay: boolean = false): string {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const istanbulDate = new Date();
+  istanbulDate.setFullYear(year, month - 1, day);
+
+  if (isEndOfDay) {
+    istanbulDate.setHours(23, 59, 59, 999);
+  } else {
+    istanbulDate.setHours(0, 0, 0, 0);
+  }
+
+  const istanbulTimeStr = istanbulDate.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' });
+  const utcDate = new Date(istanbulTimeStr);
+
+  return utcDate.toISOString();
+}

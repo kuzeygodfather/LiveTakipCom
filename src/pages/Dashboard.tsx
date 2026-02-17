@@ -7,7 +7,7 @@ import DonutChart from '../components/DonutChart';
 import HeatMap from '../components/HeatMap';
 import Leaderboard from '../components/Leaderboard';
 import { extractComplaintTopics } from '../lib/complaintCategories';
-import { getIstanbulDateStartUTC } from '../lib/utils';
+import { getIstanbulDateStartUTC, convertIstanbulDateToUTC } from '../lib/utils';
 
 interface DashboardStats {
   totalChats: number;
@@ -74,6 +74,18 @@ export default function Dashboard() {
   const [showTopComplaintsFilter, setShowTopComplaintsFilter] = useState(false);
   const [showDetailsTableFilter, setShowDetailsTableFilter] = useState(false);
 
+  const [isCustomTrendRange, setIsCustomTrendRange] = useState(false);
+  const [trendStartDate, setTrendStartDate] = useState('');
+  const [trendEndDate, setTrendEndDate] = useState('');
+
+  const [isCustomTopComplaintsRange, setIsCustomTopComplaintsRange] = useState(false);
+  const [topComplaintsStartDate, setTopComplaintsStartDate] = useState('');
+  const [topComplaintsEndDate, setTopComplaintsEndDate] = useState('');
+
+  const [isCustomDetailsRange, setIsCustomDetailsRange] = useState(false);
+  const [detailsStartDate, setDetailsStartDate] = useState('');
+  const [detailsEndDate, setDetailsEndDate] = useState('');
+
   useEffect(() => {
     loadDashboardData();
 
@@ -86,11 +98,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadComplaintData();
-  }, [complaintTrendDays]);
+  }, [complaintTrendDays, isCustomTrendRange, trendStartDate, trendEndDate]);
 
   useEffect(() => {
     loadCategoryComplaints();
-  }, [topComplaintsFilter]);
+  }, [topComplaintsFilter, isCustomTopComplaintsRange, topComplaintsStartDate, topComplaintsEndDate]);
 
   const loadDashboardData = async () => {
     try {
@@ -337,22 +349,40 @@ export default function Dashboard() {
 
   const loadComplaintData = async () => {
     try {
-      const thirtyDaysAgoUTC = getIstanbulDateStartUTC(complaintTrendDays);
+      let startDateUTC: string;
+      let endDateUTC: string | undefined;
+      let daysDiff: number;
+
+      if (isCustomTrendRange && trendStartDate && trendEndDate) {
+        startDateUTC = convertIstanbulDateToUTC(trendStartDate, false);
+        endDateUTC = convertIstanbulDateToUTC(trendEndDate, true);
+        const start = new Date(trendStartDate);
+        const end = new Date(trendEndDate);
+        daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      } else {
+        startDateUTC = getIstanbulDateStartUTC(complaintTrendDays);
+        daysDiff = complaintTrendDays;
+      }
 
       let allAnalysis: any[] = [];
       let allChats: any[] = [];
       let from = 0;
       const batchSize = 1000;
 
-      // First, get all chats from the last 30 days
       from = 0;
       while (true) {
-        const { data: batch } = await supabase
+        let query = supabase
           .from('chats')
           .select('created_at, id')
-          .gte('created_at', thirtyDaysAgoUTC)
+          .gte('created_at', startDateUTC)
           .order('created_at', { ascending: true })
           .range(from, from + batchSize - 1);
+
+        if (endDateUTC) {
+          query = query.lte('created_at', endDateUTC);
+        }
+
+        const { data: batch } = await query;
 
         if (!batch || batch.length === 0) break;
         allChats = [...allChats, ...batch];
@@ -393,7 +423,7 @@ export default function Dashboard() {
       const now = new Date();
       const istanbulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
 
-      for (let i = 0; i < complaintTrendDays; i++) {
+      for (let i = 0; i < daysDiff; i++) {
         const date = new Date(istanbulNow);
         date.setDate(date.getDate() - i);
         const dateStr = date.toLocaleDateString('tr-TR', {
@@ -451,21 +481,34 @@ export default function Dashboard() {
 
   const loadCategoryComplaints = async () => {
     try {
-      const filterDate = getIstanbulDateStartUTC(topComplaintsFilter);
+      let startDateUTC: string;
+      let endDateUTC: string | undefined;
+
+      if (isCustomTopComplaintsRange && topComplaintsStartDate && topComplaintsEndDate) {
+        startDateUTC = convertIstanbulDateToUTC(topComplaintsStartDate, false);
+        endDateUTC = convertIstanbulDateToUTC(topComplaintsEndDate, true);
+      } else {
+        startDateUTC = getIstanbulDateStartUTC(topComplaintsFilter);
+      }
 
       let allAnalysis: any[] = [];
       let from = 0;
       const batchSize = 1000;
 
-      // First get chat IDs within date range
       let allChatsInRange: any[] = [];
       let chatFrom = 0;
       while (true) {
-        const { data: batch } = await supabase
+        let query = supabase
           .from('chats')
           .select('id')
-          .gte('created_at', filterDate)
+          .gte('created_at', startDateUTC)
           .range(chatFrom, chatFrom + batchSize - 1);
+
+        if (endDateUTC) {
+          query = query.lte('created_at', endDateUTC);
+        }
+
+        const { data: batch } = await query;
 
         if (!batch || batch.length === 0) break;
         allChatsInRange = [...allChatsInRange, ...batch];
@@ -926,40 +969,65 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-slate-900">📊 Günlük Şikayet Trendi</h3>
-            <div className="relative">
-              <button
-                onClick={() => setShowComplaintTrendFilter(!showComplaintTrendFilter)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                Son {complaintTrendDays} Gün
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              {showComplaintTrendFilter && (
-                <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
-                  <button
-                    onClick={() => { setComplaintTrendDays(7); setShowComplaintTrendFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${complaintTrendDays === 7 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 7 Gün
-                  </button>
-                  <button
-                    onClick={() => { setComplaintTrendDays(30); setShowComplaintTrendFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${complaintTrendDays === 30 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 30 Gün
-                  </button>
-                  <button
-                    onClick={() => { setComplaintTrendDays(90); setShowComplaintTrendFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${complaintTrendDays === 90 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 90 Gün
-                  </button>
-                </div>
-              )}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900">📊 Günlük Şikayet Trendi</h3>
+              <div className="relative">
+                <button
+                  onClick={() => setShowComplaintTrendFilter(!showComplaintTrendFilter)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                >
+                  <Filter className="w-4 h-4" />
+                  {isCustomTrendRange ? 'Özel Aralık' : `Son ${complaintTrendDays} Gün`}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showComplaintTrendFilter && (
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                    <button
+                      onClick={() => { setComplaintTrendDays(7); setIsCustomTrendRange(false); setShowComplaintTrendFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTrendRange && complaintTrendDays === 7 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 7 Gün
+                    </button>
+                    <button
+                      onClick={() => { setComplaintTrendDays(30); setIsCustomTrendRange(false); setShowComplaintTrendFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTrendRange && complaintTrendDays === 30 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 30 Gün
+                    </button>
+                    <button
+                      onClick={() => { setComplaintTrendDays(90); setIsCustomTrendRange(false); setShowComplaintTrendFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTrendRange && complaintTrendDays === 90 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 90 Gün
+                    </button>
+                    <button
+                      onClick={() => { setIsCustomTrendRange(true); setShowComplaintTrendFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${isCustomTrendRange ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Özel Aralık
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+            {isCustomTrendRange && (
+              <div className="flex items-center gap-2 text-sm">
+                <input
+                  type="date"
+                  value={trendStartDate}
+                  onChange={(e) => setTrendStartDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                />
+                <span className="text-slate-600">-</span>
+                <input
+                  type="date"
+                  value={trendEndDate}
+                  onChange={(e) => setTrendEndDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                />
+              </div>
+            )}
           </div>
           <BarChart
             data={complaintData.map(d => ({
@@ -973,40 +1041,65 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-slate-900">🔥 En Çok Şikayet Edilen Konular</h3>
-            <div className="relative">
-              <button
-                onClick={() => setShowTopComplaintsFilter(!showTopComplaintsFilter)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                Son {topComplaintsFilter} Gün
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              {showTopComplaintsFilter && (
-                <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
-                  <button
-                    onClick={() => { setTopComplaintsFilter(7); setShowTopComplaintsFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${topComplaintsFilter === 7 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 7 Gün
-                  </button>
-                  <button
-                    onClick={() => { setTopComplaintsFilter(30); setShowTopComplaintsFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${topComplaintsFilter === 30 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 30 Gün
-                  </button>
-                  <button
-                    onClick={() => { setTopComplaintsFilter(90); setShowTopComplaintsFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${topComplaintsFilter === 90 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 90 Gün
-                  </button>
-                </div>
-              )}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900">🔥 En Çok Şikayet Edilen Konular</h3>
+              <div className="relative">
+                <button
+                  onClick={() => setShowTopComplaintsFilter(!showTopComplaintsFilter)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                >
+                  <Filter className="w-4 h-4" />
+                  {isCustomTopComplaintsRange ? 'Özel Aralık' : `Son ${topComplaintsFilter} Gün`}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showTopComplaintsFilter && (
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                    <button
+                      onClick={() => { setTopComplaintsFilter(7); setIsCustomTopComplaintsRange(false); setShowTopComplaintsFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTopComplaintsRange && topComplaintsFilter === 7 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 7 Gün
+                    </button>
+                    <button
+                      onClick={() => { setTopComplaintsFilter(30); setIsCustomTopComplaintsRange(false); setShowTopComplaintsFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTopComplaintsRange && topComplaintsFilter === 30 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 30 Gün
+                    </button>
+                    <button
+                      onClick={() => { setTopComplaintsFilter(90); setIsCustomTopComplaintsRange(false); setShowTopComplaintsFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTopComplaintsRange && topComplaintsFilter === 90 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 90 Gün
+                    </button>
+                    <button
+                      onClick={() => { setIsCustomTopComplaintsRange(true); setShowTopComplaintsFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${isCustomTopComplaintsRange ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Özel Aralık
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+            {isCustomTopComplaintsRange && (
+              <div className="flex items-center gap-2 text-sm">
+                <input
+                  type="date"
+                  value={topComplaintsStartDate}
+                  onChange={(e) => setTopComplaintsStartDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                />
+                <span className="text-slate-600">-</span>
+                <input
+                  type="date"
+                  value={topComplaintsEndDate}
+                  onChange={(e) => setTopComplaintsEndDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                />
+              </div>
+            )}
           </div>
           <BarChart
             data={categoryComplaints.map(c => ({
@@ -1022,40 +1115,65 @@ export default function Dashboard() {
 
       {complaintData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-slate-900">📉 Günlük Şikayet Detayları</h2>
-            <div className="relative">
-              <button
-                onClick={() => setShowDetailsTableFilter(!showDetailsTableFilter)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
-              >
-                <Filter className="w-4 h-4" />
-                Son {detailsTableDays} Gün
-                <ChevronDown className="w-3 h-3" />
-              </button>
-              {showDetailsTableFilter && (
-                <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
-                  <button
-                    onClick={() => { setDetailsTableDays(7); setShowDetailsTableFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${detailsTableDays === 7 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 7 Gün
-                  </button>
-                  <button
-                    onClick={() => { setDetailsTableDays(30); setShowDetailsTableFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${detailsTableDays === 30 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 30 Gün
-                  </button>
-                  <button
-                    onClick={() => { setDetailsTableDays(90); setShowDetailsTableFilter(false); }}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${detailsTableDays === 90 ? 'bg-slate-50 font-semibold' : ''}`}
-                  >
-                    Son 90 Gün
-                  </button>
-                </div>
-              )}
+          <div className="flex flex-col gap-3 mb-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900">📉 Günlük Şikayet Detayları</h2>
+              <div className="relative">
+                <button
+                  onClick={() => setShowDetailsTableFilter(!showDetailsTableFilter)}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                >
+                  <Filter className="w-4 h-4" />
+                  {isCustomDetailsRange ? 'Özel Aralık' : `Son ${detailsTableDays} Gün`}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showDetailsTableFilter && (
+                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                    <button
+                      onClick={() => { setDetailsTableDays(7); setIsCustomDetailsRange(false); setShowDetailsTableFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomDetailsRange && detailsTableDays === 7 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 7 Gün
+                    </button>
+                    <button
+                      onClick={() => { setDetailsTableDays(30); setIsCustomDetailsRange(false); setShowDetailsTableFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomDetailsRange && detailsTableDays === 30 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 30 Gün
+                    </button>
+                    <button
+                      onClick={() => { setDetailsTableDays(90); setIsCustomDetailsRange(false); setShowDetailsTableFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomDetailsRange && detailsTableDays === 90 ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Son 90 Gün
+                    </button>
+                    <button
+                      onClick={() => { setIsCustomDetailsRange(true); setShowDetailsTableFilter(false); }}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${isCustomDetailsRange ? 'bg-slate-50 font-semibold' : ''}`}
+                    >
+                      Özel Aralık
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
+            {isCustomDetailsRange && (
+              <div className="flex items-center gap-2 text-sm">
+                <input
+                  type="date"
+                  value={detailsStartDate}
+                  onChange={(e) => setDetailsStartDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                />
+                <span className="text-slate-600">-</span>
+                <input
+                  type="date"
+                  value={detailsEndDate}
+                  onChange={(e) => setDetailsEndDate(e.target.value)}
+                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                />
+              </div>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -1071,7 +1189,24 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {complaintData.slice(-detailsTableDays).map((data, index) => {
+                {(() => {
+                  let filteredData = complaintData;
+
+                  if (isCustomDetailsRange && detailsStartDate && detailsEndDate) {
+                    const start = new Date(detailsStartDate);
+                    const end = new Date(detailsEndDate);
+
+                    filteredData = complaintData.filter(d => {
+                      const [day, month] = d.date.split('.');
+                      const year = new Date().getFullYear();
+                      const itemDate = new Date(year, parseInt(month) - 1, parseInt(day));
+                      return itemDate >= start && itemDate <= end;
+                    });
+                  } else {
+                    filteredData = complaintData.slice(-detailsTableDays);
+                  }
+
+                  return filteredData.map((data, index) => {
                   const negativePercent = data.analyzedChats > 0 ? (data.negative / data.analyzedChats) * 100 : 0;
                   const neutralPercent = data.analyzedChats > 0 ? (data.neutral / data.analyzedChats) * 100 : 0;
                   return (
@@ -1117,7 +1252,8 @@ export default function Dashboard() {
                       </td>
                     </tr>
                   );
-                })}
+                });
+                })()}
               </tbody>
             </table>
           </div>
