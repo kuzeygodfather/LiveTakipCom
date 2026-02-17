@@ -91,21 +91,25 @@ export default function TrendChart({ data, title, color = '#3b82f6', height = 20
         {data.map((item, index) => {
           const x = (index / (data.length - 1 || 1)) * 100;
           const y = getYPosition(item.value);
+          const isNearTop = y < 28;
           return (
             <div
               key={index}
-              className="absolute transform -translate-x-1/2 group"
+              className="absolute transform -translate-x-1/2"
               style={{ left: `${x}%`, top: `${y}px` }}
             >
-              <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap -translate-x-1/2 left-1/2 z-10">
-                <div className="font-semibold">Skor: {item.value}</div>
+              <div
+                className="absolute whitespace-nowrap -translate-x-1/2 left-1/2 z-10 text-center"
+                style={{ [isNearTop ? 'top' : 'bottom']: '10px' }}
+              >
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ color: color, backgroundColor: `${color}22`, border: `1px solid ${color}55` }}
+                >
+                  {item.value}
+                </span>
                 {item.count !== undefined && (
-                  <div className="text-gray-300">{item.count} chat</div>
-                )}
-                {item.change !== undefined && (
-                  <div className={item.change >= 0 ? 'text-green-400' : 'text-red-400'}>
-                    {item.change >= 0 ? '+' : ''}{item.change.toFixed(1)}%
-                  </div>
+                  <div className="text-[9px] text-slate-500 mt-0.5">{item.count} chat</div>
                 )}
               </div>
             </div>
