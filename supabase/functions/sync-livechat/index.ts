@@ -669,7 +669,7 @@ Deno.serve(async (req: Request) => {
                     sent_to_telegram: true,
                     telegram_message_id: tgData.result?.message_id?.toString(),
                   })
-                  .eq("chat_id", chatId)
+                  .eq("chat_id", threadId)
                   .eq("alert_type", "missed_chat")
                   .eq("sent_to_telegram", false);
                 alertsSent++;

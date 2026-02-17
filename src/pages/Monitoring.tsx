@@ -195,7 +195,16 @@ export default function Monitoring() {
         let errorText = '';
         try {
           const errorData = await response.json();
-          errorText = errorData.error || errorData.message || `HTTP ${response.status}`;
+
+          if (response.status === 409) {
+            const runningDuration = errorData.running_duration_seconds || 0;
+            const minutes = Math.floor(runningDuration / 60);
+            const seconds = runningDuration % 60;
+            errorText = `Başka bir senkronizasyon zaten çalışıyor (${minutes}dk ${seconds}sn). Lütfen tamamlanmasını bekleyin.`;
+          } else {
+            errorText = errorData.error || errorData.message || `HTTP ${response.status}`;
+          }
+
           console.error('HTTP Error Response:', errorData);
         } catch {
           errorText = await response.text();
