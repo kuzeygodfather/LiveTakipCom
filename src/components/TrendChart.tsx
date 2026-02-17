@@ -100,17 +100,14 @@ export default function TrendChart({ data, title, color = '#3b82f6', height = 20
             >
               <div
                 className="absolute whitespace-nowrap -translate-x-1/2 left-1/2 z-10 text-center"
-                style={{ [isNearTop ? 'top' : 'bottom']: '10px' }}
+                style={{ [isNearTop ? 'top' : 'bottom']: '8px' }}
               >
                 <span
-                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                  style={{ color: color, backgroundColor: `${color}22`, border: `1px solid ${color}55` }}
+                  className="text-[11px] font-bold px-2 py-1 rounded-md shadow-lg"
+                  style={{ color: '#ffffff', backgroundColor: '#0f172a', border: `1.5px solid ${color}`, display: 'inline-block', lineHeight: 1 }}
                 >
                   {item.value}
                 </span>
-                {item.count !== undefined && (
-                  <div className="text-[9px] text-slate-500 mt-0.5">{item.count} chat</div>
-                )}
               </div>
             </div>
           );
