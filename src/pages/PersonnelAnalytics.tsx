@@ -99,7 +99,7 @@ export default function PersonnelAnalytics() {
         while (true) {
           const { data: batch } = await supabase
             .from('chats')
-            .select('id, agent_name, customer_name, chat_data, status')
+            .select('id, agent_name, customer_name, chat_data, status, rating_status, rating_score')
             .eq('agent_name', person.name)
             .range(from, from + batchSize - 1);
 
@@ -143,13 +143,11 @@ export default function PersonnelAnalytics() {
               missedCount++;
             }
 
-            const score = chat.chat_data?.properties?.raw_chat_data?.rating_score;
-            if (score !== null && score !== undefined) {
-              if (score > 0) {
-                liked.push({ id: chat.id, customer_name: chat.customer_name || 'Bilinmiyor' });
-              } else if (score < 0) {
-                disliked.push({ id: chat.id, customer_name: chat.customer_name || 'Bilinmiyor' });
-              }
+            // Check rating from chats table (primary source)
+            if (chat.rating_status === 'rated_good' || chat.rating_status === 'rated_commented') {
+              liked.push({ id: chat.id, customer_name: chat.customer_name || 'Bilinmiyor' });
+            } else if (chat.rating_status === 'rated_bad') {
+              disliked.push({ id: chat.id, customer_name: chat.customer_name || 'Bilinmiyor' });
             }
 
             const firstResponseTime = chat.chat_data?.properties?.raw_chat_data?.first_response_time_seconds;

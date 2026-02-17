@@ -299,6 +299,8 @@ export default function Reports() {
         };
       }
 
+      console.log(`Grouping ${curr.date} into ${groupKey}: adding ${curr.total_chats} chats`);
+
       if (curr.average_score > 0 && curr.total_chats > 0) {
         acc[groupKey].totalPersonnelScore += parseScore(curr.average_score) * curr.total_chats;
         acc[groupKey].personnelCount += curr.total_chats;
@@ -579,8 +581,13 @@ export default function Reports() {
 
   const trendData = useMemo(() => {
     const data = getTrendData();
-    console.log('Trend Data:', data);
-    console.log('Report Data Daily:', reportData.daily);
+    console.log('=== TREND DATA RESULT ===');
+    console.log('Time Range:', timeRange);
+    console.log('Trend Data (first 5):', data.slice(0, 5));
+    console.log('Total items:', data.length);
+    const totalChatsSum = data.reduce((sum: number, item: any) => sum + (item.totalChats || 0), 0);
+    console.log('Sum of all totalChats:', totalChatsSum);
+    console.log('Report Data Daily (first 5):', reportData.daily.slice(0, 5));
     return data;
   }, [reportData, timeRange]);
 
