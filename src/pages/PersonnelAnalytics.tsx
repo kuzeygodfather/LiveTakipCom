@@ -33,6 +33,13 @@ export default function PersonnelAnalytics() {
     chats: [],
     title: ''
   });
+  const [messagesModal, setMessagesModal] = useState<{ isOpen: boolean; messages: any[]; chatId: string; customerName: string; loading: boolean }>({
+    isOpen: false,
+    messages: [],
+    chatId: '',
+    customerName: '',
+    loading: false
+  });
 
   useEffect(() => {
     loadPersonnel();
@@ -249,6 +256,49 @@ export default function PersonnelAnalytics() {
       type: '',
       chats: [],
       title: ''
+    });
+  };
+
+  const loadChatMessages = async (chatId: string, customerName: string) => {
+    setMessagesModal({
+      isOpen: true,
+      messages: [],
+      chatId,
+      customerName,
+      loading: true
+    });
+
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      setMessagesModal(prev => ({
+        ...prev,
+        messages: data || [],
+        loading: false
+      }));
+    } catch (error) {
+      console.error('Error loading chat messages:', error);
+      showError('Chat mesajları yüklenirken hata oluştu');
+      setMessagesModal(prev => ({
+        ...prev,
+        loading: false
+      }));
+    }
+  };
+
+  const closeChatMessagesModal = () => {
+    setMessagesModal({
+      isOpen: false,
+      messages: [],
+      chatId: '',
+      customerName: '',
+      loading: false
     });
   };
 
@@ -635,9 +685,10 @@ export default function PersonnelAnalytics() {
               ) : (
                 <div className="space-y-3">
                   {chatModal.chats.map((chat) => (
-                    <div
+                    <button
                       key={chat.id}
-                      className="bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 rounded-lg p-4 hover:shadow-md transition-all"
+                      onClick={() => loadChatMessages(chat.chat_id || chat.id, chat.customer_name)}
+                      className="w-full text-left bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 rounded-lg p-4 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer"
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
@@ -659,11 +710,12 @@ export default function PersonnelAnalytics() {
                         )}
                       </div>
                       {chat.created_at && (
-                        <div className="text-xs text-slate-500 mt-2">
-                          {new Date(chat.created_at).toLocaleString('tr-TR')}
+                        <div className="text-xs text-slate-500 mt-2 flex items-center gap-2">
+                          <span>{new Date(chat.created_at).toLocaleString('tr-TR')}</span>
+                          <span className="text-blue-500">→ Mesajları görüntüle</span>
                         </div>
                       )}
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -672,6 +724,92 @@ export default function PersonnelAnalytics() {
               <button
                 onClick={closeChatModal}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Messages Modal */}
+      {messagesModal.isOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden animate-scale-in">
+            <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Chat Konuşması</h3>
+                <p className="text-sm text-blue-100 mt-0.5">
+                  {maskName(messagesModal.customerName)} • #{messagesModal.chatId.slice(0, 12)}
+                </p>
+              </div>
+              <button
+                onClick={closeChatMessagesModal}
+                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-140px)] bg-slate-50">
+              {messagesModal.loading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4" />
+                  <p className="text-slate-500">Mesajlar yükleniyor...</p>
+                </div>
+              ) : messagesModal.messages.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-slate-500">Bu chat için mesaj bulunamadı</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {messagesModal.messages.map((message, index) => {
+                    const isAgent = message.author_type === 'agent';
+                    return (
+                      <div
+                        key={message.id || index}
+                        className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-[75%] ${isAgent ? 'order-2' : 'order-1'}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-medium ${
+                              isAgent ? 'text-blue-600' : 'text-slate-600'
+                            }`}>
+                              {message.author_name || (isAgent ? 'Personel' : 'Müşteri')}
+                            </span>
+                            <span className="text-xs text-slate-400">
+                              {new Date(message.created_at).toLocaleTimeString('tr-TR', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          </div>
+                          <div className={`rounded-2xl px-4 py-3 shadow-sm ${
+                            isAgent
+                              ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm'
+                              : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm'
+                          }`}>
+                            <p className="text-sm whitespace-pre-wrap break-words">
+                              {message.text}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-200">
+              <div className="text-sm text-slate-500">
+                Toplam {messagesModal.messages.length} mesaj
+              </div>
+              <button
+                onClick={closeChatMessagesModal}
+                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg"
               >
                 Kapat
               </button>
