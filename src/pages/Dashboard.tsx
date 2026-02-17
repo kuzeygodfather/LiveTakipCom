@@ -361,12 +361,13 @@ export default function Dashboard() {
 
       const dailyComplaints: { [key: string]: { negative: number; neutral: number; totalChats: number; analyzedChats: number } } = {};
 
-      const today = new Date();
+      const now = new Date();
+      const istanbulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+
       for (let i = 0; i < 30; i++) {
-        const date = new Date(today);
+        const date = new Date(istanbulNow);
         date.setDate(date.getDate() - i);
         const dateStr = date.toLocaleDateString('tr-TR', {
-          timeZone: 'Europe/Istanbul',
           day: '2-digit',
           month: '2-digit'
         });
@@ -405,8 +406,8 @@ export default function Dashboard() {
         .sort((a, b) => {
           const [dayA, monthA] = a.date.split('.');
           const [dayB, monthB] = b.date.split('.');
-          const dateA = new Date(today.getFullYear(), parseInt(monthA) - 1, parseInt(dayA));
-          const dateB = new Date(today.getFullYear(), parseInt(monthB) - 1, parseInt(dayB));
+          const dateA = new Date(istanbulNow.getFullYear(), parseInt(monthA) - 1, parseInt(dayA));
+          const dateB = new Date(istanbulNow.getFullYear(), parseInt(monthB) - 1, parseInt(dayB));
           return dateA.getTime() - dateB.getTime();
         });
 
