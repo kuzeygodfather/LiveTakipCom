@@ -58,7 +58,7 @@ export default function Reports() {
 
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [bulkSending, setBulkSending] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0 });
+  const [bulkProgress, setBulkProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 });
 
   const [improvementReports, setImprovementReports] = useState<any[]>([]);
   const [loadingImprovements, setLoadingImprovements] = useState(false);
@@ -391,6 +391,10 @@ export default function Reports() {
 
       const result = await response.json();
 
+      if (!result.suggestion) {
+        throw new Error('API yanıtı beklenen formatta değil');
+      }
+
       // Save coaching suggestion to database
       const { error: updateError } = await supabase
         .from('chat_analysis')
@@ -399,6 +403,7 @@ export default function Reports() {
 
       if (updateError) {
         console.error('Error saving coaching suggestion:', updateError);
+        throw new Error(`Veritabanı hatası: ${updateError.message}`);
       }
 
       setNegativeChats(prev =>
@@ -408,15 +413,17 @@ export default function Reports() {
             : c
         )
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting coaching suggestion:', error);
       setNegativeChats(prev =>
         prev.map(c =>
           c.id === chat.id
-            ? { ...c, coaching: 'Öneri alınırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.', loadingCoaching: false }
+            ? { ...c, coaching: null, loadingCoaching: false }
             : c
         )
       );
+      // Re-throw error for bulk operations to catch
+      throw error;
     }
   };
 
@@ -470,19 +477,54 @@ export default function Reports() {
     }
 
     setBulkGenerating(true);
-    setBulkProgress({ current: 0, total: chatsToGenerate.length });
+    setBulkProgress({ current: 0, total: chatsToGenerate.length, success: 0, failed: 0 });
+
+    let successCount = 0;
+    let failedCount = 0;
 
     for (let i = 0; i < chatsToGenerate.length; i++) {
       const chat = chatsToGenerate[i];
-      setBulkProgress({ current: i + 1, total: chatsToGenerate.length });
-      await getCoachingSuggestion(chat);
+
+      try {
+        await getCoachingSuggestion(chat);
+
+        // Verify that the coaching was saved to database
+        const { data: verifyData } = await supabase
+          .from('chat_analysis')
+          .select('coaching_suggestion')
+          .eq('id', chat.id)
+          .single();
+
+        if (verifyData?.coaching_suggestion) {
+          successCount++;
+        } else {
+          failedCount++;
+          console.error(`Chat ${chat.id} coaching not saved to database`);
+        }
+      } catch (error) {
+        failedCount++;
+        console.error(`Error generating coaching for chat ${chat.id}:`, error);
+      }
+
+      setBulkProgress({
+        current: i + 1,
+        total: chatsToGenerate.length,
+        success: successCount,
+        failed: failedCount
+      });
+
       // Wait a bit to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     setBulkGenerating(false);
-    setBulkProgress({ current: 0, total: 0 });
-    alert(`${chatsToGenerate.length} chat için koçluk önerisi oluşturuldu!`);
+    setBulkProgress({ current: 0, total: 0, success: 0, failed: 0 });
+
+    // Reload data to show updated coaching suggestions
+    await loadData();
+
+    const resultMessage = `Toplam ${chatsToGenerate.length} chat işlendi:\n✓ Başarılı: ${successCount}\n✗ Başarısız: ${failedCount}`;
+    alert(resultMessage);
   };
 
   const bulkSendFeedback = async () => {
@@ -498,18 +540,53 @@ export default function Reports() {
     }
 
     setBulkSending(true);
-    setBulkProgress({ current: 0, total: chatsToSend.length });
+    setBulkProgress({ current: 0, total: chatsToSend.length, success: 0, failed: 0 });
+
+    let successCount = 0;
+    let failedCount = 0;
 
     for (let i = 0; i < chatsToSend.length; i++) {
       const chat = chatsToSend[i];
-      setBulkProgress({ current: i + 1, total: chatsToSend.length });
-      await sendCoachingFeedback(chat);
+
+      try {
+        await sendCoachingFeedback(chat);
+
+        // Verify that the feedback was saved
+        const { data: verifyData } = await supabase
+          .from('coaching_feedbacks')
+          .select('id')
+          .eq('chat_id', chat.id)
+          .single();
+
+        if (verifyData) {
+          successCount++;
+        } else {
+          failedCount++;
+          console.error(`Chat ${chat.id} feedback not saved to database`);
+        }
+      } catch (error) {
+        failedCount++;
+        console.error(`Error sending feedback for chat ${chat.id}:`, error);
+      }
+
+      setBulkProgress({
+        current: i + 1,
+        total: chatsToSend.length,
+        success: successCount,
+        failed: failedCount
+      });
+
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     setBulkSending(false);
-    setBulkProgress({ current: 0, total: 0 });
-    alert(`${chatsToSend.length} koçluk önerisi iletildi!`);
+    setBulkProgress({ current: 0, total: 0, success: 0, failed: 0 });
+
+    // Reload data to show updated feedback status
+    await loadData();
+
+    const resultMessage = `Toplam ${chatsToSend.length} öneri işlendi:\n✓ İletildi: ${successCount}\n✗ Başarısız: ${failedCount}`;
+    alert(resultMessage);
   };
 
   const loadImprovementReport = async (agentEmail: string) => {
@@ -551,7 +628,12 @@ export default function Reports() {
       setExpandedChat(chatId);
       const chat = negativeChats.find(c => c.id === chatId);
       if (chat && !chat.coaching && !chat.loadingCoaching) {
-        await getCoachingSuggestion(chat);
+        try {
+          await getCoachingSuggestion(chat);
+        } catch (error) {
+          console.error('Error in toggleChat:', error);
+          // Error is already handled in getCoachingSuggestion
+        }
       }
     }
   };
@@ -1019,12 +1101,19 @@ export default function Reports() {
                   <button
                     onClick={bulkGenerateCoaching}
                     disabled={bulkGenerating || filteredChats.filter(c => !c.coaching).length === 0}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white font-medium rounded-lg transition-colors shadow-sm"
+                    className="w-full flex flex-col items-center justify-center gap-2 px-4 py-3 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white font-medium rounded-lg transition-colors shadow-sm"
                   >
                     {bulkGenerating ? (
                       <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {bulkProgress.current}/{bulkProgress.total} Oluşturuluyor...
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>{bulkProgress.current}/{bulkProgress.total} Oluşturuluyor...</span>
+                        </div>
+                        {bulkProgress.current > 0 && (
+                          <div className="text-xs opacity-90">
+                            ✓ {bulkProgress.success} Başarılı • ✗ {bulkProgress.failed} Hata
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
@@ -1050,12 +1139,19 @@ export default function Reports() {
                   <button
                     onClick={bulkSendFeedback}
                     disabled={bulkSending || filteredChats.filter(c => c.coaching && !c.sent_feedback).length === 0}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-medium rounded-lg transition-colors shadow-sm"
+                    className="w-full flex flex-col items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-medium rounded-lg transition-colors shadow-sm"
                   >
                     {bulkSending ? (
                       <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        {bulkProgress.current}/{bulkProgress.total} İletiliyor...
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>{bulkProgress.current}/{bulkProgress.total} İletiliyor...</span>
+                        </div>
+                        {bulkProgress.current > 0 && (
+                          <div className="text-xs opacity-90">
+                            ✓ {bulkProgress.success} İletildi • ✗ {bulkProgress.failed} Hata
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
