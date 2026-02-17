@@ -856,7 +856,10 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="relative">
+          <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin shadow-xl shadow-cyan-500/30" />
+          <div className="absolute inset-0 w-12 h-12 border-4 border-transparent border-b-emerald-400 rounded-full animate-spin shadow-xl shadow-emerald-500/30" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+        </div>
       </div>
     );
   }
@@ -865,12 +868,14 @@ export default function Dashboard() {
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-1">LiveChat kalite kontrol ve analiz ozeti</p>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          <p className="text-sm sm:text-base text-slate-400 mt-1">LiveChat kalite kontrol ve analiz ozeti</p>
         </div>
         <button
           onClick={loadDashboardData}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium self-start"
+          className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white rounded-xl transition-all text-sm font-semibold self-start shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105"
         >
           Yenile
         </button>
@@ -881,14 +886,14 @@ export default function Dashboard() {
           const Icon = card.icon;
           return (
             <Tooltip key={card.title} content={card.tooltip} position="bottom">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-lg transition-all hover:scale-105 cursor-help">
+              <div className="glass-effect rounded-xl shadow-lg p-4 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all hover:scale-105 cursor-help group">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-slate-600 truncate">{card.title}</p>
-                    <p className="text-xl sm:text-2xl font-bold text-slate-900 mt-2">{card.value}</p>
-                    <p className="text-xs text-slate-500 mt-1">{card.change}</p>
+                    <p className="text-xs font-medium text-slate-400 truncate">{card.title}</p>
+                    <p className="text-xl sm:text-2xl font-bold text-white mt-2">{card.value}</p>
+                    <p className="text-xs text-cyan-400 mt-1">{card.change}</p>
                   </div>
-                  <div className={`${card.color} p-2 rounded-lg flex-shrink-0 ml-2`}>
+                  <div className={`${card.color} p-2 rounded-lg flex-shrink-0 ml-2 shadow-lg group-hover:scale-110 transition-transform`}>
                     <Icon className="w-4 h-4 text-white" />
                   </div>
                 </div>
@@ -899,7 +904,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="lg:col-span-2 glass-effect rounded-xl shadow-lg p-6">
           <DonutChart
             data={sentimentDistribution}
             title="Genel Sentiment Dağılımı"
@@ -907,7 +912,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center gap-2 flex-1 p-3 bg-green-50 rounded-lg border border-green-200">
               <Smile className="w-5 h-5 text-green-600" />
@@ -939,7 +944,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <Leaderboard
             data={topPerformers}
             title="🏆 Ayın En İyi Performansları"
@@ -947,7 +952,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <Leaderboard
             data={bottomPerformers}
             title="⚠️ Gelişim Gereken Personel"
@@ -957,7 +962,7 @@ export default function Dashboard() {
       </div>
 
       {personnelTrends.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-bold text-slate-900 mb-6">📈 Personel Performans Trendleri (Son 30 Gün)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {personnelTrends.map((trend, index) => (
@@ -981,7 +986,7 @@ export default function Dashboard() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900">📊 Günlük Şikayet Trendi</h3>
@@ -1053,7 +1058,7 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-900">🔥 En Çok Şikayet Edilen Konular</h3>
@@ -1127,7 +1132,7 @@ export default function Dashboard() {
       </div>
 
       {complaintData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3 mb-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900">📉 Günlük Şikayet Detayları</h2>
@@ -1273,7 +1278,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <HeatMap
           data={hourlyDistribution}
           title="🕐 Saatlik Chat Yoğunluğu Analizi (Son 30 Gün)"
@@ -1281,7 +1286,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl font-bold text-slate-900">⚠️ Son Uyarılar</h2>
         </div>

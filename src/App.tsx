@@ -25,8 +25,11 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-3 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin shadow-2xl shadow-cyan-500/30" />
+          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-b-emerald-400 rounded-full animate-spin shadow-2xl shadow-emerald-500/30" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+        </div>
       </div>
     );
   }
@@ -84,17 +87,17 @@ function App() {
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-slate-50">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-cyan-500/20 px-4 py-3 flex items-center justify-between backdrop-blur-xl">
         <button
           onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+          className="p-2 rounded-lg text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-400 transition-all duration-200"
         >
           <Menu className="w-6 h-6" />
         </button>
         <div className="flex items-center gap-2">
-          {currentNav && <currentNav.icon className="w-5 h-5 text-blue-600" />}
-          <span className="font-semibold text-slate-900 text-sm">{currentNav?.name || 'Dashboard'}</span>
+          {currentNav && <currentNav.icon className="w-5 h-5 text-cyan-400" />}
+          <span className="font-semibold text-white text-sm">{currentNav?.name || 'Dashboard'}</span>
         </div>
         <div className="w-10" />
       </div>
@@ -108,19 +111,22 @@ function App() {
 
       <div className="flex">
         <aside className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-200
-          transform transition-transform duration-300 ease-in-out
+          fixed top-0 left-0 z-50 h-full w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-r border-cyan-500/20
+          transform transition-transform duration-300 ease-in-out backdrop-blur-xl
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          shadow-2xl shadow-cyan-500/10
         `}>
-          <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <div className="p-6 border-b border-cyan-500/20 flex items-center justify-between bg-gradient-to-r from-cyan-950/50 to-transparent">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">LiveChat QA</h1>
-              <p className="text-xs text-slate-500 mt-0.5">Kalite Kontrol Sistemi</p>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                LiveChat QA
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">Kalite Kontrol Sistemi</p>
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 transition-all duration-200"
             >
               <X className="w-5 h-5" />
             </button>
@@ -133,29 +139,29 @@ function App() {
                   <button
                     key={item.id}
                     onClick={() => handleNavClick(item.id as Page)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg mb-0.5 transition-colors text-sm ${
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg mb-0.5 transition-all duration-200 text-sm group ${
                       currentPage === item.id
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'text-slate-600 hover:bg-slate-50'
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 text-cyan-300 font-medium shadow-lg shadow-cyan-500/20 border border-cyan-500/30'
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent'
                     }`}
                   >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${currentPage === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
                     <span>{item.name}</span>
                   </button>
                 );
               })}
             </div>
-            <div className="border-t border-slate-200 pt-3 mt-3 space-y-2">
-              <div className="px-4 py-2">
+            <div className="border-t border-cyan-500/20 pt-3 mt-3 space-y-2">
+              <div className="px-4 py-2 bg-slate-800/30 rounded-lg border border-slate-700/50">
                 <div className="flex items-center gap-2 mb-1.5">
                   {syncStatus.syncing || syncStatus.analyzing ? (
-                    <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+                    <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
                   ) : syncStatus.error ? (
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-lg shadow-rose-500/50" />
                   ) : (
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50" />
                   )}
-                  <span className="text-xs font-medium text-slate-600">
+                  <span className="text-xs font-medium text-slate-300">
                     {syncStatus.syncing ? 'Senkronize ediliyor...' :
                      syncStatus.analyzing ? 'Analiz ediliyor...' :
                      syncStatus.error ? 'Baglanti hatasi' :
@@ -163,16 +169,16 @@ function App() {
                   </span>
                 </div>
                 {syncStatus.lastSyncTime && (
-                  <p className="text-[10px] text-slate-400 pl-[18px]">
+                  <p className="text-[10px] text-slate-500 pl-[18px]">
                     Son: {new Date(syncStatus.lastSyncTime).toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit' })}
                   </p>
                 )}
               </div>
               <button
                 onClick={signOut}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-200 border border-transparent hover:border-rose-500/30 group"
               >
-                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <LogOut className="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
                 <span>Cikis Yap</span>
               </button>
             </div>
