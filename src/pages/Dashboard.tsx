@@ -247,101 +247,96 @@ export default function Dashboard() {
   const loadPersonnelTrends = async () => {
     try {
       const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
-
-      let allChatsForAgents: any[] = [];
-      let from = 0;
       const batchSize = 1000;
+
+      let allAgentChats: any[] = [];
+      let from = 0;
 
       while (true) {
         const { data: batch } = await supabase
           .from('chats')
-          .select('agent_name')
+          .select('id, agent_name, created_at')
           .not('agent_name', 'is', null)
+          .gte('created_at', thirtyDaysAgoUTC)
           .range(from, from + batchSize - 1);
 
         if (!batch || batch.length === 0) break;
-        allChatsForAgents = [...allChatsForAgents, ...batch];
+        allAgentChats = [...allAgentChats, ...batch];
         if (batch.length < batchSize) break;
         from += batchSize;
       }
 
-      if (allChatsForAgents.length === 0) return;
+      if (allAgentChats.length === 0) return;
 
-      const uniqueAgents = [...new Set(allChatsForAgents.map(c => c.agent_name))];
+      const chatIdToDate = new Map<string, string>();
+      const chatIdToAgent = new Map<string, string>();
+      allAgentChats.forEach(c => {
+        chatIdToDate.set(c.id, c.created_at);
+        chatIdToAgent.set(c.id, c.agent_name);
+      });
+
+      const allChatIds = allAgentChats.map(c => c.id);
+      let allAnalysisData: any[] = [];
+
+      for (let i = 0; i < allChatIds.length; i += batchSize) {
+        const batchIds = allChatIds.slice(i, i + batchSize);
+        const { data: batch } = await supabase
+          .from('chat_analysis')
+          .select('overall_score, chat_id')
+          .in('chat_id', batchIds)
+          .gt('overall_score', 0);
+
+        if (batch) allAnalysisData = [...allAnalysisData, ...batch];
+      }
+
+      if (allAnalysisData.length === 0) return;
+
+      const agentDailyScores: { [agent: string]: { [date: string]: number[] } } = {};
+
+      allAnalysisData.forEach(item => {
+        const agent = chatIdToAgent.get(item.chat_id);
+        const createdAt = chatIdToDate.get(item.chat_id);
+        if (!agent || !createdAt) return;
+
+        const date = new Date(createdAt).toLocaleDateString('tr-TR', {
+          timeZone: 'Europe/Istanbul',
+          day: '2-digit',
+          month: '2-digit',
+        });
+
+        if (!agentDailyScores[agent]) agentDailyScores[agent] = {};
+        if (!agentDailyScores[agent][date]) agentDailyScores[agent][date] = [];
+        agentDailyScores[agent][date].push(item.overall_score || 0);
+      });
 
       const trends: PersonnelTrend[] = [];
+      const now = new Date();
+      const istanbulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
 
-      for (const agentName of uniqueAgents) {
-        let allAnalysisData: any[] = [];
-        from = 0;
-
-        while (true) {
-          const { data: batch } = await supabase
-            .from('chat_analysis')
-            .select('analysis_date, overall_score, chat_id')
-            .gte('analysis_date', thirtyDaysAgoUTC)
-            .gt('overall_score', 0)
-            .order('analysis_date', { ascending: true })
-            .range(from, from + batchSize - 1);
-
-          if (!batch || batch.length === 0) break;
-          allAnalysisData = [...allAnalysisData, ...batch];
-          if (batch.length < batchSize) break;
-          from += batchSize;
-        }
-
-        if (allAnalysisData.length === 0) continue;
-
-        let allAgentChats: any[] = [];
-        from = 0;
-
-        while (true) {
-          const { data: batch } = await supabase
-            .from('chats')
-            .select('id, agent_name')
-            .eq('agent_name', agentName)
-            .range(from, from + batchSize - 1);
-
-          if (!batch || batch.length === 0) break;
-          allAgentChats = [...allAgentChats, ...batch];
-          if (batch.length < batchSize) break;
-          from += batchSize;
-        }
-
-        if (allAgentChats.length === 0) continue;
-
-        const agentChatIds = new Set(allAgentChats.map(c => c.id));
-        const agentAnalysis = allAnalysisData.filter(a => agentChatIds.has(a.chat_id));
-
-        if (agentAnalysis && agentAnalysis.length > 0) {
-          const dailyScores: { [key: string]: number[] } = {};
-
-          agentAnalysis.forEach(stat => {
-            const date = new Date(stat.analysis_date).toLocaleDateString('tr-TR', {
-              timeZone: 'Europe/Istanbul',
-              day: '2-digit',
-              month: '2-digit'
-            });
-            if (!dailyScores[date]) dailyScores[date] = [];
-            dailyScores[date].push(stat.overall_score || 0);
+      for (const [agentName, dailyMap] of Object.entries(agentDailyScores)) {
+        const scores = Object.entries(dailyMap)
+          .map(([date, vals]) => ({
+            date,
+            score: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+          }))
+          .sort((a, b) => {
+            const [dayA, monthA] = a.date.split('.');
+            const [dayB, monthB] = b.date.split('.');
+            const dateA = new Date(istanbulNow.getFullYear(), parseInt(monthA) - 1, parseInt(dayA));
+            const dateB = new Date(istanbulNow.getFullYear(), parseInt(monthB) - 1, parseInt(dayB));
+            return dateA.getTime() - dateB.getTime();
           });
 
-          const scores = Object.entries(dailyScores).map(([date, scores]) => ({
-            date,
-            score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
-          }));
+        if (scores.length >= 1) {
+          const firstScore = scores[0].score;
+          const lastScore = scores[scores.length - 1].score;
+          const weeklyChange = scores.length >= 2 && firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
 
-          if (scores.length >= 1) {
-            const firstScore = scores[0].score;
-            const lastScore = scores[scores.length - 1].score;
-            const weeklyChange = scores.length >= 2 && firstScore > 0 ? ((lastScore - firstScore) / firstScore) * 100 : 0;
-
-            trends.push({
-              agent_name: agentName,
-              daily_scores: scores,
-              weekly_change: weeklyChange,
-            });
-          }
+          trends.push({
+            agent_name: agentName,
+            daily_scores: scores,
+            weekly_change: weeklyChange,
+          });
         }
       }
 
