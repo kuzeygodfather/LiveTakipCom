@@ -203,7 +203,7 @@ export default function BonusSettings() {
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Prim Ayarlari</h1>
-          <p className="text-sm sm:text-base text-slate-300 mt-2">Personel performans bazli prim kurallarini yonetin</p>
+          <p className="text-sm sm:text-base text-slate-200 mt-2">Personel performans bazli prim kurallarini yonetin</p>
         </div>
         <button
           onClick={() => {
@@ -226,7 +226,7 @@ export default function BonusSettings() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   Kural Adı
                 </label>
                 <input
@@ -240,7 +240,7 @@ export default function BonusSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   Metrik Tipi
                 </label>
                 <select
@@ -255,7 +255,7 @@ export default function BonusSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   Koşul Tipi
                 </label>
                 <select
@@ -270,7 +270,7 @@ export default function BonusSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   Eşik Değer {formData.condition_type === 'between' && '(Min)'}
                 </label>
                 <input
@@ -285,7 +285,7 @@ export default function BonusSettings() {
 
               {formData.condition_type === 'between' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
                     Eşik Değer (Max)
                   </label>
                   <input
@@ -300,7 +300,7 @@ export default function BonusSettings() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   Kural Tipi
                 </label>
                 <select
@@ -314,7 +314,7 @@ export default function BonusSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   {formData.rule_type === 'bonus' ? 'Prim Tutarı (₺)' : 'Ceza Tutarı (₺)'}
                 </label>
                 <input
@@ -329,7 +329,7 @@ export default function BonusSettings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-slate-200 mb-2">
                   Periyot
                 </label>
                 <select
@@ -351,7 +351,7 @@ export default function BonusSettings() {
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm font-medium text-gray-700">Aktif</span>
+                  <span className="ml-2 text-sm font-medium text-slate-200">Aktif</span>
                 </label>
               </div>
             </div>
@@ -370,7 +370,7 @@ export default function BonusSettings() {
                   setEditingRule(null);
                   resetForm();
                 }}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-2 bg-gray-200 text-slate-200 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 İptal
               </button>
@@ -405,7 +405,7 @@ export default function BonusSettings() {
                     <td className="px-4 py-4 whitespace-nowrap">
                       <button
                         onClick={() => toggleActive(rule)}
-                        className={`flex items-center justify-center w-8 h-8 rounded-full ${rule.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}
+                        className={`flex items-center justify-center w-8 h-8 rounded-full ${rule.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-slate-200'}`}
                       >
                         {rule.is_active ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
                       </button>
@@ -457,11 +457,11 @@ export default function BonusSettings() {
                       <div className="flex items-center gap-2 mb-1">
                         <button
                           onClick={() => toggleActive(rule)}
-                          className={`flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0 ${rule.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}
+                          className={`flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0 ${rule.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-slate-200'}`}
                         >
                           {rule.is_active ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
                         </button>
-                        <span className="font-medium text-sm text-gray-900 truncate">{rule.rule_name}</span>
+                        <span className="font-medium text-sm text-white truncate">{rule.rule_name}</span>
                       </div>
                       <div className="text-xs text-gray-600 mb-1">{getConditionText(rule)}</div>
                       <div className="flex items-center gap-2">

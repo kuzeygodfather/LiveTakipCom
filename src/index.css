@@ -103,7 +103,7 @@
   }
 
   .glass-effect {
-    @apply bg-slate-800/40 backdrop-blur-xl border border-cyan-500/20;
+    @apply bg-slate-800/60 backdrop-blur-xl border-2 border-slate-600/50;
   }
 
   .card-hover {

@@ -278,7 +278,7 @@ export default function Monitoring() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Canli Izleme</h1>
-          <p className="text-sm sm:text-base text-slate-300 mt-1">Sistem durumu ve otomatik islem yonetimi</p>
+          <p className="text-sm sm:text-base text-slate-200 mt-1">Sistem durumu ve otomatik islem yonetimi</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm">
@@ -300,7 +300,7 @@ export default function Monitoring() {
             </div>
             <span className="text-xs sm:text-sm text-slate-600">Toplam Chat</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.total}</div>
+          <div className="text-2xl sm:text-3xl font-bold text-white">{stats.total}</div>
         </div>
         <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -342,16 +342,16 @@ export default function Monitoring() {
               Sistem tamamen otomatik çalışmaktadır. Senkronizasyon ve analiz işlemleri sunucu tarafında otomatik olarak gerçekleştirilir.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2 text-slate-700">
+              <div className="flex items-center gap-2 text-slate-200">
                 <div className="w-2 h-2 rounded-full bg-blue-500" />
                 <span><strong>Senkronizasyon:</strong> Her 2 dakikada bir (son senkronizasyondan sonrası)</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-700">
+              <div className="flex items-center gap-2 text-slate-200">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
                 <span><strong>Analiz:</strong> Her 5 dakikada bir otomatik</span>
               </div>
             </div>
-            <p className="text-xs text-slate-500 mt-3 italic">
+            <p className="text-xs text-slate-100 mt-3 italic">
               Manuel butonlar acil durumlar veya özel tarih aralıkları için kullanılabilir.
             </p>
           </div>
@@ -401,8 +401,8 @@ export default function Monitoring() {
                     className="w-full flex items-center justify-between px-4 py-3 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
                   >
                     <div>
-                      <div className="text-sm font-medium text-slate-900">{option.label}</div>
-                      <div className="text-xs text-slate-500">{option.description}</div>
+                      <div className="text-sm font-medium text-white">{option.label}</div>
+                      <div className="text-xs text-slate-100">{option.description}</div>
                     </div>
                     <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">{option.days} gun</span>
                   </button>
@@ -419,8 +419,8 @@ export default function Monitoring() {
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-600" />
                     <div>
-                      <div className="text-sm font-medium text-slate-900">Özel Tarih Aralığı</div>
-                      <div className="text-xs text-slate-500">Başlangıç ve bitiş tarihi seç</div>
+                      <div className="text-sm font-medium text-white">Özel Tarih Aralığı</div>
+                      <div className="text-xs text-slate-100">Başlangıç ve bitiş tarihi seç</div>
                     </div>
                   </div>
                 </button>
@@ -462,27 +462,27 @@ export default function Monitoring() {
 
       {lastResult && (
         <div className={`rounded-xl border p-4 sm:p-6 ${lastResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          <h3 className="font-bold text-base sm:text-lg mb-3 text-slate-900">Son Pipeline Sonucu</h3>
+          <h3 className="font-bold text-base sm:text-lg mb-3 text-white">Son Pipeline Sonucu</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             <div>
               <div className="text-xs text-slate-600 mb-1">Senkronize</div>
-              <div className="text-xl font-bold text-slate-900">{lastResult.synced || 0}</div>
+              <div className="text-xl font-bold text-white">{lastResult.synced || 0}</div>
             </div>
             <div>
               <div className="text-xs text-slate-600 mb-1">Yeni Chat</div>
-              <div className="text-xl font-bold text-slate-900">{lastResult.new_chats || 0}</div>
+              <div className="text-xl font-bold text-white">{lastResult.new_chats || 0}</div>
             </div>
             <div>
               <div className="text-xs text-slate-600 mb-1">Analiz Edilen</div>
-              <div className="text-xl font-bold text-slate-900">{lastResult.analyzed || 0}</div>
+              <div className="text-xl font-bold text-white">{lastResult.analyzed || 0}</div>
             </div>
             <div>
               <div className="text-xs text-slate-600 mb-1">Uyari Gonderilen</div>
-              <div className="text-xl font-bold text-slate-900">{lastResult.alerts_sent || 0}</div>
+              <div className="text-xl font-bold text-white">{lastResult.alerts_sent || 0}</div>
             </div>
             <div>
               <div className="text-xs text-slate-600 mb-1">Zaman (İstanbul)</div>
-              <div className="text-sm font-medium text-slate-900">
+              <div className="text-sm font-medium text-white">
                 {lastResult.timestamp ? new Date(lastResult.timestamp).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' }) : '-'}
               </div>
             </div>
@@ -495,7 +495,7 @@ export default function Monitoring() {
           <h2 className="text-base sm:text-lg font-bold text-white">Sistem Loglari</h2>
           <button
             onClick={() => setLogs([])}
-            className="text-sm text-slate-500 hover:text-slate-700"
+            className="text-sm text-slate-100 hover:text-slate-200"
           >
             Temizle
           </button>
@@ -503,7 +503,7 @@ export default function Monitoring() {
 
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {logs.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">Henuz log yok</div>
+            <div className="text-center py-8 text-slate-100">Henuz log yok</div>
           ) : (
             logs.map((log, index) => (
               <div
@@ -534,14 +534,14 @@ export default function Monitoring() {
                   <Calendar className="w-6 h-6 text-slate-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Özel Tarih Aralığı</h3>
+                  <h3 className="text-xl font-bold text-white">Özel Tarih Aralığı</h3>
                   <p className="text-sm text-slate-600">Senkronizasyon için tarih seçin</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
                     Başlangıç Tarihi
                   </label>
                   <input
@@ -554,7 +554,7 @@ export default function Monitoring() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
                     Bitiş Tarihi
                   </label>
                   <input
@@ -571,7 +571,7 @@ export default function Monitoring() {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowCustomDatePicker(false)}
-                  className="flex-1 px-4 py-3 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-3 border border-slate-300 rounded-lg text-slate-200 font-medium hover:bg-slate-50 transition-colors"
                 >
                   İptal
                 </button>

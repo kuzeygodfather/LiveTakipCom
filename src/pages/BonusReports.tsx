@@ -347,7 +347,7 @@ export default function BonusReports() {
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Prim Raporlari</h1>
-        <p className="text-sm sm:text-base text-slate-300 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
+        <p className="text-sm sm:text-base text-slate-200 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-2 mb-6">
@@ -401,10 +401,10 @@ export default function BonusReports() {
         <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-lg shadow-lg p-4 sm:p-6 text-white">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-slate-300 text-xs sm:text-sm font-medium">Personel</p>
+              <p className="text-slate-200 text-xs sm:text-sm font-medium">Personel</p>
               <p className="text-xl sm:text-3xl font-bold mt-1 sm:mt-2">{displayData.length}</p>
             </div>
-            <Users className="w-8 h-8 sm:w-12 sm:h-12 text-slate-400 flex-shrink-0" />
+            <Users className="w-8 h-8 sm:w-12 sm:h-12 text-slate-200 flex-shrink-0" />
           </div>
         </div>
 
@@ -430,7 +430,7 @@ export default function BonusReports() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-200 mb-2">
               Periyot Tipi
             </label>
             <select
@@ -445,7 +445,7 @@ export default function BonusReports() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-200 mb-2">
               Başlangıç Tarihi
             </label>
             <input
@@ -457,7 +457,7 @@ export default function BonusReports() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-200 mb-2">
               Bitiş Tarihi
             </label>
             <input
@@ -498,7 +498,7 @@ export default function BonusReports() {
             </div>
           ) : periodGroups.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-gray-500 bg-white rounded-lg shadow-md">
-              {viewMode === 'preview' ? <Calculator className="w-16 h-16 mb-4 text-gray-300" /> : <History className="w-16 h-16 mb-4 text-gray-300" />}
+              {viewMode === 'preview' ? <Calculator className="w-16 h-16 mb-4 text-slate-100" /> : <History className="w-16 h-16 mb-4 text-slate-100" />}
               <p className="text-lg">
                 {viewMode === 'preview'
                   ? 'Bu dönem için hesaplanmış prim bulunamadı'
@@ -612,7 +612,7 @@ export default function BonusReports() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-slate-200">
                         {calc.calculation_details?.length || 0} kural
                       </span>
                     </td>
@@ -655,7 +655,7 @@ export default function BonusReports() {
                   <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
                     Skor: {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
                   </span>
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-slate-200">
                     {calc.calculation_details?.length || 0} kural
                   </span>
                 </div>
@@ -695,7 +695,7 @@ export default function BonusReports() {
                 </div>
                 <button
                   onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                  className="text-slate-200 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -719,7 +719,7 @@ export default function BonusReports() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Dönem</p>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-white">
                       {new Date(selectedRecord.period_start).toLocaleDateString('tr-TR')} - {new Date(selectedRecord.period_end).toLocaleDateString('tr-TR')}
                     </p>
                   </div>
@@ -757,8 +757,8 @@ export default function BonusReports() {
                     <p className="text-2xl font-bold text-red-900">{selectedRecord.metrics_snapshot?.negative_chats_count || 0}</p>
                   </div>
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs font-medium text-gray-700 mb-1">Nötr Chat</p>
-                    <p className="text-2xl font-bold text-gray-900">{selectedRecord.metrics_snapshot?.neutral_chats_count || 0}</p>
+                    <p className="text-xs font-medium text-slate-200 mb-1">Nötr Chat</p>
+                    <p className="text-2xl font-bold text-white">{selectedRecord.metrics_snapshot?.neutral_chats_count || 0}</p>
                   </div>
                   <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-4 rounded-lg border border-cyan-200">
                     <p className="text-xs font-medium text-cyan-700 mb-1">Uygulanan Kural</p>
@@ -783,7 +783,7 @@ export default function BonusReports() {
                               <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
                                 {metricLabels[detail.metric_type]}
                               </span>
-                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">
+                              <span className="px-3 py-1 bg-gray-100 text-slate-200 rounded-full font-medium">
                                 Değer: {detail.metric_value.toFixed(2)}
                               </span>
                             </div>
@@ -799,7 +799,7 @@ export default function BonusReports() {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                    <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <Calculator className="w-12 h-12 text-slate-200 mx-auto mb-2" />
                     <p className="text-gray-500">Hiçbir prim kuralı uygulanmadı</p>
                   </div>
                 )}
@@ -816,7 +816,7 @@ export default function BonusReports() {
                 </button>
                 <button
                   onClick={closeModal}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="px-6 py-3 bg-gray-200 text-slate-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
                 >
                   Kapat
                 </button>

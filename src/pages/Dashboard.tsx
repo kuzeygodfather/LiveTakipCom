@@ -871,7 +871,7 @@ export default function Dashboard() {
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 mt-1">LiveChat kalite kontrol ve analiz ozeti</p>
+          <p className="text-sm sm:text-base text-slate-200 mt-1">LiveChat kalite kontrol ve analiz ozeti</p>
         </div>
         <button
           onClick={loadDashboardData}
@@ -889,7 +889,7 @@ export default function Dashboard() {
               <div className="glass-effect rounded-xl shadow-lg p-4 hover:shadow-2xl hover:shadow-cyan-500/20 transition-all hover:scale-105 cursor-help group">
                 <div className="flex items-start justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-slate-400 truncate">{card.title}</p>
+                    <p className="text-xs font-medium text-slate-200 truncate">{card.title}</p>
                     <p className="text-xl sm:text-2xl font-bold text-white mt-2">{card.value}</p>
                     <p className="text-xs text-cyan-400 mt-1">{card.change}</p>
                   </div>
@@ -914,24 +914,24 @@ export default function Dashboard() {
 
         <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl border border-emerald-500/30 shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform">
-              <Smile className="w-5 h-5 text-emerald-400" />
+            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/30 hover:scale-105 transition-transform">
+              <Smile className="w-5 h-5 text-emerald-300" />
               <div>
-                <div className="text-xs text-emerald-300 font-medium">Pozitif</div>
+                <div className="text-xs text-emerald-200 font-medium">Pozitif</div>
                 <div className="text-lg font-bold text-white">{sentimentDistribution[0]?.value || 0}</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl border border-amber-500/30 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform">
-              <Meh className="w-5 h-5 text-amber-400" />
+            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl border-2 border-amber-400/50 shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform">
+              <Meh className="w-5 h-5 text-amber-300" />
               <div>
-                <div className="text-xs text-amber-300 font-medium">Nötr</div>
+                <div className="text-xs text-amber-200 font-medium">Nötr</div>
                 <div className="text-lg font-bold text-white">{sentimentDistribution[1]?.value || 0}</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/20 to-red-500/20 rounded-xl border border-rose-500/30 shadow-lg shadow-rose-500/20 hover:scale-105 transition-transform">
-              <Frown className="w-5 h-5 text-rose-400" />
+            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/30 to-red-500/30 rounded-xl border-2 border-rose-400/50 shadow-lg shadow-rose-500/30 hover:scale-105 transition-transform">
+              <Frown className="w-5 h-5 text-rose-300" />
               <div>
-                <div className="text-xs text-rose-300 font-medium">Negatif</div>
+                <div className="text-xs text-rose-200 font-medium">Negatif</div>
                 <div className="text-lg font-bold text-white">{sentimentDistribution[2]?.value || 0}</div>
               </div>
             </div>
@@ -959,12 +959,12 @@ export default function Dashboard() {
 
       {personnelTrends.length > 0 && (
         <div className="glass-effect rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-6">📈 Personel Performans Trendleri (Son 30 Gün)</h2>
+          <h2 className="text-xl font-bold text-white mb-6">📈 Personel Performans Trendleri (Son 30 Gün)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {personnelTrends.map((trend, index) => (
               <div key={index} className="border border-slate-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-slate-900">{trend.agent_name}</h3>
+                  <h3 className="font-semibold text-white">{trend.agent_name}</h3>
                   <span className={`text-sm font-semibold ${trend.weekly_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {trend.weekly_change >= 0 ? '+' : ''}{trend.weekly_change.toFixed(1)}%
                   </span>
@@ -985,7 +985,7 @@ export default function Dashboard() {
         <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">📊 Günlük Şikayet Trendi</h3>
+              <h3 className="text-lg font-bold text-white">📊 Günlük Şikayet Trendi</h3>
               <div className="relative">
                 <button
                   onClick={() => setShowComplaintTrendFilter(!showComplaintTrendFilter)}
@@ -1057,7 +1057,7 @@ export default function Dashboard() {
         <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900">🔥 En Çok Şikayet Edilen Konular</h3>
+              <h3 className="text-lg font-bold text-white">🔥 En Çok Şikayet Edilen Konular</h3>
               <div className="relative">
                 <button
                   onClick={() => setShowTopComplaintsFilter(!showTopComplaintsFilter)}
@@ -1131,7 +1131,7 @@ export default function Dashboard() {
         <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3 mb-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-900">📉 Günlük Şikayet Detayları</h2>
+              <h2 className="text-xl font-bold text-white">📉 Günlük Şikayet Detayları</h2>
               <div className="relative">
                 <button
                   onClick={() => setShowDetailsTableFilter(!showDetailsTableFilter)}
@@ -1191,18 +1191,18 @@ export default function Dashboard() {
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-slate-800/50 border-b border-cyan-500/20">
+              <thead className="bg-slate-700/50 border-b-2 border-cyan-400/40">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Tarih</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Toplam Chat</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Analiz Edilen</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Negatif</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Nötr</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Negatif %</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Nötr %</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Tarih</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Toplam Chat</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Analiz Edilen</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Negatif</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Nötr</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Negatif %</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-cyan-200 uppercase">Nötr %</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-700/50">
+              <tbody className="divide-y divide-slate-600/50">
                 {(() => {
                   let filteredData = complaintData;
 
@@ -1224,42 +1224,42 @@ export default function Dashboard() {
                   const negativePercent = data.analyzedChats > 0 ? (data.negative / data.analyzedChats) * 100 : 0;
                   const neutralPercent = data.analyzedChats > 0 ? (data.neutral / data.analyzedChats) * 100 : 0;
                   return (
-                    <tr key={index} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium text-white">{data.date}</td>
-                      <td className="px-4 py-3 text-sm text-white font-semibold">{data.totalChats}</td>
-                      <td className="px-4 py-3 text-sm text-slate-300">{data.analyzedChats}</td>
+                    <tr key={index} className="hover:bg-slate-700/50 transition-colors">
+                      <td className="px-4 py-3 text-sm font-semibold text-white">{data.date}</td>
+                      <td className="px-4 py-3 text-sm text-white font-bold">{data.totalChats}</td>
+                      <td className="px-4 py-3 text-sm text-slate-200 font-medium">{data.analyzedChats}</td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-rose-500/20 text-rose-300 rounded-full font-semibold border border-rose-500/30">
+                        <span className="px-2 py-1 bg-rose-500/30 text-rose-100 rounded-full font-bold border-2 border-rose-400/50">
                           {data.negative}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded-full font-semibold border border-amber-500/30">
+                        <span className="px-2 py-1 bg-amber-500/30 text-amber-100 rounded-full font-bold border-2 border-amber-400/50">
                           {data.neutral}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2.5 bg-slate-700/70 rounded-full overflow-hidden border border-slate-600/50">
                             <div
-                              className="h-full bg-gradient-to-r from-rose-500 to-red-500 rounded-full shadow-lg shadow-rose-500/50"
+                              className="h-full bg-gradient-to-r from-rose-500 to-red-500 rounded-full"
                               style={{ width: `${negativePercent}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-rose-400 w-12 text-right">
+                          <span className="text-xs font-bold text-rose-300 w-12 text-right">
                             {negativePercent.toFixed(1)}%
                           </span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2.5 bg-slate-700/70 rounded-full overflow-hidden border border-slate-600/50">
                             <div
-                              className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-lg shadow-amber-500/50"
+                              className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
                               style={{ width: `${neutralPercent}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-amber-400 w-12 text-right">
+                          <span className="text-xs font-bold text-amber-300 w-12 text-right">
                             {neutralPercent.toFixed(1)}%
                           </span>
                         </div>
@@ -1284,11 +1284,11 @@ export default function Dashboard() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900">⚠️ Son Uyarılar</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-white">⚠️ Son Uyarılar</h2>
         </div>
 
         {recentAlerts.length === 0 ? (
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-slate-100">
             Henüz uyarı bulunmuyor
           </div>
         ) : (

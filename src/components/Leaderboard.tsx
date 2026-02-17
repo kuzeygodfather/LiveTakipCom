@@ -16,27 +16,27 @@ export default function Leaderboard({ data, title, type = 'top' }: LeaderboardPr
     return (
       <div className="w-full">
         <h3 className="text-base font-semibold text-white mb-4">{title}</h3>
-        <div className="flex flex-col items-center justify-center py-12 px-4 bg-slate-800/30 rounded-lg border-2 border-dashed border-cyan-500/30">
-          <div className="w-16 h-16 bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
+        <div className="flex flex-col items-center justify-center py-12 px-4 bg-slate-700/40 rounded-lg border-2 border-dashed border-cyan-400/50">
+          <div className="w-16 h-16 bg-slate-600/60 rounded-full flex items-center justify-center mb-4">
             {type === 'top' ? (
-              <Award className="w-8 h-8 text-cyan-400" />
+              <Award className="w-8 h-8 text-cyan-300" />
             ) : (
-              <TrendingDown className="w-8 h-8 text-rose-400" />
+              <TrendingDown className="w-8 h-8 text-rose-300" />
             )}
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-bold text-white mb-2">
             {type === 'top' ? 'Henüz Performans Verisi Yok' : 'Henüz Performans Verisi Yok'}
           </h3>
-          <p className="text-sm text-slate-400 text-center max-w-md mb-4">
+          <p className="text-sm text-slate-200 text-center max-w-md mb-4">
             {type === 'top'
               ? 'Personel performans skorları hesaplandığında en iyi performanslar burada görünecek.'
               : 'Personel performans skorları hesaplandığında gelişim gereken personel burada görünecek.'}
           </p>
-          <div className="flex items-center gap-2 text-xs text-cyan-300 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
+          <div className="flex items-center gap-2 text-xs text-cyan-100 bg-cyan-500/20 px-3 py-2 rounded-lg border-2 border-cyan-400/40">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>İpucu: Chat'ler analiz edildikçe sıralamaları görebilirsiniz</span>
+            <span className="font-medium">İpucu: Chat'ler analiz edildikçe sıralamaları görebilirsiniz</span>
           </div>
         </div>
       </div>
@@ -54,14 +54,14 @@ export default function Leaderboard({ data, title, type = 'top' }: LeaderboardPr
 
   const getRankColor = (index: number) => {
     if (type === 'bottom') {
-      if (index === 0) return 'bg-gradient-to-r from-rose-500/20 to-red-500/20 text-rose-200 border-rose-500/30 shadow-lg shadow-rose-500/20';
-      return 'bg-gradient-to-r from-orange-500/15 to-amber-500/15 text-orange-200 border-orange-500/30 shadow-lg shadow-orange-500/10';
+      if (index === 0) return 'bg-gradient-to-r from-rose-500/30 to-red-500/30 text-white border-rose-400/50 shadow-lg shadow-rose-500/30';
+      return 'bg-gradient-to-r from-orange-500/25 to-amber-500/25 text-white border-orange-400/50 shadow-lg shadow-orange-500/20';
     }
 
-    if (index === 0) return 'bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-200 border-amber-500/40 shadow-lg shadow-amber-500/30';
-    if (index === 1) return 'bg-gradient-to-r from-slate-600/30 to-slate-500/30 text-slate-200 border-slate-500/30 shadow-lg shadow-slate-500/20';
-    if (index === 2) return 'bg-gradient-to-r from-orange-500/20 to-amber-600/20 text-orange-200 border-orange-500/30 shadow-lg shadow-orange-500/20';
-    return 'bg-gradient-to-r from-cyan-500/15 to-blue-500/15 text-cyan-200 border-cyan-500/30 shadow-lg shadow-cyan-500/10';
+    if (index === 0) return 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-white border-amber-400/60 shadow-lg shadow-amber-500/40';
+    if (index === 1) return 'bg-gradient-to-r from-slate-600/40 to-slate-500/40 text-white border-slate-400/50 shadow-lg shadow-slate-500/30';
+    if (index === 2) return 'bg-gradient-to-r from-orange-500/30 to-amber-600/30 text-white border-orange-400/50 shadow-lg shadow-orange-500/30';
+    return 'bg-gradient-to-r from-cyan-500/25 to-blue-500/25 text-white border-cyan-400/50 shadow-lg shadow-cyan-500/20';
   };
 
   return (

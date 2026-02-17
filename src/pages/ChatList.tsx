@@ -269,7 +269,7 @@ export default function ChatList() {
       case 'active':
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>;
       case 'archived':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Arşiv</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-white">Arşiv</span>;
       default:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{status}</span>;
     }
@@ -288,7 +288,7 @@ export default function ChatList() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Tum Chatler</h1>
-          <p className="text-sm sm:text-base text-slate-300 mt-1">LiveChat'ten gelen tum sohbetler</p>
+          <p className="text-sm sm:text-base text-slate-200 mt-1">LiveChat'ten gelen tum sohbetler</p>
         </div>
         <button
           onClick={loadChats}
@@ -317,9 +317,9 @@ export default function ChatList() {
           <div className="space-y-4">
             {/* Search */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Ara</label>
+              <label className="block text-sm font-medium text-slate-200 mb-2">Ara</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-200" />
                 <input
                   type="text"
                   value={searchQuery}
@@ -333,7 +333,7 @@ export default function ChatList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Status Filter */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Durum</label>
+                <label className="block text-sm font-medium text-slate-200 mb-2">Durum</label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -347,7 +347,7 @@ export default function ChatList() {
 
               {/* Agent Filter */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Temsilci</label>
+                <label className="block text-sm font-medium text-slate-200 mb-2">Temsilci</label>
                 <select
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
@@ -362,7 +362,7 @@ export default function ChatList() {
 
               {/* Analyzed Filter */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Analiz Durumu</label>
+                <label className="block text-sm font-medium text-slate-200 mb-2">Analiz Durumu</label>
                 <select
                   value={analyzedFilter}
                   onChange={(e) => setAnalyzedFilter(e.target.value)}
@@ -376,7 +376,7 @@ export default function ChatList() {
 
               {/* Rating Filter */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Müşteri Değerlendirmesi</label>
+                <label className="block text-sm font-medium text-slate-200 mb-2">Müşteri Değerlendirmesi</label>
                 <select
                   value={ratingFilter}
                   onChange={(e) => setRatingFilter(e.target.value)}
@@ -393,8 +393,8 @@ export default function ChatList() {
 
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <label className="block text-sm font-medium text-slate-700">Tarih Araligi</label>
-                <span className="text-xs text-slate-500">Hizli Filtre:</span>
+                <label className="block text-sm font-medium text-slate-200">Tarih Araligi</label>
+                <span className="text-xs text-slate-100">Hizli Filtre:</span>
                 <button
                   onClick={() => setQuickDateFilter('today')}
                   className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
@@ -417,7 +417,7 @@ export default function ChatList() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Date From */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Başlangıç Tarihi</label>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">Başlangıç Tarihi</label>
                   <input
                     type="date"
                     value={dateFrom}
@@ -428,7 +428,7 @@ export default function ChatList() {
 
                 {/* Date To */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Bitiş Tarihi</label>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">Bitiş Tarihi</label>
                   <input
                     type="date"
                     value={dateTo}
@@ -453,14 +453,14 @@ export default function ChatList() {
                 onChange={(e) => setMissedFilter(e.target.checked)}
                 className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
               />
-              <label htmlFor="missedFilter" className="text-sm font-medium text-slate-700">
+              <label htmlFor="missedFilter" className="text-sm font-medium text-slate-200">
                 Sadece kaçırılmış chatleri göster
               </label>
             </div>
 
             <button
               onClick={clearFilters}
-              className="text-sm text-slate-600 hover:text-slate-800 font-medium"
+              className="text-sm text-slate-600 hover:text-white font-medium"
             >
               Filtreleri Temizle
             </button>
@@ -472,7 +472,7 @@ export default function ChatList() {
       <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
         <div className="glass-effect rounded-lg shadow-lg p-3 sm:p-4">
           <p className="text-xs sm:text-sm text-slate-600">Toplam Chat</p>
-          <p className="text-lg sm:text-2xl font-bold text-slate-900">{filteredChats.length}</p>
+          <p className="text-lg sm:text-2xl font-bold text-white">{filteredChats.length}</p>
         </div>
 
         <div
@@ -491,11 +491,11 @@ export default function ChatList() {
                 {filteredChats.filter(c => c.analyzed).slice(0, 50).map(c => (
                   <div key={c.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
                     <span className="font-mono">#{c.id.slice(0, 10)}</span>
-                    <span className="text-slate-400">{c.agent_name}</span>
+                    <span className="text-slate-200">{c.agent_name}</span>
                   </div>
                 ))}
                 {filteredChats.filter(c => c.analyzed).length > 50 && (
-                  <div className="text-slate-400 text-center pt-2">+{filteredChats.filter(c => c.analyzed).length - 50} daha...</div>
+                  <div className="text-slate-200 text-center pt-2">+{filteredChats.filter(c => c.analyzed).length - 50} daha...</div>
                 )}
               </div>
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
@@ -521,11 +521,11 @@ export default function ChatList() {
                 {filteredChats.filter(c => Number(c.rating_score) >= 4).slice(0, 50).map(c => (
                   <div key={c.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
                     <span className="font-mono">#{c.id.slice(0, 10)}</span>
-                    <span className="text-slate-400">{c.agent_name}</span>
+                    <span className="text-slate-200">{c.agent_name}</span>
                   </div>
                 ))}
                 {filteredChats.filter(c => Number(c.rating_score) >= 4).length > 50 && (
-                  <div className="text-slate-400 text-center pt-2">+{filteredChats.filter(c => Number(c.rating_score) >= 4).length - 50} daha...</div>
+                  <div className="text-slate-200 text-center pt-2">+{filteredChats.filter(c => Number(c.rating_score) >= 4).length - 50} daha...</div>
                 )}
               </div>
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
@@ -557,14 +557,14 @@ export default function ChatList() {
                 }).slice(0, 50).map(c => (
                   <div key={c.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
                     <span className="font-mono">#{c.id.slice(0, 10)}</span>
-                    <span className="text-slate-400">{c.agent_name}</span>
+                    <span className="text-slate-200">{c.agent_name}</span>
                   </div>
                 ))}
                 {filteredChats.filter(c => {
                   const s = Number(c.rating_score);
                   return !isNaN(s) && s >= 1 && s <= 2;
                 }).length > 50 && (
-                  <div className="text-slate-400 text-center pt-2">+{filteredChats.filter(c => {
+                  <div className="text-slate-200 text-center pt-2">+{filteredChats.filter(c => {
                     const s = Number(c.rating_score);
                     return !isNaN(s) && s >= 1 && s <= 2;
                   }).length - 50} daha...</div>
@@ -593,11 +593,11 @@ export default function ChatList() {
                 {filteredChats.filter(c => c.rating_comment).slice(0, 50).map(c => (
                   <div key={c.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
                     <span className="font-mono">#{c.id.slice(0, 10)}</span>
-                    <span className="text-slate-400">{c.agent_name}</span>
+                    <span className="text-slate-200">{c.agent_name}</span>
                   </div>
                 ))}
                 {filteredChats.filter(c => c.rating_comment).length > 50 && (
-                  <div className="text-slate-400 text-center pt-2">+{filteredChats.filter(c => c.rating_comment).length - 50} daha...</div>
+                  <div className="text-slate-200 text-center pt-2">+{filteredChats.filter(c => c.rating_comment).length - 50} daha...</div>
                 )}
               </div>
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
@@ -613,7 +613,7 @@ export default function ChatList() {
           onMouseLeave={() => setHoveredStat(null)}
         >
           <p className="text-xs sm:text-sm text-slate-600 truncate">Degerlendirilmemis</p>
-          <p className="text-lg sm:text-2xl font-bold text-slate-400">
+          <p className="text-lg sm:text-2xl font-bold text-slate-200">
             {filteredChats.filter(c => {
               const score = c.rating_score;
               return score === null || score === undefined;
@@ -629,14 +629,14 @@ export default function ChatList() {
                 }).slice(0, 50).map(c => (
                   <div key={c.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
                     <span className="font-mono">#{c.id.slice(0, 10)}</span>
-                    <span className="text-slate-400">{c.agent_name}</span>
+                    <span className="text-slate-200">{c.agent_name}</span>
                   </div>
                 ))}
                 {filteredChats.filter(c => {
                   const score = c.rating_score;
                   return score === null || score === undefined;
                 }).length > 50 && (
-                  <div className="text-slate-400 text-center pt-2">+{filteredChats.filter(c => {
+                  <div className="text-slate-200 text-center pt-2">+{filteredChats.filter(c => {
                     const score = c.rating_score;
                     return score === null || score === undefined;
                   }).length - 50} daha...</div>
@@ -659,7 +659,7 @@ export default function ChatList() {
           </h2>
 
           {filteredChats.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
+            <div className="text-center py-8 text-slate-100">
               Chat bulunamadı
             </div>
           ) : (
@@ -676,7 +676,7 @@ export default function ChatList() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <MessageSquare className="w-4 h-4 text-slate-500" />
+                      <MessageSquare className="w-4 h-4 text-slate-100" />
                       <span className="text-sm font-mono text-slate-600">#{chat.id.slice(0, 8)}</span>
                     </div>
                     {getStatusBadge(chat.status)}
@@ -684,13 +684,13 @@ export default function ChatList() {
 
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm">
-                      <User className="w-4 h-4 text-slate-400" />
+                      <User className="w-4 h-4 text-slate-200" />
                       <span className="font-medium text-white">{maskName(chat.customer_name)}</span>
-                      <span className="text-slate-500">→</span>
-                      <span className="text-slate-700">{chat.agent_name}</span>
+                      <span className="text-slate-100">→</span>
+                      <span className="text-slate-200">{chat.agent_name}</span>
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                    <div className="flex items-center gap-4 text-xs text-slate-100">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {new Date(chat.created_at).toLocaleString('tr-TR', {
@@ -771,7 +771,7 @@ export default function ChatList() {
         {/* Right: Chat Details */}
         <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6 max-h-[600px] lg:max-h-[800px] overflow-y-auto">
           {!selectedChat ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+            <div className="flex flex-col items-center justify-center h-full text-slate-100">
               <MessageSquare className="w-12 h-12 mb-4 opacity-50" />
               <p>Detayları görmek için bir chat seçin</p>
             </div>
@@ -781,7 +781,7 @@ export default function ChatList() {
                 <h2 className="text-lg font-semibold text-white">Chat Detayları</h2>
                 <button
                   onClick={() => setSelectedChat(null)}
-                  className="text-slate-400 hover:text-slate-600"
+                  className="text-slate-200 hover:text-slate-600"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -791,7 +791,7 @@ export default function ChatList() {
               <div className="space-y-3 mb-6 pb-6 border-b border-slate-200">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Chat ID:</span>
-                  <span className="text-sm font-mono text-slate-900">{selectedChat.id}</span>
+                  <span className="text-sm font-mono text-white">{selectedChat.id}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Müşteri:</span>
@@ -799,7 +799,7 @@ export default function ChatList() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Temsilci:</span>
-                  <span className="text-sm font-medium text-slate-900">{selectedChat.agent_name}</span>
+                  <span className="text-sm font-medium text-white">{selectedChat.agent_name}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Durum:</span>
@@ -807,14 +807,14 @@ export default function ChatList() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Başlangıç:</span>
-                  <span className="text-sm text-slate-900">
+                  <span className="text-sm text-white">
                     {new Date(selectedChat.created_at).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })}
                   </span>
                 </div>
                 {selectedChat.ended_at && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Bitiş:</span>
-                    <span className="text-sm text-slate-900">
+                    <span className="text-sm text-white">
                       {new Date(selectedChat.ended_at).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })}
                     </span>
                   </div>
@@ -822,14 +822,14 @@ export default function ChatList() {
                 {selectedChat.duration_seconds && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Süre:</span>
-                    <span className="text-sm text-slate-900">
+                    <span className="text-sm text-white">
                       {Math.floor(selectedChat.duration_seconds / 60)}d {selectedChat.duration_seconds % 60}s
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Mesaj Sayısı:</span>
-                  <span className="text-sm font-medium text-slate-900">{selectedChat.message_count}</span>
+                  <span className="text-sm font-medium text-white">{selectedChat.message_count}</span>
                 </div>
                 {(() => {
                   const rawScore = selectedChat.rating_score;
@@ -872,7 +872,7 @@ export default function ChatList() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
                 ) : messages.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-slate-100">
                     Mesaj bulunamadı
                   </div>
                 ) : (
@@ -896,11 +896,11 @@ export default function ChatList() {
                               ? 'Temsilci'
                               : 'Müşteri'}
                           </span>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-100">
                             {new Date(msg.created_at).toLocaleTimeString('tr-TR')}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-900 whitespace-pre-wrap">{msg.text}</p>
+                        <p className="text-sm text-white whitespace-pre-wrap">{msg.text}</p>
                       </div>
                     ))}
                   </div>

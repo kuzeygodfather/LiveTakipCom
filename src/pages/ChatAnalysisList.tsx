@@ -310,7 +310,7 @@ export default function ChatAnalysisList() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Chat Analizleri</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Chat Analizleri</h1>
         <p className="text-sm sm:text-base text-slate-600 mt-1">Tum chat kayitlari ve kalite analizleri</p>
       </div>
 
@@ -326,8 +326,8 @@ export default function ChatAnalysisList() {
               <BarChart3 className="w-5 h-5 text-blue-600" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-slate-500 truncate">Toplam Chat</p>
-              <p className="text-xl sm:text-2xl font-bold text-slate-900">{totalChatsCount}</p>
+              <p className="text-xs text-slate-100 truncate">Toplam Chat</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">{totalChatsCount}</p>
             </div>
           </div>
         </button>
@@ -343,7 +343,7 @@ export default function ChatAnalysisList() {
               <ThumbsUp className="w-5 h-5 text-green-600" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-slate-500 truncate">Olumlu</p>
+              <p className="text-xs text-slate-100 truncate">Olumlu</p>
               <p className="text-xl sm:text-2xl font-bold text-green-700">{summaryStats.positive}</p>
             </div>
           </div>
@@ -357,11 +357,11 @@ export default function ChatAnalysisList() {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-              <Minus className="w-5 h-5 text-slate-500" />
+              <Minus className="w-5 h-5 text-slate-100" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-slate-500 truncate">Notr</p>
-              <p className="text-xl sm:text-2xl font-bold text-slate-700">{summaryStats.neutral}</p>
+              <p className="text-xs text-slate-100 truncate">Notr</p>
+              <p className="text-xl sm:text-2xl font-bold text-slate-200">{summaryStats.neutral}</p>
             </div>
           </div>
         </button>
@@ -377,7 +377,7 @@ export default function ChatAnalysisList() {
               <ThumbsDown className="w-5 h-5 text-red-500" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-slate-500 truncate">Olumsuz</p>
+              <p className="text-xs text-slate-100 truncate">Olumsuz</p>
               <p className="text-xl sm:text-2xl font-bold text-red-600">{summaryStats.negative}</p>
             </div>
           </div>
@@ -389,8 +389,8 @@ export default function ChatAnalysisList() {
               <BarChart3 className="w-5 h-5 text-amber-600" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-slate-500 truncate">Ort. Puan</p>
-              <p className="text-xl sm:text-2xl font-bold text-slate-900">{summaryStats.avgScore}<span className="text-sm font-normal text-slate-400">/100</span></p>
+              <p className="text-xs text-slate-100 truncate">Ort. Puan</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">{summaryStats.avgScore}<span className="text-sm font-normal text-slate-200">/100</span></p>
             </div>
           </div>
         </div>
@@ -399,7 +399,7 @@ export default function ChatAnalysisList() {
       <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-200 w-5 h-5" />
             <input
               type="text"
               placeholder="Chat ID, temsilci, müşteri adı veya mesaj içeriği ile ara..."
@@ -411,7 +411,7 @@ export default function ChatAnalysisList() {
 
           <div className="flex flex-wrap gap-2">
             <div className="flex items-center gap-1.5 flex-1 min-w-[160px]">
-              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-slate-200 flex-shrink-0" />
               <input
                 type="date"
                 value={dateFrom}
@@ -422,7 +422,7 @@ export default function ChatAnalysisList() {
             </div>
 
             <div className="flex items-center gap-1.5 flex-1 min-w-[160px]">
-              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <Calendar className="w-4 h-4 text-slate-200 flex-shrink-0" />
               <input
                 type="date"
                 value={dateTo}
@@ -491,7 +491,7 @@ export default function ChatAnalysisList() {
 
         <div className="space-y-3">
           {filteredChats.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
+            <div className="text-center py-12 text-slate-100">
               <Filter className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Hiç chat bulunamadı</p>
             </div>
@@ -505,14 +505,14 @@ export default function ChatAnalysisList() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded truncate max-w-[120px] sm:max-w-none">
+                      <span className="font-mono text-xs text-slate-100 bg-slate-100 px-2 py-1 rounded truncate max-w-[120px] sm:max-w-none">
                         {chat.id}
                       </span>
-                      <span className="font-semibold text-sm text-slate-900">
+                      <span className="font-semibold text-sm text-white">
                         {chat.agent_name}
                       </span>
                       <span className="text-slate-600 hidden sm:inline">-</span>
-                      <span className="text-sm text-slate-700">{maskName(chat.customer_name)}</span>
+                      <span className="text-sm text-slate-200">{maskName(chat.customer_name)}</span>
                       {chat.analysis && (
                         <span className="text-lg">{getSentimentIcon(chat.analysis.sentiment)}</span>
                       )}
@@ -523,7 +523,7 @@ export default function ChatAnalysisList() {
                       {chat.first_response_time && (
                         <span>Ilk yanit: {chat.first_response_time}s</span>
                       )}
-                      <span className={`px-2 py-0.5 rounded text-xs ${chat.analyzed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs ${chat.analyzed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-white'}`}>
                         {chat.analyzed ? 'Analiz Edildi' : 'Bekliyor'}
                       </span>
                     </div>
@@ -543,7 +543,7 @@ export default function ChatAnalysisList() {
                     {chat.analysis && parseScore(chat.analysis.overall_score) < 50 && (
                       <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
                     )}
-                    <Eye className="w-5 h-5 text-slate-400 flex-shrink-0 hidden sm:block" />
+                    <Eye className="w-5 h-5 text-slate-200 flex-shrink-0 hidden sm:block" />
                   </div>
                 </div>
               </div>
@@ -558,17 +558,17 @@ export default function ChatAnalysisList() {
             <div className="p-4 sm:p-6 border-b border-slate-200">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Chat Detayi</h2>
+                  <h2 className="text-lg sm:text-2xl font-bold text-white">Chat Detayi</h2>
                   <p className="text-sm text-slate-600 mt-1">
                     {selectedChat.agent_name} - {maskName(selectedChat.customer_name)}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1 font-mono truncate">
+                  <p className="text-xs text-slate-100 mt-1 font-mono truncate">
                     {selectedChat.id}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedChat(null)}
-                  className="text-slate-400 hover:text-slate-600 p-1 flex-shrink-0"
+                  className="text-slate-200 hover:text-slate-600 p-1 flex-shrink-0"
                 >
                   X
                 </button>
@@ -580,7 +580,7 @@ export default function ChatAnalysisList() {
                 <div className="bg-slate-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <MessageCircle className="w-5 h-5 text-slate-600" />
-                    <h3 className="font-semibold text-slate-900">Konuşma Geçmişi ({selectedChat.messages.length} mesaj)</h3>
+                    <h3 className="font-semibold text-white">Konuşma Geçmişi ({selectedChat.messages.length} mesaj)</h3>
                   </div>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {selectedChat.messages.map((message) => (
@@ -595,14 +595,14 @@ export default function ChatAnalysisList() {
                         }`}
                       >
                         <div className="flex items-start justify-between mb-1">
-                          <span className="text-xs font-semibold text-slate-700">
+                          <span className="text-xs font-semibold text-slate-200">
                             {message.author_type === 'agent' ? '🎧 Temsilci' : message.author_type === 'client' ? '👤 Müşteri' : '🤖 Sistem'}
                           </span>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-100">
                             {new Date(message.created_at).toLocaleTimeString('tr-TR')}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{message.text}</p>
+                        <p className="text-sm text-slate-200 whitespace-pre-wrap">{message.text}</p>
                       </div>
                     ))}
                   </div>
@@ -615,35 +615,35 @@ export default function ChatAnalysisList() {
                   <div className="grid grid-cols-3 gap-2 sm:gap-4">
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
                       <div className="text-xs sm:text-sm text-slate-600 mb-1">Genel Skor</div>
-                      <div className="text-xl sm:text-3xl font-bold text-slate-900">
+                      <div className="text-xl sm:text-3xl font-bold text-white">
                         {parseScore(selectedChat.analysis.overall_score)}/100
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
                       <div className="text-xs sm:text-sm text-slate-600 mb-1">Duygu</div>
-                      <div className="text-base sm:text-xl font-semibold text-slate-900 capitalize">
+                      <div className="text-base sm:text-xl font-semibold text-white capitalize">
                         {getSentimentIcon(selectedChat.analysis.sentiment)} {selectedChat.analysis.sentiment}
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
                       <div className="text-xs sm:text-sm text-slate-600 mb-1">Ilk Yanit</div>
-                      <div className="text-xl sm:text-3xl font-bold text-slate-900">
+                      <div className="text-xl sm:text-3xl font-bold text-white">
                         {selectedChat.first_response_time ? `${selectedChat.first_response_time}s` : '-'}
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">AI Özeti</h3>
-                    <p className="text-slate-700">{selectedChat.analysis.ai_summary}</p>
+                    <h3 className="font-semibold text-white mb-2">AI Özeti</h3>
+                    <p className="text-slate-200">{selectedChat.analysis.ai_summary}</p>
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Tespit Edilen Sorunlar</h3>
+                    <h3 className="font-semibold text-white mb-2">Tespit Edilen Sorunlar</h3>
                     {selectedChat.analysis.issues_detected.critical_errors?.length > 0 && (
                       <div className="mb-2">
                         <div className="text-sm font-medium text-red-700 mb-1">Kritik Hatalar:</div>
-                        <ul className="list-disc list-inside text-sm text-slate-700">
+                        <ul className="list-disc list-inside text-sm text-slate-200">
                           {selectedChat.analysis.issues_detected.critical_errors.map((issue, i) => (
                             <li key={i}>{issue}</li>
                           ))}
@@ -653,7 +653,7 @@ export default function ChatAnalysisList() {
                     {selectedChat.analysis.issues_detected.improvement_areas?.length > 0 && (
                       <div>
                         <div className="text-sm font-medium text-orange-700 mb-1">Geliştirilmesi Gerekenler:</div>
-                        <ul className="list-disc list-inside text-sm text-slate-700">
+                        <ul className="list-disc list-inside text-sm text-slate-200">
                           {selectedChat.analysis.issues_detected.improvement_areas.map((issue, i) => (
                             <li key={i}>{issue}</li>
                           ))}
@@ -664,8 +664,8 @@ export default function ChatAnalysisList() {
 
                   {selectedChat.analysis.positive_aspects.strengths?.length > 0 && (
                     <div>
-                      <h3 className="font-semibold text-slate-900 mb-2">Güçlü Yönler</h3>
-                      <ul className="list-disc list-inside text-sm text-slate-700">
+                      <h3 className="font-semibold text-white mb-2">Güçlü Yönler</h3>
+                      <ul className="list-disc list-inside text-sm text-slate-200">
                         {selectedChat.analysis.positive_aspects.strengths.map((strength, i) => (
                           <li key={i}>{strength}</li>
                         ))}
@@ -674,8 +674,8 @@ export default function ChatAnalysisList() {
                   )}
 
                   <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">Öneriler</h3>
-                    <p className="text-slate-700 text-sm">{selectedChat.analysis.recommendations}</p>
+                    <h3 className="font-semibold text-white mb-2">Öneriler</h3>
+                    <p className="text-slate-200 text-sm">{selectedChat.analysis.recommendations}</p>
                   </div>
                 </>
               ) : (
@@ -683,24 +683,24 @@ export default function ChatAnalysisList() {
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
                       <div className="text-xs sm:text-sm text-slate-600 mb-1">Mesaj</div>
-                      <div className="text-xl sm:text-3xl font-bold text-slate-900">
+                      <div className="text-xl sm:text-3xl font-bold text-white">
                         {selectedChat.message_count}
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
                       <div className="text-xs sm:text-sm text-slate-600 mb-1">Ilk Yanit</div>
-                      <div className="text-xl sm:text-3xl font-bold text-slate-900">
+                      <div className="text-xl sm:text-3xl font-bold text-white">
                         {selectedChat.first_response_time ? `${selectedChat.first_response_time}s` : '-'}
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 sm:p-4 rounded-lg">
                       <div className="text-xs sm:text-sm text-slate-600 mb-1">Durum</div>
-                      <div className="text-base sm:text-xl font-semibold text-slate-900 capitalize">
+                      <div className="text-base sm:text-xl font-semibold text-white capitalize">
                         {selectedChat.status}
                       </div>
                     </div>
                   </div>
-                  <div className="text-center py-8 text-slate-500">
+                  <div className="text-center py-8 text-slate-100">
                     Bu chat henüz analiz edilmedi
                   </div>
                 </div>

@@ -86,7 +86,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Ayarlar</h1>
-        <p className="text-sm sm:text-base text-slate-300 mt-1">API anahtarlari ve sistem konfigurasyonu</p>
+        <p className="text-sm sm:text-base text-slate-200 mt-1">API anahtarlari ve sistem konfigurasyonu</p>
       </div>
 
       {message && (

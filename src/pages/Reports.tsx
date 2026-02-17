@@ -834,17 +834,17 @@ export default function Reports() {
       <div className="flex flex-col gap-3">
         <div>
           <h1 className="text-3xl font-bold text-white">Raporlar & Analizler</h1>
-          <p className="text-slate-300 mt-1">Performans takibi, trend analizi ve gelişim raporları</p>
+          <p className="text-slate-200 mt-1">Performans takibi, trend analizi ve gelişim raporları</p>
         </div>
 
-        <div className="border-b border-slate-700/50">
+        <div className="border-b border-slate-600/50">
           <nav className="-mb-px flex gap-2">
             <button
               onClick={() => setActiveTab('trends')}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'trends'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-300 hover:text-white hover:border-slate-700/50'
+                  : 'border-transparent text-slate-200 hover:text-white hover:border-slate-600/50'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -857,7 +857,7 @@ export default function Reports() {
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'coaching'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-300 hover:text-white hover:border-slate-700/50'
+                  : 'border-transparent text-slate-200 hover:text-white hover:border-slate-600/50'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -875,7 +875,7 @@ export default function Reports() {
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'improvement'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-300 hover:text-white hover:border-slate-700/50'
+                  : 'border-transparent text-slate-200 hover:text-white hover:border-slate-600/50'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -901,7 +901,7 @@ export default function Reports() {
                 className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   timeRange === 'daily'
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-700 border border-slate-300 hover:border-blue-300'
+                    : 'bg-white text-slate-200 border border-slate-300 hover:border-blue-300'
                 }`}
               >
                 Günlük
@@ -911,7 +911,7 @@ export default function Reports() {
                 className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   timeRange === 'weekly'
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-700 border border-slate-300 hover:border-blue-300'
+                    : 'bg-white text-slate-200 border border-slate-300 hover:border-blue-300'
                 }`}
               >
                 Haftalık
@@ -921,7 +921,7 @@ export default function Reports() {
                 className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium ${
                   timeRange === 'monthly'
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-700 border border-slate-300 hover:border-blue-300'
+                    : 'bg-white text-slate-200 border border-slate-300 hover:border-blue-300'
                 }`}
               >
                 Aylık
@@ -932,9 +932,9 @@ export default function Reports() {
           <div className="glass-effect rounded-xl shadow-lg p-6">
             {trendData.length === 0 ? (
               <div className="text-center py-16">
-                <Calendar className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                <Calendar className="w-16 h-16 mx-auto mb-4 text-slate-200" />
                 <h3 className="text-lg font-semibold text-white mb-2">Veri Bulunamadı</h3>
-                <p className="text-slate-300">Bu dönem için henüz analiz verisi bulunmuyor.</p>
+                <p className="text-slate-200">Bu dönem için henüz analiz verisi bulunmuyor.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -952,7 +952,7 @@ export default function Reports() {
                   }
 
                   return (
-                    <div key={item.date} className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl p-5 border border-slate-700/50 hover:shadow-md transition-shadow">
+                    <div key={item.date} className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl p-5 border border-slate-600/50 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-blue-100 rounded-lg">
@@ -960,7 +960,7 @@ export default function Reports() {
                           </div>
                           <div>
                             <div className="text-lg font-bold text-white">{displayDate}</div>
-                            <div className="text-sm text-slate-300">{item.totalChats} toplam görüşme</div>
+                            <div className="text-sm text-slate-200">{item.totalChats} toplam görüşme</div>
                           </div>
                         </div>
                       </div>
@@ -982,14 +982,14 @@ export default function Reports() {
                           <div className="text-xs opacity-75 mt-1">/ 100</div>
                         </div>
 
-                        <div className="p-4 rounded-lg bg-slate-100 text-slate-700">
+                        <div className="p-4 rounded-lg bg-slate-100 text-slate-200">
                           <div className="text-xs font-medium mb-1 opacity-75">Ort. Yanıt Süresi</div>
                           <div className="text-2xl font-bold">
                             {formatTime(item.responseTime)}
                           </div>
                         </div>
 
-                        <div className="p-4 rounded-lg bg-slate-100 text-slate-700">
+                        <div className="p-4 rounded-lg bg-slate-100 text-slate-200">
                           <div className="text-xs font-medium mb-1 opacity-75">Ort. Çözüm Süresi</div>
                           <div className="text-2xl font-bold">
                             {formatTime(item.resolutionTime)}
@@ -1014,7 +1014,7 @@ export default function Reports() {
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Mükemmel Performans!</h3>
-                <p className="text-slate-300">Son 30 günde olumsuz değerlendirilen chat bulunamadı.</p>
+                <p className="text-slate-200">Son 30 günde olumsuz değerlendirilen chat bulunamadı.</p>
               </div>
             </div>
           ) : (
@@ -1029,7 +1029,7 @@ export default function Reports() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Personel</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-2">Personel</label>
                     <select
                       value={selectedAgent}
                       onChange={(e) => setSelectedAgent(e.target.value)}
@@ -1045,7 +1045,7 @@ export default function Reports() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Tarih Aralığı</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-2">Tarih Aralığı</label>
                     <select
                       value={selectedDateRange}
                       onChange={(e) => setSelectedDateRange(e.target.value)}
@@ -1060,7 +1060,7 @@ export default function Reports() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Sorun Tipi</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-2">Sorun Tipi</label>
                     <select
                       value={selectedIssue}
                       onChange={(e) => setSelectedIssue(e.target.value)}
@@ -1078,7 +1078,7 @@ export default function Reports() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Koçluk Önerisi Durumu</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-2">Koçluk Önerisi Durumu</label>
                     <select
                       value={selectedCoachingStatus}
                       onChange={(e) => setSelectedCoachingStatus(e.target.value)}
@@ -1091,7 +1091,7 @@ export default function Reports() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">İletim Durumu</label>
+                    <label className="block text-sm font-medium text-slate-200 mb-2">İletim Durumu</label>
                     <select
                       value={selectedFeedbackStatus}
                       onChange={(e) => setSelectedFeedbackStatus(e.target.value)}
@@ -1107,7 +1107,7 @@ export default function Reports() {
                 {selectedDateRange === 'custom' && (
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Başlangıç Tarihi</label>
+                      <label className="block text-sm font-medium text-slate-200 mb-2">Başlangıç Tarihi</label>
                       <input
                         type="date"
                         value={customStartDate}
@@ -1116,7 +1116,7 @@ export default function Reports() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Bitiş Tarihi</label>
+                      <label className="block text-sm font-medium text-slate-200 mb-2">Bitiş Tarihi</label>
                       <input
                         type="date"
                         value={customEndDate}
@@ -1129,7 +1129,7 @@ export default function Reports() {
 
                 {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all' || selectedCoachingStatus !== 'all' || selectedFeedbackStatus !== 'all') && (
                   <div className="mt-4 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="text-sm font-medium text-slate-200">
                       {filteredChats.length} sonuç gösteriliyor
                     </span>
                     <button
@@ -1154,7 +1154,7 @@ export default function Reports() {
                 <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-5 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                      <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                         <Lightbulb className="w-5 h-5 text-amber-600" />
                         Toplu Koçluk Önerisi Oluştur
                       </h3>
@@ -1192,7 +1192,7 @@ export default function Reports() {
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                      <h3 className="text-base font-bold text-white mb-1 flex items-center gap-2">
                         <Send className="w-5 h-5 text-green-600" />
                         Toplu Öneri İletimi
                       </h3>
@@ -1242,9 +1242,9 @@ export default function Reports() {
               {filteredChats.length === 0 ? (
                 <div className="glass-effect rounded-xl shadow-lg p-12">
                   <div className="text-center">
-                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-200" />
                     <h3 className="text-lg font-semibold text-white mb-2">Sonuç Bulunamadı</h3>
-                    <p className="text-slate-300 mb-4">Seçtiğiniz filtrelere uygun chat bulunamadı.</p>
+                    <p className="text-slate-200 mb-4">Seçtiğiniz filtrelere uygun chat bulunamadı.</p>
                     <button
                       onClick={() => {
                         setSelectedAgent('all');
@@ -1284,7 +1284,7 @@ export default function Reports() {
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getSentimentColor(chat.sentiment, chat.overall_score)}`}>
                                   {getSentimentLabel(chat.sentiment)} • {Math.round(chat.overall_score)}/100
                                 </span>
-                                <span className="text-xs text-slate-500 flex items-center gap-1">
+                                <span className="text-xs text-slate-100 flex items-center gap-1">
                                   <Calendar className="w-3 h-3" />
                                   {formatDate(chat.started_at)}
                                 </span>
@@ -1302,7 +1302,7 @@ export default function Reports() {
                                     </span>
                                   ))}
                                   {getIssues(chat).length > 4 && (
-                                    <span className="text-xs text-slate-500 font-medium">+{getIssues(chat).length - 4} daha</span>
+                                    <span className="text-xs text-slate-100 font-medium">+{getIssues(chat).length - 4} daha</span>
                                   )}
                                 </div>
                               )}
@@ -1310,23 +1310,23 @@ export default function Reports() {
 
                             <div className="flex-shrink-0">
                               {isExpanded ? (
-                                <ChevronUp className="w-6 h-6 text-slate-400" />
+                                <ChevronUp className="w-6 h-6 text-slate-200" />
                               ) : (
-                                <ChevronDown className="w-6 h-6 text-slate-400" />
+                                <ChevronDown className="w-6 h-6 text-slate-200" />
                               )}
                             </div>
                           </div>
                         </button>
 
                         {isExpanded && (
-                          <div className="border-t border-slate-700/50 p-5 bg-gradient-to-br from-slate-800/30 to-blue-50/30 space-y-5">
+                          <div className="border-t border-slate-600/50 p-5 bg-gradient-to-br from-slate-800/30 to-blue-50/30 space-y-5">
                             {chat.messages && chat.messages.length > 0 && (
                               <div>
                                 <h4 className="font-bold text-white mb-3 flex items-center gap-2">
                                   <MessageCircle className="w-5 h-5 text-blue-600" />
                                   Chat Görüşmesi
                                 </h4>
-                                <div className="bg-slate-800/30 rounded-lg border border-slate-700/50 p-4 max-h-72 overflow-y-auto space-y-3">
+                                <div className="bg-slate-800/30 rounded-lg border border-slate-600/50 p-4 max-h-72 overflow-y-auto space-y-3">
                                   {chat.messages.map((msg, idx) => (
                                     <div key={idx} className="text-sm">
                                       <span className="font-semibold text-white">{msg.author.name}:</span>
@@ -1391,7 +1391,7 @@ export default function Reports() {
                               ) : chat.coaching ? (
                                 <>
                                   <div className={`prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed ${
-                                    chat.sent_feedback ? 'text-slate-700' : 'text-slate-800'
+                                    chat.sent_feedback ? 'text-slate-200' : 'text-white'
                                   }`}>
                                     {chat.coaching}
                                   </div>
@@ -1405,7 +1405,7 @@ export default function Reports() {
                                   )}
                                 </>
                               ) : (
-                                <div className="text-sm text-slate-500">Öneri yükleniyor...</div>
+                                <div className="text-sm text-slate-100">Öneri yükleniyor...</div>
                               )}
                             </div>
                           </div>
@@ -1426,10 +1426,10 @@ export default function Reports() {
             <div className="glass-effect rounded-xl shadow-lg p-12">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-slate-100 rounded-full mb-4">
-                  <Target className="w-10 h-10 text-slate-400" />
+                  <Target className="w-10 h-10 text-slate-200" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Henüz Gelişim Verisi Yok</h3>
-                <p className="text-slate-300 mb-4">Personel gelişimini takip etmek için öncelikle koçluk önerileri göndermelisiniz.</p>
+                <p className="text-slate-200 mb-4">Personel gelişimini takip etmek için öncelikle koçluk önerileri göndermelisiniz.</p>
                 <button
                   onClick={() => setActiveTab('coaching')}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -1456,7 +1456,7 @@ export default function Reports() {
               </div>
 
               <div className="glass-effect rounded-xl shadow-lg p-6">
-                <label className="block text-sm font-semibold text-slate-700 mb-3">Personel Seçin</label>
+                <label className="block text-sm font-semibold text-slate-200 mb-3">Personel Seçin</label>
                 <select
                   value={selectedImprovementAgent}
                   onChange={(e) => setSelectedImprovementAgent(e.target.value)}
@@ -1475,7 +1475,7 @@ export default function Reports() {
                 <div className="glass-effect rounded-xl shadow-lg p-12">
                   <div className="flex flex-col items-center justify-center">
                     <Loader2 className="w-12 h-12 animate-spin text-green-600 mb-4" />
-                    <span className="text-slate-700 font-medium">Gelişim raporu hazırlanıyor...</span>
+                    <span className="text-slate-200 font-medium">Gelişim raporu hazırlanıyor...</span>
                   </div>
                 </div>
               )}
@@ -1516,8 +1516,8 @@ export default function Reports() {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                          <div className="bg-slate-800/30 rounded-xl border-2 border-slate-700/50 p-5 shadow-sm">
-                            <h4 className="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
+                          <div className="bg-slate-800/30 rounded-xl border-2 border-slate-600/50 p-5 shadow-sm">
+                            <h4 className="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
                               <Calendar className="w-5 h-5 text-slate-600" />
                               Öneri Öncesi (30 Gün)
                             </h4>
@@ -1538,7 +1538,7 @@ export default function Reports() {
                           </div>
 
                           <div className="bg-white rounded-xl border-2 border-green-200 p-5 shadow-sm">
-                            <h4 className="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
+                            <h4 className="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
                               <TrendingUp className="w-5 h-5 text-green-600" />
                               Öneri Sonrası (30 Gün)
                             </h4>
@@ -1625,9 +1625,9 @@ export default function Reports() {
               {!loadingImprovements && selectedImprovementAgent && improvementReports.length === 0 && (
                 <div className="glass-effect rounded-xl shadow-lg p-12">
                   <div className="text-center">
-                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-200" />
                     <h3 className="text-lg font-semibold text-white mb-2">Gelişim Verisi Bulunamadı</h3>
-                    <p className="text-slate-300">
+                    <p className="text-slate-200">
                       Bu personel için henüz yeterli gelişim verisi bulunmuyor.
                       Koçluk önerisinden sonra 30 gün geçmesi gerekiyor.
                     </p>

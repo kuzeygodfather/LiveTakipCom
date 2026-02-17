@@ -362,7 +362,7 @@ export default function PersonnelAnalytics() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Personel Performansi</h1>
-          <p className="text-sm sm:text-base text-slate-300 mt-1">Temsilci bazli kalite analizi ve performans metrikleri</p>
+          <p className="text-sm sm:text-base text-slate-200 mt-1">Temsilci bazli kalite analizi ve performans metrikleri</p>
         </div>
         <button
           onClick={recalculateStats}
@@ -408,7 +408,7 @@ export default function PersonnelAnalytics() {
                       <span className="font-semibold text-white">{person.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 font-medium">
+                      <span className="text-xs text-slate-100 font-medium">
                         {getTierLabel(person.reliability_tier)}
                       </span>
                       {person.warning_count > 0 && (
@@ -429,10 +429,10 @@ export default function PersonnelAnalytics() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="text-slate-500">
+                    <span className="text-slate-100">
                       İlk Yanıt: {ratings.avg_first_response_time !== null ? `${Math.floor(ratings.avg_first_response_time / 60)}dk` : 'N/A'}
                     </span>
-                    <span className="text-slate-500">
+                    <span className="text-slate-100">
                       Çözüm: {ratings.avg_resolution_time !== null ? `${Math.floor(ratings.avg_resolution_time / 60)}dk` : 'N/A'}
                     </span>
                   </div>
@@ -501,7 +501,7 @@ export default function PersonnelAnalytics() {
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">İstatistiksel Skor</div>
-                    <div className="text-2xl font-bold text-slate-900">
+                    <div className="text-2xl font-bold text-white">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
                   </div>
@@ -600,7 +600,7 @@ export default function PersonnelAnalytics() {
                     {dailyStats.slice(0, 10).map((stat) => (
                       <div key={stat.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
                         <div className="flex items-center gap-4">
-                          <span className="text-sm font-medium text-slate-700">
+                          <span className="text-sm font-medium text-slate-200">
                             {new Date(stat.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
                           </span>
                           <span className="text-sm text-slate-600">{stat.total_chats} chat</span>
@@ -628,7 +628,7 @@ export default function PersonnelAnalytics() {
                     </div>
                     <ul className="space-y-2">
                       {selectedPersonnel.strong_topics.map((topic: any, i: number) => (
-                        <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                        <li key={i} className="text-sm text-slate-200 flex items-center gap-2">
                           <TrendingUp className="w-4 h-4 text-green-600" />
                           {topic}
                         </li>
@@ -645,7 +645,7 @@ export default function PersonnelAnalytics() {
                     </div>
                     <ul className="space-y-2">
                       {selectedPersonnel.weak_topics.map((topic: any, i: number) => (
-                        <li key={i} className="text-sm text-slate-700 flex items-center gap-2">
+                        <li key={i} className="text-sm text-slate-200 flex items-center gap-2">
                           <TrendingDown className="w-4 h-4 text-orange-600" />
                           {topic}
                         </li>
@@ -657,7 +657,7 @@ export default function PersonnelAnalytics() {
             </>
           ) : (
             <div className="glass-effect rounded-xl shadow-lg p-12 text-center">
-              <User className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+              <User className="w-16 h-16 mx-auto text-slate-200 mb-4" />
               <p className="text-slate-600">Personel seçin</p>
             </div>
           )}
@@ -681,7 +681,7 @@ export default function PersonnelAnalytics() {
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
               {chatModal.chats.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">Chat bulunamadı</p>
+                <p className="text-center text-slate-100 py-8">Chat bulunamadı</p>
               ) : (
                 <div className="space-y-3">
                   {chatModal.chats.map((chat) => (
@@ -710,7 +710,7 @@ export default function PersonnelAnalytics() {
                         )}
                       </div>
                       {chat.created_at && (
-                        <div className="text-xs text-slate-500 mt-2 flex items-center gap-2">
+                        <div className="text-xs text-slate-100 mt-2 flex items-center gap-2">
                           <span>{new Date(chat.created_at).toLocaleString('tr-TR')}</span>
                           <span className="text-blue-500">→ Mesajları görüntüle</span>
                         </div>
@@ -757,11 +757,11 @@ export default function PersonnelAnalytics() {
               {messagesModal.loading ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4" />
-                  <p className="text-slate-500">Mesajlar yükleniyor...</p>
+                  <p className="text-slate-100">Mesajlar yükleniyor...</p>
                 </div>
               ) : messagesModal.messages.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-slate-500">Bu chat için mesaj bulunamadı</p>
+                  <p className="text-slate-100">Bu chat için mesaj bulunamadı</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -779,7 +779,7 @@ export default function PersonnelAnalytics() {
                             }`}>
                               {message.author_name || (isAgent ? 'Personel' : 'Müşteri')}
                             </span>
-                            <span className="text-xs text-slate-400">
+                            <span className="text-xs text-slate-200">
                               {new Date(message.created_at).toLocaleTimeString('tr-TR', {
                                 hour: '2-digit',
                                 minute: '2-digit'
@@ -789,7 +789,7 @@ export default function PersonnelAnalytics() {
                           <div className={`rounded-2xl px-4 py-3 shadow-sm ${
                             isAgent
                               ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-sm'
-                              : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm'
+                              : 'bg-white border border-slate-200 text-white rounded-tl-sm'
                           }`}>
                             <p className="text-sm whitespace-pre-wrap break-words">
                               {message.text}
@@ -804,7 +804,7 @@ export default function PersonnelAnalytics() {
             </div>
 
             <div className="bg-white px-6 py-4 flex items-center justify-between border-t border-slate-200">
-              <div className="text-sm text-slate-500">
+              <div className="text-sm text-slate-100">
                 Toplam {messagesModal.messages.length} mesaj
               </div>
               <button
