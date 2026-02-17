@@ -15,7 +15,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-          <Info className="w-6 h-6 text-blue-600" />
+          <Info className="w-6 h-6 text-blue-400" />
           Sistem Genel Bakış
         </h2>
         <div className="space-y-3 text-slate-200">
@@ -37,11 +37,11 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <BarChart3 className="w-6 h-6 text-blue-600" />
+          <BarChart3 className="w-6 h-6 text-blue-400" />
           Dashboard (Ana Sayfa)
         </h2>
         <div className="space-y-4 text-slate-200">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Genel İstatistikler</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between items-center">
@@ -63,37 +63,37 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Sentiment (Duygu) Dağılımı</h3>
             <p className="text-sm mb-3">AI her chat'i analiz ederek müşteri memnuniyetini 3 kategoride değerlendirir:</p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                <span className="w-3 h-3 bg-emerald-500/100 rounded-full"></span>
                 <span className="font-medium">Pozitif:</span>
                 <span>Müşteri memnun, sorun çözüldü, iyi iletişim</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                <span className="w-3 h-3 bg-yellow-500/100 rounded-full"></span>
                 <span className="font-medium">Nötr:</span>
                 <span>Normal görüşme, özel bir sorun yok</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                <span className="w-3 h-3 bg-red-500/100 rounded-full"></span>
                 <span className="font-medium">Negatif:</span>
                 <span>Müşteri memnun değil, sorun çözülmedi, şikayet var</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Müşteri Değerlendirmeleri</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-green-600 font-medium">⭐ Rating Score:</span>
+                <span className="text-emerald-400 font-medium">⭐ Rating Score:</span>
                 <span>Müşterinin chat sonunda verdiği 1-5 yıldız puanı</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-blue-600 font-medium">💬 Rating Comment:</span>
+                <span className="text-blue-400 font-medium">💬 Rating Comment:</span>
                 <span>Müşterinin yazılı geri bildirimi</span>
               </div>
               <div className="flex items-center gap-2">
@@ -103,18 +103,18 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Personel Performans Karşılaştırması</h3>
             <div className="space-y-2 text-sm">
               <p className="mb-2"><strong>Haftanın En İyi Performansı:</strong> Son 7 günün en yüksek skorlu 5 personeli</p>
               <p className="mb-2"><strong>Gelişim Gereken Personel:</strong> En düşük skorlu 5 personel</p>
-              <p className="text-xs text-slate-600 italic">
+              <p className="text-xs text-slate-400 italic">
                 Her personel kartında chat sayısı, ortalama skor ve müşteri memnuniyet ortalaması görünür.
               </p>
             </div>
           </div>
 
-          <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Personel Gelişim Trendleri</h3>
             <p className="text-sm mb-2">Son 7 günün günlük performans grafiği:</p>
             <ul className="list-disc list-inside space-y-1 ml-2 text-sm">
@@ -124,7 +124,7 @@ export default function UserGuide() {
             </ul>
           </div>
 
-          <p className="text-sm italic text-slate-600">
+          <p className="text-sm italic text-slate-400">
             💡 İpucu: Dashboard her açıldığında otomatik güncellenir ve güncel verileri gösterir.
           </p>
         </div>
@@ -132,11 +132,11 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <MessageSquare className="w-6 h-6 text-blue-600" />
+          <MessageSquare className="w-6 h-6 text-blue-400" />
           Chat Listesi
         </h2>
         <div className="space-y-4 text-slate-200">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-2">Filtreler ve Arama</h3>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li><strong>Tarih Seçimi:</strong> Belirli bir tarih aralığındaki chatleri görüntüleyin</li>
@@ -144,7 +144,7 @@ export default function UserGuide() {
               <li><strong>Müşteri Arama:</strong> Müşteri adına göre arama yapın</li>
             </ul>
           </div>
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-2">Chat Detayları</h3>
             <p className="mb-2">Bir chat'e tıkladığınızda göreceğiniz bilgiler:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
@@ -160,11 +160,11 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Users className="w-6 h-6 text-blue-600" />
+          <Users className="w-6 h-6 text-blue-400" />
           Personel Performansı
         </h2>
         <div className="space-y-4">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Puanlama Sistemi Nasıl Çalışır?</h3>
             <div className="space-y-3 text-slate-200">
               <div className="border-l-4 border-blue-500 pl-4">
@@ -181,35 +181,35 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-white/5 border border-white/10 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Güvenilirlik Seviyeleri</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded font-medium">A - En Güvenilir</span>
-                <span className="text-slate-600">Yüksek performans, tutarlı kalite</span>
+                <span className="px-3 py-1 bg-green-100 text-emerald-400 rounded font-medium">A - En Güvenilir</span>
+                <span className="text-slate-400">Yüksek performans, tutarlı kalite</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded font-medium">B - Güvenilir</span>
-                <span className="text-slate-600">İyi performans, kabul edilebilir kalite</span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-400 rounded font-medium">B - Güvenilir</span>
+                <span className="text-slate-400">İyi performans, kabul edilebilir kalite</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded font-medium">C - Orta Güvenilir</span>
-                <span className="text-slate-600">Geliştirilmesi gereken alanlar var</span>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-400 rounded font-medium">C - Orta Güvenilir</span>
+                <span className="text-slate-400">Geliştirilmesi gereken alanlar var</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-red-100 text-red-700 rounded font-medium">D - Düşük Güvenilir</span>
-                <span className="text-slate-600">Ciddi kalite sorunları, acil müdahale gerekli</span>
+                <span className="px-3 py-1 bg-red-100 text-red-400 rounded font-medium">D - Düşük Güvenilir</span>
+                <span className="text-slate-400">Ciddi kalite sorunları, acil müdahale gerekli</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-600" />
+              <AlertTriangle className="w-5 h-5 text-orange-400" />
               Uyarı Sistemi
             </h3>
             <p className="text-slate-200 mb-2">Uyarı alan chatler:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2 text-sm text-slate-600">
+            <ul className="list-disc list-inside space-y-1 ml-2 text-sm text-slate-400">
               <li>Overall score 50'nin altında olan chatler otomatik uyarı alır</li>
               <li>30'un altında ise "kritik" olarak işaretlenir</li>
               <li>Bu chatler Telegram'a bildirim olarak gönderilir</li>
@@ -247,7 +247,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-blue-600" />
+          <TrendingUp className="w-6 h-6 text-blue-400" />
           AI Analiz Kriterleri
         </h2>
         <div className="space-y-4">
@@ -256,7 +256,7 @@ export default function UserGuide() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-blue-900 mb-2">1. Dil ve Üslup Uyumu</h3>
               <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
                 <li>Profesyonel dil kullanımı</li>
@@ -266,7 +266,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-green-900 mb-2">2. Chat Kalitesi</h3>
               <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
                 <li>Soruya gerçek cevap verildi mi?</li>
@@ -276,7 +276,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-purple-900 mb-2">3. Performans Metrikleri</h3>
               <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
                 <li>İlk yanıt kalitesi</li>
@@ -285,7 +285,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-orange-900 mb-2">4. Sorun Tespiti</h3>
               <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
                 <li>Kritik hatalar</li>
@@ -307,7 +307,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <AlertTriangle className="w-6 h-6 text-blue-600" />
+          <AlertTriangle className="w-6 h-6 text-blue-400" />
           Müşteri Şikayet Analizi
         </h2>
         <div className="space-y-4">
@@ -315,7 +315,7 @@ export default function UserGuide() {
             Sistem, negatif sentiment'e sahip chatleri analiz ederek müşterilerin gerçek şikayet konularını otomatik olarak kategorize eder.
           </p>
 
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">En Çok Şikayet Edilen Konular (Top 10)</h3>
             <p className="text-sm text-slate-200 mb-3">
               AI, negatif chatlerdeki özet metinleri analiz ederek müşterilerin hangi konulardan şikayet ettiğini tespit eder.
@@ -347,7 +347,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
                 🔐 Hesap Erişimi
               </h3>
@@ -359,7 +359,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
                 ⏱️ İşlem Gecikmeleri
               </h3>
@@ -381,7 +381,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-cyan-900 mb-2 flex items-center gap-2">
                 👤 Müşteri Hizmetleri
               </h3>
@@ -393,7 +393,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
               <h3 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
                 🎮 Bahis/Oyun Sorunları
               </h3>
@@ -405,7 +405,7 @@ export default function UserGuide() {
               </ul>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
                 ⚙️ Teknik Sorunlar
               </h3>
@@ -429,7 +429,7 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
             <h3 className="font-semibold text-white mb-2">Nasıl Çalışır?</h3>
             <div className="space-y-2 text-sm text-slate-200">
               <p><strong>1. AI Özet Analizi:</strong> Her negatif chat için AI'ın yazdığı özet metin analiz edilir</p>
@@ -439,7 +439,7 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-2">Dashboard'da Görüntüleme</h3>
             <ul className="list-disc list-inside space-y-1 text-sm text-slate-200">
               <li><strong>Günlük Şikayet Trendi:</strong> Son 7 günün günlük negatif ve nötr chat sayıları</li>
@@ -448,7 +448,7 @@ export default function UserGuide() {
             </ul>
           </div>
 
-          <p className="text-sm text-slate-600 italic">
+          <p className="text-sm text-slate-400 italic">
             💡 İpucu: Bu analizler sayesinde müşterilerinizin gerçekte ne ile sorun yaşadığını anlayabilir ve
             önlem alabilirsiniz. Personelin hataları değil, müşterilerin şikayetleri gösterilir.
           </p>
@@ -457,7 +457,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Award className="w-6 h-6 text-blue-600" />
+          <Award className="w-6 h-6 text-blue-400" />
           Bonus Sistemi
         </h2>
         <div className="space-y-4">
@@ -475,7 +475,7 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+          <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-white mb-3">Değerlendirilebilir Metrikler</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-200">
               <div className="flex items-start gap-2">
@@ -514,7 +514,7 @@ export default function UserGuide() {
             </div>
           </div>
 
-          <p className="text-sm text-slate-600 italic">
+          <p className="text-sm text-slate-400 italic">
             💡 İpucu: Bonus Ayarları sayfasından yeni kurallar ekleyebilir, mevcut kuralları düzenleyebilir
             ve bonus hesaplamaları yapabilirsiniz.
           </p>
@@ -523,7 +523,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <FileText className="w-6 h-6 text-blue-600" />
+          <FileText className="w-6 h-6 text-blue-400" />
           Raporlar
         </h2>
         <div className="space-y-3 text-slate-200">
@@ -539,7 +539,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Award className="w-6 h-6 text-blue-600" />
+          <Award className="w-6 h-6 text-blue-400" />
           Prim Raporları - Detaylı Kullanım Kılavuzu
         </h2>
         <div className="space-y-4">
@@ -555,14 +555,14 @@ export default function UserGuide() {
             <div className="space-y-3 text-slate-200 text-sm">
               <p className="font-medium text-white">İki farklı görünüm modu vardır:</p>
 
-              <div className="bg-white p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-800 mb-2">🧮 Prim Hesaplama (Önizleme) Modu</h4>
+              <div className="bg-white/5 p-4 rounded-lg border border-blue-500/20">
+                <h4 className="font-semibold text-blue-300 mb-2">🧮 Prim Hesaplama (Önizleme) Modu</h4>
                 <ul className="list-disc list-inside space-y-1 ml-2">
                   <li>Yeni prim hesaplamaları yapabilirsiniz</li>
                   <li>Sonuçları kaydetmeden önce önizleyebilirsiniz</li>
                   <li>Farklı tarih aralıkları ve periyotlarla test edebilirsiniz</li>
                 </ul>
-                <div className="mt-3 bg-blue-50 p-3 rounded">
+                <div className="mt-3 bg-blue-500/10 p-3 rounded">
                   <p className="font-medium text-blue-900 mb-2">Hesaplama Parametreleri:</p>
                   <ul className="list-disc list-inside space-y-1 text-xs">
                     <li><strong>Periyot Tipi:</strong> Günlük, Haftalık veya Aylık seçin</li>
@@ -574,8 +574,8 @@ export default function UserGuide() {
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-green-200">
-                <h4 className="font-semibold text-green-800 mb-2">📂 Kayıtlı Raporlar Modu</h4>
+              <div className="bg-white/5 p-4 rounded-lg border border-emerald-500/20">
+                <h4 className="font-semibold text-emerald-300 mb-2">📂 Kayıtlı Raporlar Modu</h4>
                 <ul className="list-disc list-inside space-y-1 ml-2">
                   <li>Daha önce kaydedilmiş prim raporlarını görüntüleyin</li>
                   <li>Geçmiş dönemlerin prim hesaplamalarına erişin</li>
@@ -583,7 +583,7 @@ export default function UserGuide() {
                 </ul>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-300 p-3 rounded-lg mt-3">
+              <div className="bg-yellow-500/10 border border-yellow-300 p-3 rounded-lg mt-3">
                 <p className="text-xs text-yellow-900">
                   <strong>💡 ÖNEMLİ:</strong> "Hesapla" butonu ile yapılan hesaplamalar geçicidir ve veritabanına kaydedilmez.
                   Kaydetmek için "Kaydet" butonuna tıklamanız gerekir!
@@ -599,41 +599,41 @@ export default function UserGuide() {
             <div className="space-y-3 text-slate-200 text-sm">
               <p>Hesaplamalar veya kayıtlı raporlar yüklendikten sonra <strong>aylara göre gruplandırılmış kartlar</strong> görünür.</p>
 
-              <div className="bg-white p-4 rounded-lg border border-green-200">
-                <h4 className="font-semibold text-green-800 mb-3">Ay Kartında Görünen Bilgiler:</h4>
+              <div className="bg-white/5 p-4 rounded-lg border border-emerald-500/20">
+                <h4 className="font-semibold text-emerald-300 mb-3">Ay Kartında Görünen Bilgiler:</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">📆</span>
+                    <span className="text-emerald-400 font-bold">📆</span>
                     <div>
                       <p className="font-medium text-white">Ay ve Yıl</p>
-                      <p className="text-xs text-slate-600">Örnek: Şubat 2026, Mart 2026</p>
+                      <p className="text-xs text-slate-400">Örnek: Şubat 2026, Mart 2026</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">👥</span>
+                    <span className="text-emerald-400 font-bold">👥</span>
                     <div>
                       <p className="font-medium text-white">Personel Sayısı</p>
-                      <p className="text-xs text-slate-600">O ayda prim alan personel sayısı</p>
+                      <p className="text-xs text-slate-400">O ayda prim alan personel sayısı</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">💰</span>
+                    <span className="text-emerald-400 font-bold">💰</span>
                     <div>
                       <p className="font-medium text-white">Toplam Prim</p>
-                      <p className="text-xs text-slate-600">O ay için hesaplanan toplam prim tutarı</p>
+                      <p className="text-xs text-slate-400">O ay için hesaplanan toplam prim tutarı</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">📊</span>
+                    <span className="text-emerald-400 font-bold">📊</span>
                     <div>
                       <p className="font-medium text-white">Ortalama Prim</p>
-                      <p className="text-xs text-slate-600">Personel başına düşen ortalama prim</p>
+                      <p className="text-xs text-slate-400">Personel başına düşen ortalama prim</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-green-50 border border-green-300 p-3 rounded-lg">
+              <div className="bg-emerald-500/10 border border-green-300 p-3 rounded-lg">
                 <p className="text-sm font-medium text-green-900 mb-2">✨ Kart Özellikleri:</p>
                 <ul className="list-disc list-inside space-y-1 text-xs text-slate-200">
                   <li>Kartların üzerine geldiğinizde <strong>gölge efekti</strong> ve <strong>mavi border</strong> belirir</li>
@@ -642,7 +642,7 @@ export default function UserGuide() {
                 </ul>
               </div>
 
-              <div className="bg-white border border-green-200 p-3 rounded-lg">
+              <div className="bg-white/5 border border-emerald-500/20 p-3 rounded-lg">
                 <p className="text-xs text-slate-200">
                   <strong>Örnek:</strong> "Mart 2026" kartına tıkladığınızda, Mart ayında prim alan tüm personellerin
                   listesi ve detayları görünür.
@@ -658,8 +658,8 @@ export default function UserGuide() {
             <div className="space-y-3 text-slate-200 text-sm">
               <p>Bir ay kartına tıkladıktan sonra <strong>o ayın personel tablosu</strong> açılır.</p>
 
-              <div className="bg-white p-4 rounded-lg border border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-3">Tablo Başlığı (Mavi Header)</h4>
+              <div className="bg-white/5 p-4 rounded-lg border border-violet-500/20">
+                <h4 className="font-semibold text-violet-300 mb-3">Tablo Başlığı (Mavi Header)</h4>
                 <ul className="list-disc list-inside space-y-1 ml-2 text-xs">
                   <li><strong>Ay Adı:</strong> Şubat 2026, Mart 2026 vb.</li>
                   <li><strong>Özet Bilgi:</strong> "8 Personel - Toplam: 14.250 TL" gibi</li>
@@ -667,8 +667,8 @@ export default function UserGuide() {
                 </ul>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-purple-200">
-                <h4 className="font-semibold text-purple-800 mb-3">Tabloda Görünen Bilgiler</h4>
+              <div className="bg-white/5 p-4 rounded-lg border border-violet-500/20">
+                <h4 className="font-semibold text-violet-300 mb-3">Tabloda Görünen Bilgiler</h4>
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="flex items-center gap-2">
@@ -677,34 +677,34 @@ export default function UserGuide() {
                       </span>
                       <div>
                         <p className="font-medium">Avatar</p>
-                        <p className="text-slate-600">İsmin ilk harfi</p>
+                        <p className="text-slate-400">İsmin ilk harfi</p>
                       </div>
                     </div>
                     <div>
                       <p className="font-medium text-white">Personel Adı</p>
-                      <p className="text-slate-600">Tam isim görünür</p>
+                      <p className="text-slate-400">Tam isim görünür</p>
                     </div>
                     <div>
-                      <p className="font-medium text-green-600">Toplam Prim</p>
-                      <p className="text-slate-600">+1.000 TL formatında</p>
+                      <p className="font-medium text-emerald-400">Toplam Prim</p>
+                      <p className="text-slate-400">+1.000 TL formatında</p>
                     </div>
                     <div>
                       <p className="font-medium text-white">Chat Sayısı</p>
-                      <p className="text-slate-600">Dönemdeki toplam chat</p>
+                      <p className="text-slate-400">Dönemdeki toplam chat</p>
                     </div>
                     <div>
-                      <p className="font-medium text-blue-600">Skor</p>
-                      <p className="text-slate-600">Ortalama performans skoru</p>
+                      <p className="font-medium text-blue-400">Skor</p>
+                      <p className="text-slate-400">Ortalama performans skoru</p>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-600">Kural Sayısı</p>
-                      <p className="text-slate-600">Kaç kural uygulandı</p>
+                      <p className="font-medium text-slate-400">Kural Sayısı</p>
+                      <p className="text-slate-400">Kaç kural uygulandı</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-purple-50 border border-purple-300 p-3 rounded-lg">
+              <div className="bg-violet-500/10 border border-purple-300 p-3 rounded-lg">
                 <p className="text-sm font-medium text-purple-900 mb-2">🔍 Detay Butonu</p>
                 <p className="text-xs text-slate-200 mb-2">
                   Her personelin satırında <strong>"Detay"</strong> butonu vardır. Bu butona tıkladığınızda:
@@ -725,13 +725,13 @@ export default function UserGuide() {
             <div className="space-y-3 text-slate-200 text-sm">
               <p>"Detay" butonuna tıkladığınızda <strong>tam ekran popup modal</strong> açılır.</p>
 
-              <div className="bg-white p-4 rounded-lg border border-orange-200">
-                <h4 className="font-semibold text-orange-800 mb-3">Popup İçeriği (Üstten Alta)</h4>
+              <div className="bg-white/5 p-4 rounded-lg border border-orange-500/20">
+                <h4 className="font-semibold text-orange-300 mb-3">Popup İçeriği (Üstten Alta)</h4>
 
                 <div className="space-y-4">
                   <div className="border-l-4 border-blue-500 pl-3">
                     <p className="font-medium text-white">1️⃣ Başlık Bölümü</p>
-                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-600 ml-2 mt-1">
+                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-400 ml-2 mt-1">
                       <li><strong>Prim Detay Raporu</strong> başlığı</li>
                       <li>Hesaplama tarihi (örn: 17 Şubat 2026)</li>
                       <li>Kapat butonu (X) - Sağ üst köşede</li>
@@ -741,20 +741,20 @@ export default function UserGuide() {
                   <div className="border-l-4 border-slate-500 pl-3">
                     <p className="font-medium text-white">2️⃣ Özet Bilgi Kartı (Gri Arka Plan)</p>
                     <div className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="bg-slate-50 p-2 rounded text-xs">
-                        <p className="text-slate-600">Personel</p>
+                      <div className="bg-white/5 p-2 rounded text-xs">
+                        <p className="text-slate-400">Personel</p>
                         <p className="font-bold">Ela</p>
                       </div>
-                      <div className="bg-slate-50 p-2 rounded text-xs">
-                        <p className="text-slate-600">Toplam Prim</p>
-                        <p className="font-bold text-green-600">+1.000 TL</p>
+                      <div className="bg-white/5 p-2 rounded text-xs">
+                        <p className="text-slate-400">Toplam Prim</p>
+                        <p className="font-bold text-emerald-400">+1.000 TL</p>
                       </div>
-                      <div className="bg-slate-50 p-2 rounded text-xs">
-                        <p className="text-slate-600">Dönem Tipi</p>
+                      <div className="bg-white/5 p-2 rounded text-xs">
+                        <p className="text-slate-400">Dönem Tipi</p>
                         <p className="font-bold">Aylık</p>
                       </div>
-                      <div className="bg-slate-50 p-2 rounded text-xs">
-                        <p className="text-slate-600">Dönem</p>
+                      <div className="bg-white/5 p-2 rounded text-xs">
+                        <p className="text-slate-400">Dönem</p>
                         <p className="font-bold">01.02.2026 - 28.02.2026</p>
                       </div>
                     </div>
@@ -763,57 +763,57 @@ export default function UserGuide() {
                   <div className="border-l-4 border-blue-500 pl-3">
                     <p className="font-medium text-white mb-2">3️⃣ Performans Metrikleri (8 Renkli Kart)</p>
                     <div className="grid grid-cols-4 gap-2">
-                      <div className="bg-blue-50 border border-blue-200 p-2 rounded text-center">
-                        <p className="text-[10px] text-blue-700">Toplam Chat</p>
+                      <div className="bg-blue-500/10 border border-blue-500/20 p-2 rounded text-center">
+                        <p className="text-[10px] text-blue-400">Toplam Chat</p>
                         <p className="text-sm font-bold text-blue-900">136</p>
                       </div>
-                      <div className="bg-green-50 border border-green-200 p-2 rounded text-center">
-                        <p className="text-[10px] text-green-700">Ort. Skor</p>
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 p-2 rounded text-center">
+                        <p className="text-[10px] text-emerald-400">Ort. Skor</p>
                         <p className="text-sm font-bold text-green-900">84.2</p>
                       </div>
-                      <div className="bg-purple-50 border border-purple-200 p-2 rounded text-center">
-                        <p className="text-[10px] text-purple-700">Memnuniyet</p>
+                      <div className="bg-violet-500/10 border border-violet-500/20 p-2 rounded text-center">
+                        <p className="text-[10px] text-violet-400">Memnuniyet</p>
                         <p className="text-sm font-bold text-purple-900">95.5%</p>
                       </div>
-                      <div className="bg-orange-50 border border-orange-200 p-2 rounded text-center">
-                        <p className="text-[10px] text-orange-700">Yanıt Süresi</p>
+                      <div className="bg-orange-500/10 border border-orange-500/20 p-2 rounded text-center">
+                        <p className="text-[10px] text-orange-400">Yanıt Süresi</p>
                         <p className="text-sm font-bold text-orange-900">45s</p>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-600 mt-2">+ 4 kart daha (Pozitif/Negatif/Nötr Chat, Uygulanan Kural)</p>
+                    <p className="text-xs text-slate-400 mt-2">+ 4 kart daha (Pozitif/Negatif/Nötr Chat, Uygulanan Kural)</p>
                   </div>
 
                   <div className="border-l-4 border-green-500 pl-3">
                     <p className="font-medium text-white mb-2">4️⃣ Uygulanan Prim Kuralları</p>
-                    <div className="bg-white border border-slate-200 p-3 rounded space-y-2">
+                    <div className="bg-white/5 border border-white/10 p-3 rounded space-y-2">
                       <div className="flex items-center justify-between text-xs border-l-4 border-blue-500 pl-2">
                         <div>
                           <p className="font-bold text-white">Chat Sayısı Primi</p>
                           <div className="flex gap-2 mt-1">
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px]">Toplam Chat</span>
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-400 rounded-full text-[10px]">Toplam Chat</span>
                             <span className="px-2 py-0.5 bg-gray-100 text-slate-200 rounded-full text-[10px]">Değer: 136.00</span>
                           </div>
                         </div>
-                        <p className="text-lg font-bold text-green-600">+500 TL</p>
+                        <p className="text-lg font-bold text-emerald-400">+500 TL</p>
                       </div>
                       <div className="flex items-center justify-between text-xs border-l-4 border-blue-500 pl-2">
                         <div>
                           <p className="font-bold text-white">Yüksek Performans Primi</p>
                           <div className="flex gap-2 mt-1">
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-[10px]">Ortalama Skor</span>
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-400 rounded-full text-[10px]">Ortalama Skor</span>
                             <span className="px-2 py-0.5 bg-gray-100 text-slate-200 rounded-full text-[10px]">Değer: 84.20</span>
                           </div>
                         </div>
-                        <p className="text-lg font-bold text-green-600">+500 TL</p>
+                        <p className="text-lg font-bold text-emerald-400">+500 TL</p>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-600 mt-2">Her kural için hangi metrik kullanıldı ve ne kadar prim kazandırıldı net bir şekilde gösterilir.</p>
+                    <p className="text-xs text-slate-400 mt-2">Her kural için hangi metrik kullanıldı ve ne kadar prim kazandırıldı net bir şekilde gösterilir.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-orange-50 border border-orange-300 p-4 rounded-lg">
-                <h4 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
+              <div className="bg-orange-500/10 border border-orange-300 p-4 rounded-lg">
+                <h4 className="font-semibold text-orange-300 mb-2 flex items-center gap-2">
                   📥 PDF İndirme Özelliği
                 </h4>
                 <div className="space-y-2 text-xs text-slate-200">
@@ -827,7 +827,7 @@ export default function UserGuide() {
                     </div>
                   </div>
 
-                  <div className="bg-white border border-orange-200 p-3 rounded mt-3">
+                  <div className="bg-white/5 border border-orange-500/20 p-3 rounded mt-3">
                     <p className="font-medium text-orange-900 mb-2">PDF İndirme Nasıl Çalışır?</p>
                     <ol className="list-decimal list-inside space-y-1 text-xs">
                       <li>"PDF Olarak İndir" butonuna tıklayın</li>
@@ -840,7 +840,7 @@ export default function UserGuide() {
                     </ol>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 p-3 rounded">
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded">
                     <p className="font-medium text-blue-900 mb-1">✨ PDF İçeriği:</p>
                     <ul className="list-disc list-inside space-y-1 text-[10px]">
                       <li>Personel adı ve genel bilgiler</li>
@@ -854,7 +854,7 @@ export default function UserGuide() {
                 </div>
               </div>
 
-              <div className="bg-green-50 border border-green-300 p-3 rounded-lg">
+              <div className="bg-emerald-500/10 border border-green-300 p-3 rounded-lg">
                 <p className="text-xs text-green-900">
                   <strong>💡 İPUCU:</strong> PDF'i indirdikten sonra personele e-posta ile gönderebilir,
                   yazdırıp fiziksel olarak teslim edebilir veya muhasebe kayıtlarınızda saklayabilirsiniz.
@@ -868,7 +868,7 @@ export default function UserGuide() {
               🎯 Kullanım Senaryosu (Adım Adım Örnek)
             </h3>
             <div className="space-y-3 text-sm">
-              <div className="bg-white p-3 rounded-lg border border-cyan-200">
+              <div className="bg-white/5 p-3 rounded-lg border border-cyan-500/20">
                 <p className="font-semibold text-cyan-900 mb-2">Senaryo: Şubat 2026 Aylık Prim Raporu Oluşturma</p>
                 <ol className="list-decimal list-inside space-y-2 text-xs text-slate-200">
                   <li className="pl-2">
@@ -879,13 +879,13 @@ export default function UserGuide() {
                   </li>
                   <li className="pl-2">
                     <strong>Ay Seç:</strong> "Şubat 2026" kartına tıklayın
-                    <div className="bg-slate-50 p-2 rounded mt-1 text-[10px]">
+                    <div className="bg-white/5 p-2 rounded mt-1 text-[10px]">
                       Kartta görecekleriniz: 8 Personel, Toplam: 14.250 TL, Ortalama: 1.781 TL
                     </div>
                   </li>
                   <li className="pl-2">
                     <strong>Personel Seç:</strong> Tabloda "Ela" personelinin satırındaki "Detay" butonuna tıklayın
-                    <div className="bg-slate-50 p-2 rounded mt-1 text-[10px]">
+                    <div className="bg-white/5 p-2 rounded mt-1 text-[10px]">
                       Ela: +1.000 TL, 136 chat, Skor: 84.2
                     </div>
                   </li>
@@ -899,7 +899,7 @@ export default function UserGuide() {
                   </li>
                   <li className="pl-2">
                     <strong>PDF İndir:</strong> "PDF Olarak İndir" butonuna tıklayın
-                    <div className="bg-green-50 p-2 rounded mt-1 text-[10px]">
+                    <div className="bg-emerald-500/10 p-2 rounded mt-1 text-[10px]">
                       Dosya adı: Prim_Raporu_Ela_17.02.2026.pdf
                     </div>
                   </li>
@@ -920,33 +920,33 @@ export default function UserGuide() {
             </h3>
             <div className="space-y-2 text-xs text-slate-200">
               <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-400 font-bold">•</span>
                 <p><strong>Otomatik Gruplama:</strong> Sistem tüm prim kayıtlarını otomatik olarak aya göre gruplar</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-400 font-bold">•</span>
                 <p><strong>En Son Kayıt:</strong> Aynı dönem için birden fazla hesaplama varsa en son kayıt gösterilir</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-400 font-bold">•</span>
                 <p><strong>Sıralama:</strong> Aylar en yeniden en eskiye, personeller prim miktarına göre büyükten küçüğe sıralanır</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-400 font-bold">•</span>
                 <p><strong>Mobil Uyumlu:</strong> Tüm görünümler mobil cihazlarda da mükemmel çalışır</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-400 font-bold">•</span>
                 <p><strong>PDF Kalitesi:</strong> PDF'ler 2x scale ile yüksek çözünürlükte oluşturulur (yazdırma kalitesi)</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-blue-400 font-bold">•</span>
                 <p><strong>Çoklu Sayfa:</strong> Uzun içerik otomatik olarak birden fazla sayfaya bölünür</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-300 p-4 rounded-lg">
+          <div className="bg-yellow-500/10 border border-yellow-300 p-4 rounded-lg">
             <h3 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
               ⚠️ Önemli Hatırlatmalar
             </h3>
@@ -959,7 +959,7 @@ export default function UserGuide() {
             </ul>
           </div>
 
-          <p className="text-sm text-slate-600 italic bg-blue-50 border border-blue-200 p-3 rounded-lg">
+          <p className="text-sm text-slate-400 italic bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg">
             💡 <strong>Profesyonel İpucu:</strong> Her ay sonunda personel primlerini hesaplayın, PDF olarak indirin
             ve hem personele hem de muhasebe departmanına gönderin. Bu sayede şeffaf ve takip edilebilir bir prim
             sistemi oluşturmuş olursunuz.
@@ -969,7 +969,7 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Eye className="w-6 h-6 text-blue-600" />
+          <Eye className="w-6 h-6 text-blue-400" />
           İzleme (Monitoring)
         </h2>
         <div className="space-y-3 text-slate-200">
@@ -980,7 +980,7 @@ export default function UserGuide() {
             <li><strong>Uyarı Gönderimi:</strong> Bekleyen uyarıları Telegram'a gönderme</li>
             <li><strong>Sistem Durumu:</strong> Son senkronizasyon ve analiz zamanlarını görme</li>
           </ul>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-3">
             <p className="text-sm text-blue-900">
               <strong>Not:</strong> Sistem arka planda otomatik çalışır (her 2 dakikada senkronizasyon,
               her 5 dakikada analiz). Manuel butonlar acil durumlar için kullanılabilir.
@@ -991,11 +991,11 @@ export default function UserGuide() {
 
       <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <Settings className="w-6 h-6 text-blue-600" />
+          <Settings className="w-6 h-6 text-blue-400" />
           Ayarlar
         </h2>
         <div className="space-y-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
             <h3 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
               Önemli: API Anahtarları
@@ -1010,7 +1010,7 @@ export default function UserGuide() {
               <li><strong>Telegram Chat ID:</strong> Bildirimlerin gönderileceği grup ID (opsiyonel)</li>
             </ul>
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-400">
             Ayarlar güvenli bir şekilde veritabanında saklanır ve sadece yetkili kullanıcılar tarafından görülebilir.
           </p>
         </div>

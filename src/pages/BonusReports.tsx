@@ -472,7 +472,7 @@ export default function BonusReports() {
             <button
               onClick={calculateBonuses}
               disabled={calculating || !startDate || !endDate}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Calculator className="w-5 h-5" />
               {calculating ? 'Hesaplanıyor...' : 'Hesapla'}
@@ -480,7 +480,7 @@ export default function BonusReports() {
             <button
               onClick={saveBonusReport}
               disabled={saving || calculating || calculations.length === 0}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <Save className="w-5 h-5" />
               {saving ? 'Kaydediliyor...' : 'Kaydet'}
@@ -494,10 +494,10 @@ export default function BonusReports() {
         <div>
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-lg text-gray-600">Yükleniyor...</div>
+              <div className="text-lg text-slate-400">Yükleniyor...</div>
             </div>
           ) : periodGroups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-500 bg-white rounded-lg shadow-md">
+            <div className="flex flex-col items-center justify-center h-64 text-slate-400 glass-effect rounded-lg">
               {viewMode === 'preview' ? <Calculator className="w-16 h-16 mb-4 text-slate-100" /> : <History className="w-16 h-16 mb-4 text-slate-100" />}
               <p className="text-lg">
                 {viewMode === 'preview'
@@ -514,14 +514,14 @@ export default function BonusReports() {
                 <div
                   key={group.period}
                   onClick={() => setSelectedPeriod(group.period)}
-                  className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all cursor-pointer border-2 border-transparent hover:border-blue-500 p-6 transform hover:-translate-y-1"
+                  className="glass-effect rounded-xl hover:shadow-2xl transition-all cursor-pointer border-2 border-white/10 hover:border-blue-500 p-6 transform hover:-translate-y-1"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-2xl font-bold text-white mb-1">
                         {getPeriodLabel(group.period)}
                       </h3>
-                      <p className="text-sm text-gray-500">{group.personnelCount} Personel</p>
+                      <p className="text-sm text-slate-400">{group.personnelCount} Personel</p>
                     </div>
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                       <Calendar className="w-6 h-6 text-white" />
@@ -529,24 +529,24 @@ export default function BonusReports() {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-                      <p className="text-xs font-medium text-green-700 mb-1">Toplam Prim</p>
-                      <p className="text-2xl font-bold text-green-900">
+                    <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-500/20">
+                      <p className="text-xs font-medium text-emerald-400 mb-1">Toplam Prim</p>
+                      <p className="text-2xl font-bold text-emerald-300">
                         {group.totalBonus.toLocaleString('tr-TR')} TL
                       </p>
                     </div>
 
-                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-                      <p className="text-xs font-medium text-blue-700 mb-1">Ortalama Prim</p>
-                      <p className="text-xl font-bold text-blue-900">
+                    <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/20">
+                      <p className="text-xs font-medium text-blue-400 mb-1">Ortalama Prim</p>
+                      <p className="text-xl font-bold text-blue-300">
                         {group.avgBonus.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} TL
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between text-sm">
-                    <span className="text-gray-600 font-medium">Detayları Görüntüle</span>
-                    <ChevronDown className="w-5 h-5 text-blue-600" />
+                  <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-sm">
+                    <span className="text-slate-400 font-medium">Detayları Görüntüle</span>
+                    <ChevronDown className="w-5 h-5 text-blue-400" />
                   </div>
                 </div>
               ))}
@@ -574,20 +574,20 @@ export default function BonusReports() {
           </div>
 
           <div className="hidden sm:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-white/10">
+              <thead className="bg-white/5">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Personel</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam Prim</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chat</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Skor</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kural</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Personel</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Toplam Prim</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Chat</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Skor</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Kural</th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">İşlem</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-white/10">
                 {selectedPeriodData.map((calc) => (
-                  <tr key={calc.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={calc.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -599,20 +599,20 @@ export default function BonusReports() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`text-lg font-bold ${calc.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`text-lg font-bold ${calc.total_bonus_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {calc.total_bonus_amount >= 0 ? '+' : ''}{calc.total_bonus_amount.toLocaleString('tr-TR')} TL
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
                       {calc.metrics_snapshot?.total_chats || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
                         {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-slate-200">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-white/10 text-slate-300 border border-white/10">
                         {calc.calculation_details?.length || 0} kural
                       </span>
                     </td>
@@ -635,7 +635,7 @@ export default function BonusReports() {
             {selectedPeriodData.map((calc) => (
               <div
                 key={calc.id}
-                className="bg-gradient-to-r from-white to-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm"
+                className="bg-white/5 p-4 rounded-xl border border-white/10"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -644,18 +644,18 @@ export default function BonusReports() {
                     </div>
                     <div>
                       <p className="font-bold text-white">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
-                      <p className="text-sm text-gray-500">{calc.metrics_snapshot?.total_chats || 0} chat</p>
+                      <p className="text-sm text-slate-400">{calc.metrics_snapshot?.total_chats || 0} chat</p>
                     </div>
                   </div>
-                  <span className={`text-lg font-bold ${calc.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className={`text-lg font-bold ${calc.total_bonus_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {calc.total_bonus_amount >= 0 ? '+' : ''}{calc.total_bonus_amount.toLocaleString('tr-TR')} TL
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                  <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
                     Skor: {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
                   </span>
-                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-slate-200">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-white/10 text-slate-300 border border-white/10">
                     {calc.calculation_details?.length || 0} kural
                   </span>
                 </div>
@@ -674,16 +674,16 @@ export default function BonusReports() {
 
       {selectedRecord && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div ref={modalContentRef} className="p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-6 border-b pb-4">
+              <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                     <FileText className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white">Prim Detay Raporu</h2>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-slate-400 mt-1">
                       {new Date(selectedRecord.calculated_at).toLocaleDateString('tr-TR', {
                         timeZone: 'Europe/Istanbul',
                         day: 'numeric',
@@ -695,30 +695,30 @@ export default function BonusReports() {
                 </div>
                 <button
                   onClick={closeModal}
-                  className="text-slate-200 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                  className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="mb-6 bg-gradient-to-r from-slate-50 to-slate-100 p-6 rounded-xl border border-slate-200">
+              <div className="mb-6 bg-white/5 p-6 rounded-xl border border-white/10">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Personel</p>
+                    <p className="text-sm font-medium text-slate-400 mb-1">Personel</p>
                     <p className="text-xl font-bold text-white">{selectedRecord.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Toplam Prim</p>
+                    <p className="text-sm font-medium text-slate-400 mb-1">Toplam Prim</p>
                     <p className={`text-2xl font-bold ${selectedRecord.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {selectedRecord.total_bonus_amount >= 0 ? '+' : ''}{selectedRecord.total_bonus_amount.toLocaleString('tr-TR')} TL
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Dönem Tipi</p>
+                    <p className="text-sm font-medium text-slate-400 mb-1">Dönem Tipi</p>
                     <p className="text-lg font-semibold text-white capitalize">{selectedRecord.period_type === 'monthly' ? 'Aylık' : selectedRecord.period_type === 'weekly' ? 'Haftalık' : 'Günlük'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Dönem</p>
+                    <p className="text-sm font-medium text-slate-400 mb-1">Dönem</p>
                     <p className="text-sm font-medium text-white">
                       {new Date(selectedRecord.period_start).toLocaleDateString('tr-TR')} - {new Date(selectedRecord.period_end).toLocaleDateString('tr-TR')}
                     </p>
@@ -732,64 +732,64 @@ export default function BonusReports() {
                   Performans Metrikleri
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
-                    <p className="text-xs font-medium text-blue-700 mb-1">Toplam Chat</p>
-                    <p className="text-2xl font-bold text-blue-900">{selectedRecord.metrics_snapshot?.total_chats || 0}</p>
+                  <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/20">
+                    <p className="text-xs font-medium text-blue-400 mb-1">Toplam Chat</p>
+                    <p className="text-2xl font-bold text-blue-300">{selectedRecord.metrics_snapshot?.total_chats || 0}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
-                    <p className="text-xs font-medium text-green-700 mb-1">Ortalama Skor</p>
-                    <p className="text-2xl font-bold text-green-900">{selectedRecord.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</p>
+                  <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-500/20">
+                    <p className="text-xs font-medium text-emerald-400 mb-1">Ortalama Skor</p>
+                    <p className="text-2xl font-bold text-emerald-300">{selectedRecord.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-                    <p className="text-xs font-medium text-purple-700 mb-1">Memnuniyet</p>
-                    <p className="text-2xl font-bold text-purple-900">{selectedRecord.metrics_snapshot?.avg_satisfaction?.toFixed(1) || '0.0'}%</p>
+                  <div className="bg-violet-500/10 p-4 rounded-lg border border-violet-500/20">
+                    <p className="text-xs font-medium text-violet-400 mb-1">Memnuniyet</p>
+                    <p className="text-2xl font-bold text-violet-300">{selectedRecord.metrics_snapshot?.avg_satisfaction?.toFixed(1) || '0.0'}%</p>
                   </div>
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
-                    <p className="text-xs font-medium text-orange-700 mb-1">Yanıt Süresi</p>
-                    <p className="text-2xl font-bold text-orange-900">{selectedRecord.metrics_snapshot?.avg_response_time?.toFixed(0) || '0'}s</p>
+                  <div className="bg-orange-500/10 p-4 rounded-lg border border-orange-500/20">
+                    <p className="text-xs font-medium text-orange-400 mb-1">Yanıt Süresi</p>
+                    <p className="text-2xl font-bold text-orange-300">{selectedRecord.metrics_snapshot?.avg_response_time?.toFixed(0) || '0'}s</p>
                   </div>
-                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-lg border border-emerald-200">
-                    <p className="text-xs font-medium text-emerald-700 mb-1">Pozitif Chat</p>
-                    <p className="text-2xl font-bold text-emerald-900">{selectedRecord.metrics_snapshot?.positive_chats_count || 0}</p>
+                  <div className="bg-emerald-500/10 p-4 rounded-lg border border-emerald-500/20">
+                    <p className="text-xs font-medium text-emerald-400 mb-1">Pozitif Chat</p>
+                    <p className="text-2xl font-bold text-emerald-300">{selectedRecord.metrics_snapshot?.positive_chats_count || 0}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
-                    <p className="text-xs font-medium text-red-700 mb-1">Negatif Chat</p>
-                    <p className="text-2xl font-bold text-red-900">{selectedRecord.metrics_snapshot?.negative_chats_count || 0}</p>
+                  <div className="bg-red-500/10 p-4 rounded-lg border border-red-500/20">
+                    <p className="text-xs font-medium text-red-400 mb-1">Negatif Chat</p>
+                    <p className="text-2xl font-bold text-red-300">{selectedRecord.metrics_snapshot?.negative_chats_count || 0}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs font-medium text-slate-200 mb-1">Nötr Chat</p>
+                  <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+                    <p className="text-xs font-medium text-slate-400 mb-1">Nötr Chat</p>
                     <p className="text-2xl font-bold text-white">{selectedRecord.metrics_snapshot?.neutral_chats_count || 0}</p>
                   </div>
-                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-4 rounded-lg border border-cyan-200">
-                    <p className="text-xs font-medium text-cyan-700 mb-1">Uygulanan Kural</p>
-                    <p className="text-2xl font-bold text-cyan-900">{selectedRecord.calculation_details?.length || 0}</p>
+                  <div className="bg-cyan-500/10 p-4 rounded-lg border border-cyan-500/20">
+                    <p className="text-xs font-medium text-cyan-400 mb-1">Uygulanan Kural</p>
+                    <p className="text-2xl font-bold text-cyan-300">{selectedRecord.calculation_details?.length || 0}</p>
                   </div>
                 </div>
               </div>
 
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-green-600" />
+                  <Calculator className="w-5 h-5 text-emerald-400" />
                   Uygulanan Prim Kuralları
                 </h3>
                 {selectedRecord.calculation_details && selectedRecord.calculation_details.length > 0 ? (
                   <div className="space-y-3">
                     {selectedRecord.calculation_details.map((detail, idx) => (
-                      <div key={idx} className="bg-gradient-to-r from-white to-gray-50 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
+                      <div key={idx} className="bg-white/5 p-4 rounded-xl border-l-4 border-blue-500 border border-white/10">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <p className="font-bold text-white text-base mb-2">{detail.rule_name}</p>
                             <div className="flex flex-wrap gap-3 text-sm">
-                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                              <span className="px-3 py-1 bg-blue-500/15 text-blue-400 rounded-full font-medium border border-blue-500/20">
                                 {metricLabels[detail.metric_type]}
                               </span>
-                              <span className="px-3 py-1 bg-gray-100 text-slate-200 rounded-full font-medium">
+                              <span className="px-3 py-1 bg-white/10 text-slate-300 rounded-full font-medium border border-white/10">
                                 Değer: {detail.metric_value.toFixed(2)}
                               </span>
                             </div>
                           </div>
                           <div className="text-right ml-4">
-                            <p className={`text-2xl font-bold ${detail.bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <p className={`text-2xl font-bold ${detail.bonus_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                               {detail.bonus_amount >= 0 ? '+' : ''}{detail.bonus_amount.toLocaleString('tr-TR')} TL
                             </p>
                           </div>
@@ -798,14 +798,14 @@ export default function BonusReports() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                    <Calculator className="w-12 h-12 text-slate-200 mx-auto mb-2" />
-                    <p className="text-gray-500">Hiçbir prim kuralı uygulanmadı</p>
+                  <div className="text-center py-8 bg-white/5 rounded-xl border-2 border-dashed border-white/20">
+                    <Calculator className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                    <p className="text-slate-400">Hiçbir prim kuralı uygulanmadı</p>
                   </div>
                 )}
               </div>
 
-              <div className="flex gap-3 pt-4 border-t">
+              <div className="flex gap-3 pt-4 border-t border-white/10">
                 <button
                   onClick={exportToPDF}
                   disabled={exportingPDF}
@@ -816,7 +816,7 @@ export default function BonusReports() {
                 </button>
                 <button
                   onClick={closeModal}
-                  className="px-6 py-3 bg-gray-200 text-slate-200 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  className="px-6 py-3 bg-white/10 text-slate-300 rounded-lg hover:bg-white/15 transition-colors font-medium border border-white/10"
                 >
                   Kapat
                 </button>

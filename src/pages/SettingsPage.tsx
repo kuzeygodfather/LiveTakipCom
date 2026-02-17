@@ -93,8 +93,8 @@ export default function SettingsPage() {
         <div
           className={`p-4 rounded-lg border ${
             message.type === 'success'
-              ? 'bg-green-50 border-green-200 text-green-800'
-              : 'bg-red-50 border-red-200 text-red-800'
+              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+              : 'bg-red-500/10 border-red-500/20 text-red-300'
           }`}
         >
           {message.text}
@@ -103,13 +103,13 @@ export default function SettingsPage() {
 
       <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Key className="w-6 h-6 text-slate-700" />
+          <Key className="w-6 h-6 text-slate-400" />
           <h2 className="text-xl font-bold text-white">Claude AI API</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Claude API Key
             </label>
             <input
@@ -117,9 +117,9 @@ export default function SettingsPage() {
               value={settings.claude_api_key}
               onChange={(e) => setSettings({ ...settings, claude_api_key: e.target.value })}
               placeholder="sk-ant-..."
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/10 bg-white/5 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500 [color-scheme:dark]"
             />
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Chat analizleri için Claude AI API anahtarı
             </p>
           </div>
@@ -128,13 +128,13 @@ export default function SettingsPage() {
 
       <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
-          <MessageSquare className="w-6 h-6 text-slate-700" />
+          <MessageSquare className="w-6 h-6 text-slate-400" />
           <h2 className="text-xl font-bold text-white">LiveChat API</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               LiveChat API Key
             </label>
             <input
@@ -142,9 +142,9 @@ export default function SettingsPage() {
               value={settings.livechat_api_key}
               onChange={(e) => setSettings({ ...settings, livechat_api_key: e.target.value })}
               placeholder="API Key"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/10 bg-white/5 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500 [color-scheme:dark]"
             />
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               LiveChat verilerine erişim için API anahtarı
             </p>
           </div>
@@ -153,13 +153,13 @@ export default function SettingsPage() {
 
       <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Send className="w-6 h-6 text-slate-700" />
+          <Send className="w-6 h-6 text-slate-400" />
           <h2 className="text-xl font-bold text-white">Telegram Bot</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Telegram Bot Token
             </label>
             <input
@@ -167,15 +167,15 @@ export default function SettingsPage() {
               value={settings.telegram_bot_token}
               onChange={(e) => setSettings({ ...settings, telegram_bot_token: e.target.value })}
               placeholder="123456:ABC-DEF..."
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/10 bg-white/5 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500 [color-scheme:dark]"
             />
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               BotFather'dan alınan bot token
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Telegram Chat ID
             </label>
             <input
@@ -183,15 +183,15 @@ export default function SettingsPage() {
               value={settings.telegram_chat_id}
               onChange={(e) => setSettings({ ...settings, telegram_chat_id: e.target.value })}
               placeholder="-1001234567890"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/10 bg-white/5 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500 [color-scheme:dark]"
             />
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Uyarıların gönderileceği grup ID
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-300 mb-2">
               Senkronizasyon Aralığı (saniye)
             </label>
             <input
@@ -200,9 +200,9 @@ export default function SettingsPage() {
               onChange={(e) => setSettings({ ...settings, polling_interval: parseInt(e.target.value) || 60 })}
               min="30"
               max="3600"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/10 bg-white/5 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-slate-500 [color-scheme:dark]"
             />
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Otomatik senkronizasyon için bekleme süresi
             </p>
           </div>
