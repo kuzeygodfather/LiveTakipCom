@@ -7,6 +7,7 @@ import DonutChart from '../components/DonutChart';
 import HeatMap from '../components/HeatMap';
 import Leaderboard from '../components/Leaderboard';
 import { Tooltip } from '../components/Tooltip';
+import SentimentChatsModal from '../components/SentimentChatsModal';
 import { extractComplaintTopics } from '../lib/complaintCategories';
 import { getIstanbulDateStartUTC, convertIstanbulDateToUTC } from '../lib/utils';
 
@@ -67,6 +68,7 @@ export default function Dashboard() {
   const [bottomPerformers, setBottomPerformers] = useState<any[]>([]);
   const [sentimentDistribution, setSentimentDistribution] = useState<{ label: string; value: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sentimentModal, setSentimentModal] = useState<'negative' | 'neutral' | 'positive' | null>(null);
 
   const [complaintTrendDays, setComplaintTrendDays] = useState(30);
   const [topComplaintsFilter, setTopComplaintsFilter] = useState(30);
@@ -914,27 +916,36 @@ export default function Dashboard() {
 
         <div className="glass-effect rounded-xl shadow-lg p-6">
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/30 hover:scale-105 transition-transform">
+            <button
+              onClick={() => setSentimentModal('positive')}
+              className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/30 hover:scale-105 hover:border-emerald-300 transition-all cursor-pointer text-left w-full"
+            >
               <Smile className="w-5 h-5 text-emerald-300" />
               <div>
                 <div className="text-xs text-emerald-200 font-medium">Pozitif</div>
                 <div className="text-lg font-bold text-white">{sentimentDistribution[0]?.value || 0}</div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl border-2 border-amber-400/50 shadow-lg shadow-amber-500/30 hover:scale-105 transition-transform">
+            </button>
+            <button
+              onClick={() => setSentimentModal('neutral')}
+              className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl border-2 border-amber-400/50 shadow-lg shadow-amber-500/30 hover:scale-105 hover:border-amber-300 transition-all cursor-pointer text-left w-full"
+            >
               <Meh className="w-5 h-5 text-amber-300" />
               <div>
                 <div className="text-xs text-amber-200 font-medium">Nötr</div>
                 <div className="text-lg font-bold text-white">{sentimentDistribution[1]?.value || 0}</div>
               </div>
-            </div>
-            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/30 to-red-500/30 rounded-xl border-2 border-rose-400/50 shadow-lg shadow-rose-500/30 hover:scale-105 transition-transform">
+            </button>
+            <button
+              onClick={() => setSentimentModal('negative')}
+              className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/30 to-red-500/30 rounded-xl border-2 border-rose-400/50 shadow-lg shadow-rose-500/30 hover:scale-105 hover:border-rose-300 transition-all cursor-pointer text-left w-full"
+            >
               <Frown className="w-5 h-5 text-rose-300" />
               <div>
                 <div className="text-xs text-rose-200 font-medium">Negatif</div>
                 <div className="text-lg font-bold text-white">{sentimentDistribution[2]?.value || 0}</div>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -1323,6 +1334,11 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <SentimentChatsModal
+        sentiment={sentimentModal}
+        onClose={() => setSentimentModal(null)}
+      />
     </div>
   );
 }
