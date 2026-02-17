@@ -188,20 +188,27 @@ Deno.serve(async (req: Request) => {
         }
       } else {
         const now = new Date();
-        startDate = new Date(now.getTime() - (10 * 60 * 1000)).toISOString();
+        startDate = new Date(now.getTime() - (20 * 60 * 1000)).toISOString();
         endDate = now.toISOString();
       }
     } catch (e) {
       const now = new Date();
-      startDate = new Date(now.getTime() - (10 * 60 * 1000)).toISOString();
+      startDate = new Date(now.getTime() - (20 * 60 * 1000)).toISOString();
       endDate = now.toISOString();
     }
 
-    // Calculate Istanbul timezone for logging
+    // CRITICAL: LiveChat API expects dates in Istanbul timezone (UTC+3), not UTC
+    // Convert UTC dates to Istanbul timezone for API request
     const istanbulOffset = 3 * 60 * 60 * 1000; // UTC+3
+    const startDateUTC = new Date(startDate);
+    const endDateUTC = new Date(endDate);
+    const startDateIstanbul = new Date(startDateUTC.getTime() + istanbulOffset).toISOString();
+    const endDateIstanbul = new Date(endDateUTC.getTime() + istanbulOffset).toISOString();
+
+    // For logging
     const istanbulNow = new Date(new Date().getTime() + istanbulOffset);
-    const istanbulStartDate = new Date(new Date(startDate).getTime() + istanbulOffset);
-    const istanbulEndDate = new Date(new Date(endDate).getTime() + istanbulOffset);
+    const istanbulStartDate = new Date(startDateUTC.getTime() + istanbulOffset);
+    const istanbulEndDate = new Date(endDateUTC.getTime() + istanbulOffset);
 
     console.log(`Fetching chats from ${startDate} to ${endDate}`);
     console.log(`Istanbul Time: ${istanbulNow.toISOString().replace('T', ' ').substring(0, 19)}`);
@@ -216,7 +223,7 @@ Deno.serve(async (req: Request) => {
       console.log(`Fetching page ${currentPage}...`);
 
       const livechatResponse = await fetchWithRetry(
-        `https://livechat.systemtest.store/api/v1/chats?page=${currentPage}&per_page=${perPage}&start_date=${startDate}&end_date=${endDate}&date_field=created_at&sort_by=created_at&sort_order=desc`,
+        `https://livechat.systemtest.store/api/v1/chats?page=${currentPage}&per_page=${perPage}&start_date=${startDateIstanbul}&end_date=${endDateIstanbul}&sort_by=created_at&sort_order=desc`,
         { headers: { "X-API-Key": settings.livechat_api_key } },
         3,
         2000
