@@ -86,7 +86,7 @@ export default function Reports() {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { data: chatsRaw } = await supabase
+      const { data: chatsRaw, error: chatsError } = await supabase
         .from('chats')
         .select(`
           id,
@@ -94,22 +94,35 @@ export default function Reports() {
           agent_name,
           created_at,
           ended_at,
-          rating,
+          rating_score,
           first_response_time
         `)
         .gte('created_at', thirtyDaysAgo.toISOString())
         .order('created_at', { ascending: false });
 
-      const { data: analysisData } = await supabase
+      if (chatsError) {
+        console.error('Error loading chats:', chatsError);
+        throw chatsError;
+      }
+
+      console.log('Chats loaded:', chatsRaw?.length || 0);
+
+      const { data: analysisData, error: analysisError } = await supabase
         .from('chat_analysis')
-        .select('chat_id, overall_score, analysis_score')
+        .select('chat_id, overall_score')
         .gte('analysis_date', thirtyDaysAgo.toISOString());
+
+      if (analysisError) {
+        console.error('Error loading analysis:', analysisError);
+        throw analysisError;
+      }
+
+      console.log('Analysis data loaded:', analysisData?.length || 0);
 
       const analysisMap = new Map();
       (analysisData || []).forEach((item: any) => {
         analysisMap.set(item.chat_id, {
           overall_score: parseFloat(item.overall_score || 0),
-          analysis_score: parseFloat(item.analysis_score || 0),
         });
       });
 
@@ -122,8 +135,6 @@ export default function Reports() {
           dailyStats[dateStr] = {
             date: dateStr,
             total_chats: 0,
-            total_analysis_score: 0,
-            analysis_count: 0,
             total_personnel_score: 0,
             personnel_count: 0,
             total_response_time: 0,
@@ -136,15 +147,9 @@ export default function Reports() {
         dailyStats[dateStr].total_chats++;
 
         const analysis = analysisMap.get(chat.chat_id);
-        if (analysis) {
-          if (analysis.analysis_score > 0) {
-            dailyStats[dateStr].total_analysis_score += analysis.analysis_score;
-            dailyStats[dateStr].analysis_count++;
-          }
-          if (analysis.overall_score > 0) {
-            dailyStats[dateStr].total_personnel_score += analysis.overall_score;
-            dailyStats[dateStr].personnel_count++;
-          }
+        if (analysis && analysis.overall_score > 0) {
+          dailyStats[dateStr].total_personnel_score += analysis.overall_score;
+          dailyStats[dateStr].personnel_count++;
         }
 
         if (chat.first_response_time && chat.first_response_time > 0) {
@@ -164,8 +169,6 @@ export default function Reports() {
       const dailyArray = Object.values(dailyStats).map((day: any) => ({
         date: day.date,
         total_chats: day.total_chats,
-        total_analysis_score: day.total_analysis_score,
-        analysis_count: day.analysis_count,
         average_score: day.personnel_count > 0 ? day.total_personnel_score / day.personnel_count : 0,
         average_response_time: day.response_time_count > 0 ? day.total_response_time / day.response_time_count : 0,
         average_resolution_time: day.resolution_time_count > 0 ? day.total_resolution_time / day.resolution_time_count : 0,
@@ -257,7 +260,7 @@ export default function Reports() {
     if (timeRange === 'daily') {
       return data.map((item: any) => ({
         date: item.date,
-        analysisScore: item.analysis_count > 0 ? Math.round(item.total_analysis_score / item.analysis_count) : 0,
+        analysisScore: Math.round(item.average_score || 0),
         personnelScore: Math.round(item.average_score || 0),
         responseTime: Math.round(item.average_response_time || 0),
         resolutionTime: Math.round(item.average_resolution_time || 0),
@@ -278,8 +281,6 @@ export default function Reports() {
       if (!acc[groupKey]) {
         acc[groupKey] = {
           date: groupKey,
-          totalAnalysisScore: 0,
-          analysisCount: 0,
           totalPersonnelScore: 0,
           personnelCount: 0,
           totalResponseTime: 0,
@@ -288,11 +289,6 @@ export default function Reports() {
           resolutionTimeCount: 0,
           totalChats: 0,
         };
-      }
-
-      if (curr.total_analysis_score > 0 && curr.analysis_count > 0) {
-        acc[groupKey].totalAnalysisScore += curr.total_analysis_score;
-        acc[groupKey].analysisCount += curr.analysis_count;
       }
 
       if (curr.average_score > 0 && curr.total_chats > 0) {
@@ -317,14 +313,17 @@ export default function Reports() {
       return acc;
     }, {});
 
-    return Object.values(grouped).map((item: any) => ({
-      date: item.date,
-      analysisScore: item.analysisCount > 0 ? Math.round(item.totalAnalysisScore / item.analysisCount) : 0,
-      personnelScore: item.personnelCount > 0 ? Math.round(item.totalPersonnelScore / item.personnelCount) : 0,
-      responseTime: item.responseTimeCount > 0 ? Math.round(item.totalResponseTime / item.responseTimeCount) : 0,
-      resolutionTime: item.resolutionTimeCount > 0 ? Math.round(item.totalResolutionTime / item.resolutionTimeCount) : 0,
-      totalChats: item.totalChats,
-    })).sort((a: any, b: any) => b.date.localeCompare(a.date));
+    return Object.values(grouped).map((item: any) => {
+      const personnelScore = item.personnelCount > 0 ? Math.round(item.totalPersonnelScore / item.personnelCount) : 0;
+      return {
+        date: item.date,
+        analysisScore: personnelScore,
+        personnelScore: personnelScore,
+        responseTime: item.responseTimeCount > 0 ? Math.round(item.totalResponseTime / item.responseTimeCount) : 0,
+        resolutionTime: item.resolutionTimeCount > 0 ? Math.round(item.totalResolutionTime / item.resolutionTimeCount) : 0,
+        totalChats: item.totalChats,
+      };
+    }).sort((a: any, b: any) => b.date.localeCompare(a.date));
   };
 
   const getCoachingSuggestion = async (chat: NegativeChat) => {
