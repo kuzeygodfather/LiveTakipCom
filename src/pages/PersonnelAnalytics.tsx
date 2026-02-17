@@ -57,9 +57,18 @@ export default function PersonnelAnalytics() {
 
       if (allPersonnel.length > 0) {
         setPersonnel(allPersonnel);
-        if (!selectedPersonnel) {
+
+        if (selectedPersonnel) {
+          const updatedSelectedPersonnel = allPersonnel.find(p => p.name === selectedPersonnel.name);
+          if (updatedSelectedPersonnel) {
+            setSelectedPersonnel(updatedSelectedPersonnel);
+          } else {
+            setSelectedPersonnel(allPersonnel[0]);
+          }
+        } else {
           setSelectedPersonnel(allPersonnel[0]);
         }
+
         await loadRatingInfo(allPersonnel);
       }
     } catch (error) {
@@ -178,8 +187,18 @@ export default function PersonnelAnalytics() {
   const recalculateStats = async () => {
     setRecalculating(true);
     try {
+      console.log('Recalculating personnel stats...');
       await supabase.rpc('recalculate_personnel_stats');
+
+      console.log('Reloading personnel data...');
       await loadPersonnel();
+
+      if (selectedPersonnel) {
+        console.log('Reloading selected personnel details...');
+        await loadPersonnelDetails(selectedPersonnel.name);
+      }
+
+      console.log('Stats recalculated successfully');
     } catch (error) {
       console.error('Error recalculating stats:', error);
     } finally {
