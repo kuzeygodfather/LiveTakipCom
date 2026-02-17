@@ -9,6 +9,7 @@ const corsHeaders = {
 
 interface CoachingRequest {
   chatId: string;
+  chatAnalysisId: string;
   messages: Array<{
     author: { name: string };
     text: string;
@@ -37,11 +38,23 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     console.log('Request body received:', {
       chatId: body.chatId,
+      chatAnalysisId: body.chatAnalysisId,
       messageCount: body.messages?.length,
       hasAnalysis: !!body.analysis
     });
 
-    const { chatId, messages, analysis }: CoachingRequest = body;
+    const { chatId, chatAnalysisId, messages, analysis }: CoachingRequest = body;
+
+    if (!chatAnalysisId) {
+      console.error('No chatAnalysisId provided');
+      return new Response(
+        JSON.stringify({ error: "chatAnalysisId is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     if (!messages || messages.length === 0) {
       console.error('No messages provided');
@@ -130,10 +143,43 @@ Türkçe, profesyonel ve yapıcı bir dille yaz.`;
     const data = await response.json();
     const suggestion = data.content[0].text;
 
+    // Save coaching suggestion to database (using service_role for UPDATE permission)
+    console.log('Saving coaching suggestion to database:', {
+      chatAnalysisId,
+      suggestionLength: suggestion.length
+    });
+
+    const { data: updateData, error: updateError } = await supabase
+      .from('chat_analysis')
+      .update({ coaching_suggestion: suggestion })
+      .eq('id', chatAnalysisId)
+      .select();
+
+    if (updateError) {
+      console.error('Error saving coaching suggestion:', updateError);
+      return new Response(
+        JSON.stringify({
+          error: "Failed to save coaching suggestion to database",
+          details: updateError.message
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    console.log('Coaching suggestion saved successfully:', {
+      chatAnalysisId,
+      rowsUpdated: updateData?.length
+    });
+
     return new Response(
       JSON.stringify({
         chatId,
+        chatAnalysisId,
         suggestion,
+        saved: true,
         timestamp: new Date().toISOString(),
       }),
       {

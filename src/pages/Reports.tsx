@@ -368,7 +368,8 @@ export default function Reports() {
       }
 
       const requestBody = {
-        chatId: chat.id,
+        chatId: chat.chat_id,
+        chatAnalysisId: chat.id,
         messages: formattedMessages,
         analysis: {
           sentiment: chat.sentiment,
@@ -379,7 +380,8 @@ export default function Reports() {
       };
 
       console.log('Sending coaching request:', {
-        chatId: chat.id,
+        chatId: chat.chat_id,
+        chatAnalysisId: chat.id,
         messageCount: formattedMessages.length,
         firstMessage: formattedMessages[0],
       });
@@ -410,6 +412,7 @@ export default function Reports() {
       const result = await response.json();
       console.log('API Response for chat', chat.id, ':', {
         hasSuggestion: !!result.suggestion,
+        saved: result.saved,
         suggestionLength: result.suggestion?.length,
         fullResult: result
       });
@@ -419,32 +422,8 @@ export default function Reports() {
         throw new Error('API yanıtı beklenen formatta değil');
       }
 
-      // Save coaching suggestion to database
-      console.log('Saving to database:', {
-        chatId: chat.id,
-        suggestionLength: result.suggestion.length
-      });
-
-      const { data: updateData, error: updateError } = await supabase
-        .from('chat_analysis')
-        .update({ coaching_suggestion: result.suggestion })
-        .eq('id', chat.id)
-        .select();
-
-      console.log('Database update result:', {
-        chatId: chat.id,
-        updated: updateData?.length,
-        error: updateError
-      });
-
-      if (updateError) {
-        console.error('Error saving coaching suggestion:', updateError);
-        throw new Error(`Veritabanı hatası: ${updateError.message}`);
-      }
-
-      if (!updateData || updateData.length === 0) {
-        console.error('No rows updated for chat', chat.id);
-        throw new Error('Veritabanına kaydedilemedi - kayıt bulunamadı');
+      if (!result.saved) {
+        console.warn('Coaching suggestion generated but not saved to database');
       }
 
       setNegativeChats(prev =>
@@ -455,23 +434,13 @@ export default function Reports() {
         )
       );
     } catch (error: any) {
-      console.error('=== COACHING ERROR DETAILS ===');
-      console.error('Chat ID:', chat.id);
-      console.error('Agent:', chat.agent_name);
-      console.error('Error Type:', error?.name);
-      console.error('Error Message:', error?.message);
-      console.error('Full Error:', error);
-      console.error('Formatted Messages Count:', formattedMessages?.length);
-      if (formattedMessages?.length > 0) {
-        console.error('First Message:', formattedMessages[0]);
-      }
-      console.error('==========================');
+      console.error('Error generating coaching for chat:', chat.id, error);
 
       const errorMsg = error?.message || 'Bilinmeyen hata';
       setNegativeChats(prev =>
         prev.map(c =>
           c.id === chat.id
-            ? { ...c, coaching: `HATA: ${errorMsg}`, loadingCoaching: false }
+            ? { ...c, coaching: null, loadingCoaching: false }
             : c
         )
       );
