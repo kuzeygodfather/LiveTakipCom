@@ -174,8 +174,10 @@ export default function Reports() {
         average_resolution_time: day.resolution_time_count > 0 ? day.total_resolution_time / day.resolution_time_count : 0,
       }));
 
+      console.log('=== REPORTS DEBUG ===');
+      console.log('Total chats loaded:', (chatsRaw || []).length);
       console.log('Daily Stats Loaded:', dailyArray.length, 'days');
-      console.log('Sample data:', dailyArray.slice(0, 3));
+      console.log('Sample daily data:', dailyArray.slice(0, 5));
       console.log('Total analysis matches:', (chatsRaw || []).filter((chat: any) => analysisMap.has(chat.id)).length, '/', (chatsRaw || []).length);
 
       setReportData({
@@ -258,8 +260,11 @@ export default function Reports() {
                  timeRange === 'weekly' ? reportData.weekly :
                  reportData.monthly;
 
+    console.log(`=== GET TREND DATA (${timeRange}) ===`);
+    console.log('Input data length:', data.length);
+
     if (timeRange === 'daily') {
-      return data.map((item: any) => ({
+      const result = data.map((item: any) => ({
         date: item.date,
         analysisScore: Math.round(item.average_score || 0),
         personnelScore: Math.round(item.average_score || 0),
@@ -267,6 +272,8 @@ export default function Reports() {
         resolutionTime: Math.round(item.average_resolution_time || 0),
         totalChats: item.total_chats || 0,
       })).sort((a: any, b: any) => b.date.localeCompare(a.date));
+      console.log('Daily result (first 5):', result.slice(0, 5));
+      return result;
     }
 
     const grouped = data.reduce((acc: any, curr: any) => {
@@ -314,7 +321,7 @@ export default function Reports() {
       return acc;
     }, {});
 
-    return Object.values(grouped).map((item: any) => {
+    const result = Object.values(grouped).map((item: any) => {
       const personnelScore = item.personnelCount > 0 ? Math.round(item.totalPersonnelScore / item.personnelCount) : 0;
       return {
         date: item.date,
@@ -325,6 +332,8 @@ export default function Reports() {
         totalChats: item.totalChats,
       };
     }).sort((a: any, b: any) => b.date.localeCompare(a.date));
+    console.log(`Grouped ${timeRange} result (first 5):`, result.slice(0, 5));
+    return result;
   };
 
   const getCoachingSuggestion = async (chat: NegativeChat) => {
