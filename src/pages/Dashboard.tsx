@@ -332,10 +332,15 @@ export default function Dashboard() {
       while (true) {
         const { data: batch } = await supabase
           .from('chat_analysis')
-          .select('analysis_date, sentiment, chat_id, overall_score')
-          .gte('analysis_date', thirtyDaysAgoUTC)
+          .select(`
+            sentiment,
+            chat_id,
+            overall_score,
+            chats!inner(created_at)
+          `)
+          .gte('chats.created_at', thirtyDaysAgoUTC)
           .gt('overall_score', 0)
-          .order('analysis_date', { ascending: true })
+          .order('chats.created_at', { ascending: true })
           .range(from, from + batchSize - 1);
 
         if (!batch || batch.length === 0) break;
@@ -386,7 +391,10 @@ export default function Dashboard() {
       });
 
       allAnalysis.forEach(item => {
-        const date = new Date(item.analysis_date).toLocaleDateString('tr-TR', {
+        const chatCreatedAt = (item as any).chats?.created_at;
+        if (!chatCreatedAt) return;
+
+        const date = new Date(chatCreatedAt).toLocaleDateString('tr-TR', {
           timeZone: 'Europe/Istanbul',
           day: '2-digit',
           month: '2-digit'
