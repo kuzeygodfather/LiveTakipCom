@@ -325,7 +325,7 @@ export default function ChatList() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Chat ID, müşteri veya temsilci adı..."
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                 />
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function ChatList() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                 >
                   <option value="all">Tümü</option>
                   <option value="active">Aktif</option>
@@ -351,7 +351,7 @@ export default function ChatList() {
                 <select
                   value={agentFilter}
                   onChange={(e) => setAgentFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                 >
                   <option value="">Tümü</option>
                   {agents.map(agent => (
@@ -366,7 +366,7 @@ export default function ChatList() {
                 <select
                   value={analyzedFilter}
                   onChange={(e) => setAnalyzedFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                 >
                   <option value="all">Tümü</option>
                   <option value="analyzed">Analiz Edildi</option>
@@ -380,7 +380,7 @@ export default function ChatList() {
                 <select
                   value={ratingFilter}
                   onChange={(e) => setRatingFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                 >
                   <option value="all">Tümü</option>
                   <option value="like">👍 Beğenilen</option>
@@ -422,7 +422,7 @@ export default function ChatList() {
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
 
@@ -433,7 +433,7 @@ export default function ChatList() {
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                   />
                 </div>
               </div>
@@ -471,16 +471,16 @@ export default function ChatList() {
       {/* Stats */}
       <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
         <div className="glass-effect rounded-lg shadow-lg p-3 sm:p-4">
-          <p className="text-xs sm:text-sm text-slate-600">Toplam Chat</p>
+          <p className="text-xs sm:text-sm text-slate-400">Toplam Chat</p>
           <p className="text-lg sm:text-2xl font-bold text-white">{filteredChats.length}</p>
         </div>
 
         <div
-          className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4 relative cursor-help hover:border-green-400 transition-colors"
+          className="glass-effect rounded-lg shadow-sm border border-slate-700 p-3 sm:p-4 relative cursor-help hover:border-green-400 transition-colors"
           onMouseEnter={() => setHoveredStat('analyzed')}
           onMouseLeave={() => setHoveredStat(null)}
         >
-          <p className="text-xs sm:text-sm text-slate-600">Analiz Edildi</p>
+          <p className="text-xs sm:text-sm text-slate-400">Analiz Edildi</p>
           <p className="text-lg sm:text-2xl font-bold text-green-600">
             {filteredChats.filter(c => c.analyzed).length}
           </p>
@@ -506,11 +506,11 @@ export default function ChatList() {
         </div>
 
         <div
-          className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4 relative cursor-help hover:border-green-400 transition-colors"
+          className="glass-effect rounded-lg shadow-sm border border-slate-700 p-3 sm:p-4 relative cursor-help hover:border-green-400 transition-colors"
           onMouseEnter={() => setHoveredStat('liked')}
           onMouseLeave={() => setHoveredStat(null)}
         >
-          <p className="text-xs sm:text-sm text-slate-600">Begenilen</p>
+          <p className="text-xs sm:text-sm text-slate-400">Begenilen</p>
           <p className="text-lg sm:text-2xl font-bold text-green-600">
             {filteredChats.filter(c => Number(c.rating_score) >= 4).length}
           </p>
@@ -536,11 +536,11 @@ export default function ChatList() {
         </div>
 
         <div
-          className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4 relative cursor-help hover:border-red-400 transition-colors"
+          className="glass-effect rounded-lg shadow-sm border border-slate-700 p-3 sm:p-4 relative cursor-help hover:border-red-400 transition-colors"
           onMouseEnter={() => setHoveredStat('disliked')}
           onMouseLeave={() => setHoveredStat(null)}
         >
-          <p className="text-xs sm:text-sm text-slate-600">Begenilmeyen</p>
+          <p className="text-xs sm:text-sm text-slate-400">Begenilmeyen</p>
           <p className="text-lg sm:text-2xl font-bold text-red-600">
             {filteredChats.filter(c => {
               const s = Number(c.rating_score);
@@ -578,11 +578,11 @@ export default function ChatList() {
         </div>
 
         <div
-          className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4 relative cursor-help hover:border-blue-400 transition-colors"
+          className="glass-effect rounded-lg shadow-sm border border-slate-700 p-3 sm:p-4 relative cursor-help hover:border-blue-400 transition-colors"
           onMouseEnter={() => setHoveredStat('commented')}
           onMouseLeave={() => setHoveredStat(null)}
         >
-          <p className="text-xs sm:text-sm text-slate-600">Yorumlu</p>
+          <p className="text-xs sm:text-sm text-slate-400">Yorumlu</p>
           <p className="text-lg sm:text-2xl font-bold text-blue-600">
             {filteredChats.filter(c => c.rating_comment).length}
           </p>
@@ -608,11 +608,11 @@ export default function ChatList() {
         </div>
 
         <div
-          className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4 relative cursor-help hover:border-slate-400 transition-colors"
+          className="glass-effect rounded-lg shadow-sm border border-slate-700 p-3 sm:p-4 relative cursor-help hover:border-slate-400 transition-colors"
           onMouseEnter={() => setHoveredStat('not_rated')}
           onMouseLeave={() => setHoveredStat(null)}
         >
-          <p className="text-xs sm:text-sm text-slate-600 truncate">Degerlendirilmemis</p>
+          <p className="text-xs sm:text-sm text-slate-400 truncate">Degerlendirilmemis</p>
           <p className="text-lg sm:text-2xl font-bold text-slate-200">
             {filteredChats.filter(c => {
               const score = c.rating_score;
@@ -670,8 +670,8 @@ export default function ChatList() {
                   onClick={() => handleChatClick(chat)}
                   className={`p-4 border rounded-lg cursor-pointer transition-all ${
                     selectedChat?.id === chat.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      ? 'border-blue-500 bg-blue-900/30'
+                      : 'border-slate-700 hover:border-slate-500 hover:bg-slate-700/30'
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -788,7 +788,7 @@ export default function ChatList() {
               </div>
 
               {/* Chat Info */}
-              <div className="space-y-3 mb-6 pb-6 border-b border-slate-200">
+              <div className="space-y-3 mb-6 pb-6 border-b border-slate-700">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Chat ID:</span>
                   <span className="text-sm font-mono text-white">{selectedChat.id}</span>
@@ -851,7 +851,7 @@ export default function ChatList() {
                         {ratingComment && (
                           <div className="flex flex-col gap-1">
                             <span className="text-sm text-slate-600">Müşteri Yorumu:</span>
-                            <div className="text-sm bg-slate-50 p-3 rounded border border-slate-200">
+                            <div className="text-sm bg-slate-700/40 text-slate-200 p-3 rounded border border-slate-600">
                               {ratingComment}
                             </div>
                           </div>
@@ -882,10 +882,10 @@ export default function ChatList() {
                         key={msg.message_id}
                         className={`p-3 rounded-lg ${
                           msg.is_system
-                            ? 'bg-slate-100 border border-slate-200'
+                            ? 'bg-slate-700/40 border border-slate-600'
                             : msg.author_type === 'agent'
-                            ? 'bg-blue-50 border border-blue-200'
-                            : 'bg-green-50 border border-green-200'
+                            ? 'bg-blue-900/30 border border-blue-700/50'
+                            : 'bg-emerald-900/30 border border-emerald-700/50'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1">
