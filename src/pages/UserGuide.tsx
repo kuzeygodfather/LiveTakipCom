@@ -13,8 +13,8 @@ export default function UserGuide() {
         </p>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
+        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
           <Info className="w-6 h-6 text-blue-600" />
           Sistem Genel Bakış
         </h2>
@@ -23,7 +23,7 @@ export default function UserGuide() {
             Bu sistem, LiveChat üzerinden yapılan müşteri görüşmelerini otomatik olarak analiz eder,
             personel performansını değerlendirir ve kalite kontrolü sağlar.
           </p>
-          <p className="font-medium text-slate-900">Temel Özellikler:</p>
+          <p className="font-medium text-white">Temel Özellikler:</p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>Otomatik chat senkronizasyonu (her 2 dakikada bir)</li>
             <li>AI destekli kalite analizi (Claude AI kullanarak)</li>
@@ -35,7 +35,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <BarChart3 className="w-6 h-6 text-blue-600" />
           Dashboard (Ana Sayfa)
@@ -130,7 +130,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <MessageSquare className="w-6 h-6 text-blue-600" />
           Chat Listesi
@@ -158,7 +158,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <Users className="w-6 h-6 text-blue-600" />
           Personel Performansı
@@ -245,7 +245,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-blue-600" />
           AI Analiz Kriterleri
@@ -305,7 +305,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <AlertTriangle className="w-6 h-6 text-blue-600" />
           Müşteri Şikayet Analizi
@@ -455,7 +455,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <Award className="w-6 h-6 text-blue-600" />
           Bonus Sistemi
@@ -521,7 +521,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <FileText className="w-6 h-6 text-blue-600" />
           Raporlar
@@ -537,7 +537,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <Award className="w-6 h-6 text-blue-600" />
           Prim Raporları - Detaylı Kullanım Kılavuzu
@@ -967,7 +967,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <Eye className="w-6 h-6 text-blue-600" />
           İzleme (Monitoring)
@@ -989,7 +989,7 @@ export default function UserGuide() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
           <Settings className="w-6 h-6 text-blue-600" />
           Ayarlar

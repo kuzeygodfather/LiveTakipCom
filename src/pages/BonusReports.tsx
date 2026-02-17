@@ -346,8 +346,8 @@ export default function BonusReports() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Prim Raporlari</h1>
-        <p className="text-sm sm:text-base text-gray-600 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Prim Raporlari</h1>
+        <p className="text-sm sm:text-base text-slate-300 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-2 mb-6">
@@ -423,7 +423,7 @@ export default function BonusReports() {
 
       {viewMode === 'preview' && (
 
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
+      <div className="glass-effect rounded-lg shadow-lg p-4 sm:p-6 mb-6">
         <h2 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5" />
           Hesaplama Parametreleri
@@ -518,7 +518,7 @@ export default function BonusReports() {
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                      <h3 className="text-2xl font-bold text-white mb-1">
                         {getPeriodLabel(group.period)}
                       </h3>
                       <p className="text-sm text-gray-500">{group.personnelCount} Personel</p>
@@ -554,7 +554,7 @@ export default function BonusReports() {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="glass-effect rounded-lg shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -594,7 +594,7 @@ export default function BonusReports() {
                           {calc.metrics_snapshot?.personnel_name?.charAt(0) || '?'}
                         </div>
                         <div className="ml-3">
-                          <p className="text-sm font-medium text-gray-900">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
+                          <p className="text-sm font-medium text-white">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
                         </div>
                       </div>
                     </td>
@@ -643,7 +643,7 @@ export default function BonusReports() {
                       {calc.metrics_snapshot?.personnel_name?.charAt(0) || '?'}
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
+                      <p className="font-bold text-white">{calc.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
                       <p className="text-sm text-gray-500">{calc.metrics_snapshot?.total_chats || 0} chat</p>
                     </div>
                   </div>
@@ -682,7 +682,7 @@ export default function BonusReports() {
                     <FileText className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Prim Detay Raporu</h2>
+                    <h2 className="text-2xl font-bold text-white">Prim Detay Raporu</h2>
                     <p className="text-sm text-gray-500 mt-1">
                       {new Date(selectedRecord.calculated_at).toLocaleDateString('tr-TR', {
                         timeZone: 'Europe/Istanbul',
@@ -705,7 +705,7 @@ export default function BonusReports() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Personel</p>
-                    <p className="text-xl font-bold text-gray-900">{selectedRecord.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
+                    <p className="text-xl font-bold text-white">{selectedRecord.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Toplam Prim</p>
@@ -715,7 +715,7 @@ export default function BonusReports() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Dönem Tipi</p>
-                    <p className="text-lg font-semibold text-gray-900 capitalize">{selectedRecord.period_type === 'monthly' ? 'Aylık' : selectedRecord.period_type === 'weekly' ? 'Haftalık' : 'Günlük'}</p>
+                    <p className="text-lg font-semibold text-white capitalize">{selectedRecord.period_type === 'monthly' ? 'Aylık' : selectedRecord.period_type === 'weekly' ? 'Haftalık' : 'Günlük'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">Dönem</p>
@@ -727,7 +727,7 @@ export default function BonusReports() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-blue-600" />
                   Performans Metrikleri
                 </h3>
@@ -768,7 +768,7 @@ export default function BonusReports() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                   <Calculator className="w-5 h-5 text-green-600" />
                   Uygulanan Prim Kuralları
                 </h3>
@@ -778,7 +778,7 @@ export default function BonusReports() {
                       <div key={idx} className="bg-gradient-to-r from-white to-gray-50 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <p className="font-bold text-gray-900 text-base mb-2">{detail.rule_name}</p>
+                            <p className="font-bold text-white text-base mb-2">{detail.rule_name}</p>
                             <div className="flex flex-wrap gap-3 text-sm">
                               <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
                                 {metricLabels[detail.metric_type]}

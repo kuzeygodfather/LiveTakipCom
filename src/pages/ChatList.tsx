@@ -287,8 +287,8 @@ export default function ChatList() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Tum Chatler</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-1">LiveChat'ten gelen tum sohbetler</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Tum Chatler</h1>
+          <p className="text-sm sm:text-base text-slate-300 mt-1">LiveChat'ten gelen tum sohbetler</p>
         </div>
         <button
           onClick={loadChats}
@@ -299,11 +299,11 @@ export default function ChatList() {
       </div>
 
       {/* Filters Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-slate-600" />
-            <h2 className="text-lg font-semibold text-slate-900">Filtreler</h2>
+            <h2 className="text-lg font-semibold text-white">Filtreler</h2>
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -470,7 +470,7 @@ export default function ChatList() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4">
+        <div className="glass-effect rounded-lg shadow-lg p-3 sm:p-4">
           <p className="text-xs sm:text-sm text-slate-600">Toplam Chat</p>
           <p className="text-lg sm:text-2xl font-bold text-slate-900">{filteredChats.length}</p>
         </div>
@@ -653,8 +653,8 @@ export default function ChatList() {
       {/* Chat List */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Left: Chat List */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 max-h-[600px] lg:max-h-[800px] overflow-y-auto">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">
+        <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6 max-h-[600px] lg:max-h-[800px] overflow-y-auto">
+          <h2 className="text-lg font-semibold text-white mb-4">
             Chatler ({filteredChats.length})
           </h2>
 
@@ -685,7 +685,7 @@ export default function ChatList() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-sm">
                       <User className="w-4 h-4 text-slate-400" />
-                      <span className="font-medium text-slate-900">{maskName(chat.customer_name)}</span>
+                      <span className="font-medium text-white">{maskName(chat.customer_name)}</span>
                       <span className="text-slate-500">→</span>
                       <span className="text-slate-700">{chat.agent_name}</span>
                     </div>
@@ -769,7 +769,7 @@ export default function ChatList() {
         </div>
 
         {/* Right: Chat Details */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 max-h-[600px] lg:max-h-[800px] overflow-y-auto">
+        <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6 max-h-[600px] lg:max-h-[800px] overflow-y-auto">
           {!selectedChat ? (
             <div className="flex flex-col items-center justify-center h-full text-slate-500">
               <MessageSquare className="w-12 h-12 mb-4 opacity-50" />
@@ -778,7 +778,7 @@ export default function ChatList() {
           ) : (
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-slate-900">Chat Detayları</h2>
+                <h2 className="text-lg font-semibold text-white">Chat Detayları</h2>
                 <button
                   onClick={() => setSelectedChat(null)}
                   className="text-slate-400 hover:text-slate-600"
@@ -795,7 +795,7 @@ export default function ChatList() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Müşteri:</span>
-                  <span className="text-sm font-medium text-slate-900">{maskName(selectedChat.customer_name)}</span>
+                  <span className="text-sm font-medium text-white">{maskName(selectedChat.customer_name)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-600">Temsilci:</span>
@@ -866,7 +866,7 @@ export default function ChatList() {
 
               {/* Messages */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-4">Mesajlar</h3>
+                <h3 className="text-sm font-semibold text-white mb-4">Mesajlar</h3>
                 {loadingMessages ? (
                   <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>

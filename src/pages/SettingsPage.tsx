@@ -85,8 +85,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Ayarlar</h1>
-        <p className="text-sm sm:text-base text-slate-600 mt-1">API anahtarlari ve sistem konfigurasyonu</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Ayarlar</h1>
+        <p className="text-sm sm:text-base text-slate-300 mt-1">API anahtarlari ve sistem konfigurasyonu</p>
       </div>
 
       {message && (
@@ -101,10 +101,10 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
           <Key className="w-6 h-6 text-slate-700" />
-          <h2 className="text-xl font-bold text-slate-900">Claude AI API</h2>
+          <h2 className="text-xl font-bold text-white">Claude AI API</h2>
         </div>
 
         <div className="space-y-4">
@@ -126,10 +126,10 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
           <MessageSquare className="w-6 h-6 text-slate-700" />
-          <h2 className="text-xl font-bold text-slate-900">LiveChat API</h2>
+          <h2 className="text-xl font-bold text-white">LiveChat API</h2>
         </div>
 
         <div className="space-y-4">
@@ -151,10 +151,10 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
           <Send className="w-6 h-6 text-slate-700" />
-          <h2 className="text-xl font-bold text-slate-900">Telegram Bot</h2>
+          <h2 className="text-xl font-bold text-white">Telegram Bot</h2>
         </div>
 
         <div className="space-y-4">

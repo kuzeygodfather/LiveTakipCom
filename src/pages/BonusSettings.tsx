@@ -202,8 +202,8 @@ export default function BonusSettings() {
     <div className="max-w-7xl mx-auto">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Prim Ayarlari</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-2">Personel performans bazli prim kurallarini yonetin</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Prim Ayarlari</h1>
+          <p className="text-sm sm:text-base text-slate-300 mt-2">Personel performans bazli prim kurallarini yonetin</p>
         </div>
         <button
           onClick={() => {
@@ -219,7 +219,7 @@ export default function BonusSettings() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 mb-6 border border-gray-200">
+        <div className="glass-effect rounded-lg shadow-lg p-4 sm:p-6 mb-6">
           <h2 className="text-lg sm:text-xl font-semibold mb-4">
             {editingRule ? 'Kuralı Düzenle' : 'Yeni Kural Ekle'}
           </h2>
@@ -379,7 +379,7 @@ export default function BonusSettings() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="glass-effect rounded-lg shadow-lg overflow-hidden">
         <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -411,7 +411,7 @@ export default function BonusSettings() {
                       </button>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-sm font-medium text-gray-900">{rule.rule_name}</div>
+                      <div className="text-sm font-medium text-white">{rule.rule_name}</div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="text-sm text-gray-600">{getConditionText(rule)}</div>

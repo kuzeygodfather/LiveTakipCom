@@ -317,7 +317,7 @@ export default function ChatAnalysisList() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
         <button
           onClick={() => setFilterSentiment('all')}
-          className={`bg-white rounded-xl shadow-sm border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
+          className={`glass-effect rounded-xl shadow-lg border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
             filterSentiment === 'all' ? 'border-blue-500 ring-2 ring-blue-200' : 'border-slate-200'
           }`}
         >
@@ -334,7 +334,7 @@ export default function ChatAnalysisList() {
 
         <button
           onClick={() => setFilterSentiment('positive')}
-          className={`bg-white rounded-xl shadow-sm border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
+          className={`glass-effect rounded-xl shadow-lg border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
             filterSentiment === 'positive' ? 'border-green-500 ring-2 ring-green-200' : 'border-slate-200'
           }`}
         >
@@ -351,7 +351,7 @@ export default function ChatAnalysisList() {
 
         <button
           onClick={() => setFilterSentiment('neutral')}
-          className={`bg-white rounded-xl shadow-sm border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
+          className={`glass-effect rounded-xl shadow-lg border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
             filterSentiment === 'neutral' ? 'border-slate-500 ring-2 ring-slate-200' : 'border-slate-200'
           }`}
         >
@@ -368,7 +368,7 @@ export default function ChatAnalysisList() {
 
         <button
           onClick={() => setFilterSentiment('negative')}
-          className={`bg-white rounded-xl shadow-sm border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
+          className={`glass-effect rounded-xl shadow-lg border-2 p-4 sm:p-5 hover:shadow-md transition-all text-left ${
             filterSentiment === 'negative' ? 'border-red-500 ring-2 ring-red-200' : 'border-slate-200'
           }`}
         >
@@ -383,7 +383,7 @@ export default function ChatAnalysisList() {
           </div>
         </button>
 
-        <div className="col-span-2 lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5">
+        <div className="col-span-2 lg:col-span-1 glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
               <BarChart3 className="w-5 h-5 text-amber-600" />
@@ -396,7 +396,7 @@ export default function ChatAnalysisList() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex flex-col gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />

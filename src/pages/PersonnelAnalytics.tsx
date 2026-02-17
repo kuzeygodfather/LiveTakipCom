@@ -361,8 +361,8 @@ export default function PersonnelAnalytics() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Personel Performansi</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-1">Temsilci bazli kalite analizi ve performans metrikleri</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Personel Performansi</h1>
+          <p className="text-sm sm:text-base text-slate-300 mt-1">Temsilci bazli kalite analizi ve performans metrikleri</p>
         </div>
         <button
           onClick={recalculateStats}
@@ -375,8 +375,8 @@ export default function PersonnelAnalytics() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 max-h-[60vh] lg:max-h-none overflow-y-auto">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">Personel Listesi</h2>
+        <div className="lg:col-span-1 glass-effect rounded-xl shadow-lg p-4 sm:p-6 max-h-[60vh] lg:max-h-none overflow-y-auto">
+          <h2 className="text-lg font-bold text-white mb-4">Personel Listesi</h2>
           <div className="space-y-2">
             {personnel.map((person) => {
               const statScore = person.average_score;
@@ -405,7 +405,7 @@ export default function PersonnelAnalytics() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <User className="w-5 h-5 text-slate-600" />
-                      <span className="font-semibold text-slate-900">{person.name}</span>
+                      <span className="font-semibold text-white">{person.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-500 font-medium">
@@ -473,10 +473,10 @@ export default function PersonnelAnalytics() {
         <div className="lg:col-span-2 space-y-6">
           {selectedPersonnel ? (
             <>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+              <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{selectedPersonnel.name}</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white">{selectedPersonnel.name}</h2>
                     {selectedPersonnel.email && (
                       <p className="text-slate-600 mt-1">{selectedPersonnel.email}</p>
                     )}
@@ -495,17 +495,17 @@ export default function PersonnelAnalytics() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">Toplam Chat</div>
-                    <div className="text-2xl font-bold text-slate-900">{selectedPersonnel.total_chats}</div>
+                    <div className="text-2xl font-bold text-white">{selectedPersonnel.total_chats}</div>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">İstatistiksel Skor</div>
                     <div className="text-2xl font-bold text-slate-900">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">Ham Skor</div>
                     <div className="text-xl font-bold text-slate-600">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
@@ -565,7 +565,7 @@ export default function PersonnelAnalytics() {
                       {ratingInfo[selectedPersonnel.name]?.dislike_count || 0}
                     </div>
                   </button>
-                  <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
                       <PhoneOff className="w-3 h-3" />
                       Kaçan Chat
@@ -574,7 +574,7 @@ export default function PersonnelAnalytics() {
                       {ratingInfo[selectedPersonnel.name]?.missed_count || 0}
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">Ort. İlk Yanıt</div>
                     <div className="text-xl font-bold text-blue-600">
                       {ratingInfo[selectedPersonnel.name]?.avg_first_response_time !== null && ratingInfo[selectedPersonnel.name]?.avg_first_response_time !== undefined
@@ -582,7 +582,7 @@ export default function PersonnelAnalytics() {
                         : 'Veri yok'}
                     </div>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-lg">
+                  <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1">Ort. Çözüm Süresi</div>
                     <div className="text-xl font-bold text-purple-600">
                       {ratingInfo[selectedPersonnel.name]?.avg_resolution_time !== null && ratingInfo[selectedPersonnel.name]?.avg_resolution_time !== undefined
@@ -594,11 +594,11 @@ export default function PersonnelAnalytics() {
               </div>
 
               {dailyStats.length > 0 && (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Son 30 Gün Performansı</h3>
+                <div className="glass-effect rounded-xl shadow-lg p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Son 30 Gün Performansı</h3>
                   <div className="space-y-2">
                     {dailyStats.slice(0, 10).map((stat) => (
-                      <div key={stat.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                      <div key={stat.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
                         <div className="flex items-center gap-4">
                           <span className="text-sm font-medium text-slate-700">
                             {new Date(stat.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
@@ -621,10 +621,10 @@ export default function PersonnelAnalytics() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 {selectedPersonnel.strong_topics && selectedPersonnel.strong_topics.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <div className="glass-effect rounded-xl shadow-lg p-6">
                     <div className="flex items-center gap-2 mb-4">
                       <Award className="w-5 h-5 text-green-600" />
-                      <h3 className="text-lg font-bold text-slate-900">Güçlü Konular</h3>
+                      <h3 className="text-lg font-bold text-white">Güçlü Konular</h3>
                     </div>
                     <ul className="space-y-2">
                       {selectedPersonnel.strong_topics.map((topic: any, i: number) => (
@@ -638,10 +638,10 @@ export default function PersonnelAnalytics() {
                 )}
 
                 {selectedPersonnel.weak_topics && selectedPersonnel.weak_topics.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                  <div className="glass-effect rounded-xl shadow-lg p-6">
                     <div className="flex items-center gap-2 mb-4">
                       <AlertTriangle className="w-5 h-5 text-orange-600" />
-                      <h3 className="text-lg font-bold text-slate-900">Gelişmeli Konular</h3>
+                      <h3 className="text-lg font-bold text-white">Gelişmeli Konular</h3>
                     </div>
                     <ul className="space-y-2">
                       {selectedPersonnel.weak_topics.map((topic: any, i: number) => (
@@ -656,7 +656,7 @@ export default function PersonnelAnalytics() {
               </div>
             </>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <div className="glass-effect rounded-xl shadow-lg p-12 text-center">
               <User className="w-16 h-16 mx-auto text-slate-300 mb-4" />
               <p className="text-slate-600">Personel seçin</p>
             </div>

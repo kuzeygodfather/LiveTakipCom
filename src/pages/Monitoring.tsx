@@ -277,8 +277,8 @@ export default function Monitoring() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Canli Izleme</h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-1">Sistem durumu ve otomatik islem yonetimi</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Canli Izleme</h1>
+          <p className="text-sm sm:text-base text-slate-300 mt-1">Sistem durumu ve otomatik islem yonetimi</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm">
@@ -293,7 +293,7 @@ export default function Monitoring() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5">
+        <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
               <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -302,7 +302,7 @@ export default function Monitoring() {
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-slate-900">{stats.total}</div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5">
+        <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
               <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
@@ -311,7 +311,7 @@ export default function Monitoring() {
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.analyzed}</div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5">
+        <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
               <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
@@ -320,7 +320,7 @@ export default function Monitoring() {
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-orange-600">{stats.unanalyzed}</div>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5">
+        <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div className="p-1.5 sm:p-2 bg-red-100 rounded-lg">
               <Send className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
@@ -337,7 +337,7 @@ export default function Monitoring() {
             <Zap className="w-6 h-6 text-blue-600" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Otomatik Sistem Yönetimi</h3>
+            <h3 className="text-lg font-bold text-white mb-2">Otomatik Sistem Yönetimi</h3>
             <p className="text-sm text-slate-600 mb-4">
               Sistem tamamen otomatik çalışmaktadır. Senkronizasyon ve analiz işlemleri sunucu tarafında otomatik olarak gerçekleştirilir.
             </p>
@@ -490,9 +490,9 @@ export default function Monitoring() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base sm:text-lg font-bold text-slate-900">Sistem Loglari</h2>
+          <h2 className="text-base sm:text-lg font-bold text-white">Sistem Loglari</h2>
           <button
             onClick={() => setLogs([])}
             className="text-sm text-slate-500 hover:text-slate-700"

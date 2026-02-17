@@ -913,30 +913,26 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-effect rounded-xl shadow-lg p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center gap-2 flex-1 p-3 bg-green-50 rounded-lg border border-green-200">
-              <Smile className="w-5 h-5 text-green-600" />
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl border border-emerald-500/30 shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform">
+              <Smile className="w-5 h-5 text-emerald-400" />
               <div>
-                <div className="text-xs text-green-600 font-medium">Pozitif</div>
-                <div className="text-lg font-bold text-green-900">{sentimentDistribution[0]?.value || 0}</div>
+                <div className="text-xs text-emerald-300 font-medium">Pozitif</div>
+                <div className="text-lg font-bold text-white">{sentimentDistribution[0]?.value || 0}</div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center gap-2 flex-1 p-3 bg-orange-50 rounded-lg border border-orange-200">
-              <Meh className="w-5 h-5 text-orange-600" />
+            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl border border-amber-500/30 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform">
+              <Meh className="w-5 h-5 text-amber-400" />
               <div>
-                <div className="text-xs text-orange-600 font-medium">Nötr</div>
-                <div className="text-lg font-bold text-orange-900">{sentimentDistribution[1]?.value || 0}</div>
+                <div className="text-xs text-amber-300 font-medium">Nötr</div>
+                <div className="text-lg font-bold text-white">{sentimentDistribution[1]?.value || 0}</div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 flex-1 p-3 bg-red-50 rounded-lg border border-red-200">
-              <Frown className="w-5 h-5 text-red-600" />
+            <div className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/20 to-red-500/20 rounded-xl border border-rose-500/30 shadow-lg shadow-rose-500/20 hover:scale-105 transition-transform">
+              <Frown className="w-5 h-5 text-rose-400" />
               <div>
-                <div className="text-xs text-red-600 font-medium">Negatif</div>
-                <div className="text-lg font-bold text-red-900">{sentimentDistribution[2]?.value || 0}</div>
+                <div className="text-xs text-rose-300 font-medium">Negatif</div>
+                <div className="text-lg font-bold text-white">{sentimentDistribution[2]?.value || 0}</div>
               </div>
             </div>
           </div>
@@ -1195,18 +1191,18 @@ export default function Dashboard() {
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-slate-800/50 border-b border-cyan-500/20">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarih</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Toplam Chat</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Analiz Edilen</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negatif</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nötr</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negatif %</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nötr %</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Tarih</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Toplam Chat</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Analiz Edilen</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Negatif</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Nötr</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Negatif %</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-cyan-300 uppercase">Nötr %</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-700/50">
                 {(() => {
                   let filteredData = complaintData;
 
@@ -1228,42 +1224,42 @@ export default function Dashboard() {
                   const negativePercent = data.analyzedChats > 0 ? (data.negative / data.analyzedChats) * 100 : 0;
                   const neutralPercent = data.analyzedChats > 0 ? (data.neutral / data.analyzedChats) * 100 : 0;
                   return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{data.date}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900 font-semibold">{data.totalChats}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{data.analyzedChats}</td>
+                    <tr key={index} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="px-4 py-3 text-sm font-medium text-white">{data.date}</td>
+                      <td className="px-4 py-3 text-sm text-white font-semibold">{data.totalChats}</td>
+                      <td className="px-4 py-3 text-sm text-slate-300">{data.analyzedChats}</td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full font-semibold">
+                        <span className="px-2 py-1 bg-rose-500/20 text-rose-300 rounded-full font-semibold border border-rose-500/30">
                           {data.negative}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full font-semibold">
+                        <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded-full font-semibold border border-amber-500/30">
                           {data.neutral}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-red-500 rounded-full"
+                              className="h-full bg-gradient-to-r from-rose-500 to-red-500 rounded-full shadow-lg shadow-rose-500/50"
                               style={{ width: `${negativePercent}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-red-600 w-12 text-right">
+                          <span className="text-xs font-semibold text-rose-400 w-12 text-right">
                             {negativePercent.toFixed(1)}%
                           </span>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-orange-500 rounded-full"
+                              className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-lg shadow-amber-500/50"
                               style={{ width: `${neutralPercent}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-orange-600 w-12 text-right">
+                          <span className="text-xs font-semibold text-amber-400 w-12 text-right">
                             {neutralPercent.toFixed(1)}%
                           </span>
                         </div>

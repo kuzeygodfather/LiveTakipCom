@@ -833,18 +833,18 @@ export default function Reports() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Raporlar & Analizler</h1>
-          <p className="text-slate-600 mt-1">Performans takibi, trend analizi ve gelişim raporları</p>
+          <h1 className="text-3xl font-bold text-white">Raporlar & Analizler</h1>
+          <p className="text-slate-300 mt-1">Performans takibi, trend analizi ve gelişim raporları</p>
         </div>
 
-        <div className="border-b border-slate-200">
+        <div className="border-b border-slate-700/50">
           <nav className="-mb-px flex gap-2">
             <button
               onClick={() => setActiveTab('trends')}
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'trends'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+                  : 'border-transparent text-slate-300 hover:text-white hover:border-slate-700/50'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -857,7 +857,7 @@ export default function Reports() {
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'coaching'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+                  : 'border-transparent text-slate-300 hover:text-white hover:border-slate-700/50'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -875,7 +875,7 @@ export default function Reports() {
               className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === 'improvement'
                   ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+                  : 'border-transparent text-slate-300 hover:text-white hover:border-slate-700/50'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -929,12 +929,12 @@ export default function Reports() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
+          <div className="glass-effect rounded-xl shadow-lg p-6">
             {trendData.length === 0 ? (
               <div className="text-center py-16">
                 <Calendar className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Veri Bulunamadı</h3>
-                <p className="text-slate-600">Bu dönem için henüz analiz verisi bulunmuyor.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Veri Bulunamadı</h3>
+                <p className="text-slate-300">Bu dönem için henüz analiz verisi bulunmuyor.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -952,15 +952,15 @@ export default function Reports() {
                   }
 
                   return (
-                    <div key={item.date} className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl p-5 border border-slate-200 hover:shadow-md transition-shadow">
+                    <div key={item.date} className="bg-gradient-to-r from-slate-50 to-blue-50/30 rounded-xl p-5 border border-slate-700/50 hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-blue-100 rounded-lg">
                             <Calendar className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
-                            <div className="text-lg font-bold text-slate-900">{displayDate}</div>
-                            <div className="text-sm text-slate-600">{item.totalChats} toplam görüşme</div>
+                            <div className="text-lg font-bold text-white">{displayDate}</div>
+                            <div className="text-sm text-slate-300">{item.totalChats} toplam görüşme</div>
                           </div>
                         </div>
                       </div>
@@ -1008,23 +1008,23 @@ export default function Reports() {
       {activeTab === 'coaching' && (
         <div className="space-y-6">
           {negativeChats.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-12">
+            <div className="glass-effect rounded-xl shadow-lg p-12">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
                   <CheckCircle className="w-10 h-10 text-green-600" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Mükemmel Performans!</h3>
-                <p className="text-slate-600">Son 30 günde olumsuz değerlendirilen chat bulunamadı.</p>
+                <h3 className="text-2xl font-bold text-white mb-2">Mükemmel Performans!</h3>
+                <p className="text-slate-300">Son 30 günde olumsuz değerlendirilen chat bulunamadı.</p>
               </div>
             </div>
           ) : (
             <>
-              <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
+              <div className="glass-effect rounded-xl shadow-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Filter className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900">Filtreler</h3>
+                  <h3 className="text-lg font-bold text-white">Filtreler</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1240,11 +1240,11 @@ export default function Reports() {
               </div>
 
               {filteredChats.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-md border border-slate-200 p-12">
+                <div className="glass-effect rounded-xl shadow-lg p-12">
                   <div className="text-center">
                     <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Sonuç Bulunamadı</h3>
-                    <p className="text-slate-600 mb-4">Seçtiğiniz filtrelere uygun chat bulunamadı.</p>
+                    <h3 className="text-lg font-semibold text-white mb-2">Sonuç Bulunamadı</h3>
+                    <p className="text-slate-300 mb-4">Seçtiğiniz filtrelere uygun chat bulunamadı.</p>
                     <button
                       onClick={() => {
                         setSelectedAgent('all');
@@ -1268,7 +1268,7 @@ export default function Reports() {
                     return (
                       <div
                         key={chat.id}
-                        className="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow"
+                        className="glass-effect rounded-xl shadow-lg overflow-hidden hover:shadow-lg transition-shadow"
                       >
                         <button
                           onClick={() => toggleChat(chat.id)}
@@ -1279,7 +1279,7 @@ export default function Reports() {
                               <div className="flex flex-wrap items-center gap-3 mb-3">
                                 <div className="flex items-center gap-2">
                                   <Users className="w-4 h-4 text-slate-600" />
-                                  <span className="font-bold text-slate-900">{chat.agent_name}</span>
+                                  <span className="font-bold text-white">{chat.agent_name}</span>
                                 </div>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getSentimentColor(chat.sentiment, chat.overall_score)}`}>
                                   {getSentimentLabel(chat.sentiment)} • {Math.round(chat.overall_score)}/100
@@ -1291,7 +1291,7 @@ export default function Reports() {
                               </div>
 
                               {chat.ai_summary && (
-                                <p className="text-sm text-slate-700 mb-3 leading-relaxed">{chat.ai_summary}</p>
+                                <p className="text-sm text-white mb-3 leading-relaxed">{chat.ai_summary}</p>
                               )}
 
                               {getIssues(chat).length > 0 && (
@@ -1319,18 +1319,18 @@ export default function Reports() {
                         </button>
 
                         {isExpanded && (
-                          <div className="border-t border-slate-200 p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 space-y-5">
+                          <div className="border-t border-slate-700/50 p-5 bg-gradient-to-br from-slate-800/30 to-blue-50/30 space-y-5">
                             {chat.messages && chat.messages.length > 0 && (
                               <div>
-                                <h4 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
+                                <h4 className="font-bold text-white mb-3 flex items-center gap-2">
                                   <MessageCircle className="w-5 h-5 text-blue-600" />
                                   Chat Görüşmesi
                                 </h4>
-                                <div className="bg-white rounded-lg border border-slate-200 p-4 max-h-72 overflow-y-auto space-y-3">
+                                <div className="bg-slate-800/30 rounded-lg border border-slate-700/50 p-4 max-h-72 overflow-y-auto space-y-3">
                                   {chat.messages.map((msg, idx) => (
                                     <div key={idx} className="text-sm">
-                                      <span className="font-semibold text-slate-900">{msg.author.name}:</span>
-                                      <span className="text-slate-700 ml-2">{msg.text}</span>
+                                      <span className="font-semibold text-white">{msg.author.name}:</span>
+                                      <span className="text-white ml-2">{msg.text}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -1343,7 +1343,7 @@ export default function Reports() {
                                 : 'bg-gradient-to-br from-blue-50 to-sky-50 border-blue-300'
                             }`}>
                               <div className="flex items-center justify-between mb-4">
-                                <h4 className="font-bold text-slate-900 flex items-center gap-2 text-lg">
+                                <h4 className="font-bold text-white flex items-center gap-2 text-lg">
                                   {chat.sent_feedback ? (
                                     <>
                                       <div className="p-2 bg-green-100 rounded-lg">
@@ -1423,13 +1423,13 @@ export default function Reports() {
       {activeTab === 'improvement' && (
         <div className="space-y-6">
           {agentsWithCoaching.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-12">
+            <div className="glass-effect rounded-xl shadow-lg p-12">
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-slate-100 rounded-full mb-4">
                   <Target className="w-10 h-10 text-slate-400" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Henüz Gelişim Verisi Yok</h3>
-                <p className="text-slate-600 mb-4">Personel gelişimini takip etmek için öncelikle koçluk önerileri göndermelisiniz.</p>
+                <h3 className="text-2xl font-bold text-white mb-2">Henüz Gelişim Verisi Yok</h3>
+                <p className="text-slate-300 mb-4">Personel gelişimini takip etmek için öncelikle koçluk önerileri göndermelisiniz.</p>
                 <button
                   onClick={() => setActiveTab('coaching')}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -1455,7 +1455,7 @@ export default function Reports() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-md border border-slate-200 p-6">
+              <div className="glass-effect rounded-xl shadow-lg p-6">
                 <label className="block text-sm font-semibold text-slate-700 mb-3">Personel Seçin</label>
                 <select
                   value={selectedImprovementAgent}
@@ -1472,7 +1472,7 @@ export default function Reports() {
               </div>
 
               {loadingImprovements && (
-                <div className="bg-white rounded-xl shadow-md border border-slate-200 p-12">
+                <div className="glass-effect rounded-xl shadow-lg p-12">
                   <div className="flex flex-col items-center justify-center">
                     <Loader2 className="w-12 h-12 animate-spin text-green-600 mb-4" />
                     <span className="text-slate-700 font-medium">Gelişim raporu hazırlanıyor...</span>
@@ -1502,7 +1502,7 @@ export default function Reports() {
                               <Target className="w-8 h-8 text-green-600" />
                             </div>
                             <div>
-                              <h3 className="text-xl font-bold text-slate-900">
+                              <h3 className="text-xl font-bold text-white">
                                 {agentsWithCoaching.find(a => a.email === report.agent_email)?.name}
                               </h3>
                               <p className="text-sm text-slate-600 mt-1">
@@ -1516,23 +1516,23 @@ export default function Reports() {
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                          <div className="bg-white rounded-xl border-2 border-slate-200 p-5 shadow-sm">
+                          <div className="bg-slate-800/30 rounded-xl border-2 border-slate-700/50 p-5 shadow-sm">
                             <h4 className="text-base font-bold text-slate-700 mb-4 flex items-center gap-2">
                               <Calendar className="w-5 h-5 text-slate-600" />
                               Öneri Öncesi (30 Gün)
                             </h4>
                             <div className="space-y-4">
-                              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                              <div className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
                                 <span className="text-sm font-medium text-slate-600">Personel Skoru</span>
-                                <span className="text-xl font-bold text-slate-900">{beforeAvgScore}/100</span>
+                                <span className="text-xl font-bold text-white">{beforeAvgScore}/100</span>
                               </div>
-                              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                              <div className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
                                 <span className="text-sm font-medium text-slate-600">Analiz Skoru</span>
-                                <span className="text-xl font-bold text-slate-900">{beforeAnalysisScore}/100</span>
+                                <span className="text-xl font-bold text-white">{beforeAnalysisScore}/100</span>
                               </div>
-                              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                              <div className="flex justify-between items-center p-3 bg-slate-800/30 rounded-lg">
                                 <span className="text-sm font-medium text-slate-600">Toplam Chat</span>
-                                <span className="text-xl font-bold text-slate-900">{report.before_coaching?.total_chats || 0}</span>
+                                <span className="text-xl font-bold text-white">{report.before_coaching?.total_chats || 0}</span>
                               </div>
                             </div>
                           </div>
@@ -1546,7 +1546,7 @@ export default function Reports() {
                               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                                 <span className="text-sm font-medium text-slate-600">Personel Skoru</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xl font-bold text-slate-900">{afterAvgScore}/100</span>
+                                  <span className="text-xl font-bold text-white">{afterAvgScore}/100</span>
                                   <span className={`text-sm font-bold px-2 py-1 rounded-full ${
                                     scoreDiff > 0 ? 'bg-green-200 text-green-800' :
                                     scoreDiff < 0 ? 'bg-red-200 text-red-800' :
@@ -1559,7 +1559,7 @@ export default function Reports() {
                               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                                 <span className="text-sm font-medium text-slate-600">Analiz Skoru</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xl font-bold text-slate-900">{afterAnalysisScore}/100</span>
+                                  <span className="text-xl font-bold text-white">{afterAnalysisScore}/100</span>
                                   <span className={`text-sm font-bold px-2 py-1 rounded-full ${
                                     analysisDiff > 0 ? 'bg-green-200 text-green-800' :
                                     analysisDiff < 0 ? 'bg-red-200 text-red-800' :
@@ -1571,7 +1571,7 @@ export default function Reports() {
                               </div>
                               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                                 <span className="text-sm font-medium text-slate-600">Toplam Chat</span>
-                                <span className="text-xl font-bold text-slate-900">{report.after_coaching?.total_chats || 0}</span>
+                                <span className="text-xl font-bold text-white">{report.after_coaching?.total_chats || 0}</span>
                               </div>
                             </div>
                           </div>
@@ -1623,11 +1623,11 @@ export default function Reports() {
               )}
 
               {!loadingImprovements && selectedImprovementAgent && improvementReports.length === 0 && (
-                <div className="bg-white rounded-xl shadow-md border border-slate-200 p-12">
+                <div className="glass-effect rounded-xl shadow-lg p-12">
                   <div className="text-center">
                     <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">Gelişim Verisi Bulunamadı</h3>
-                    <p className="text-slate-600">
+                    <h3 className="text-lg font-semibold text-white mb-2">Gelişim Verisi Bulunamadı</h3>
+                    <p className="text-slate-300">
                       Bu personel için henüz yeterli gelişim verisi bulunmuyor.
                       Koçluk önerisinden sonra 30 gün geçmesi gerekiyor.
                     </p>

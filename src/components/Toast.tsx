@@ -20,14 +20,14 @@ export function Toast({ message, type, onClose, duration = 5000 }: ToastProps) {
 
   const styles = {
     success: {
-      bg: 'bg-gradient-to-r from-green-500 to-emerald-600',
+      bg: 'bg-gradient-to-r from-emerald-500 to-green-600',
       icon: CheckCircle,
-      iconBg: 'bg-green-400/30',
+      iconBg: 'bg-emerald-400/30',
     },
     error: {
-      bg: 'bg-gradient-to-r from-red-500 to-rose-600',
+      bg: 'bg-gradient-to-r from-rose-500 to-red-600',
       icon: XCircle,
-      iconBg: 'bg-red-400/30',
+      iconBg: 'bg-rose-400/30',
     },
     warning: {
       bg: 'bg-gradient-to-r from-amber-500 to-orange-600',
@@ -35,9 +35,9 @@ export function Toast({ message, type, onClose, duration = 5000 }: ToastProps) {
       iconBg: 'bg-amber-400/30',
     },
     info: {
-      bg: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+      bg: 'bg-gradient-to-r from-cyan-500 to-emerald-600',
       icon: Info,
-      iconBg: 'bg-blue-400/30',
+      iconBg: 'bg-cyan-400/30',
     },
   };
 
