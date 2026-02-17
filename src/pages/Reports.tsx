@@ -146,7 +146,7 @@ export default function Reports() {
 
         dailyStats[dateStr].total_chats++;
 
-        const analysis = analysisMap.get(chat.chat_id);
+        const analysis = analysisMap.get(chat.id);
         if (analysis && analysis.overall_score > 0) {
           dailyStats[dateStr].total_personnel_score += analysis.overall_score;
           dailyStats[dateStr].personnel_count++;
@@ -176,6 +176,7 @@ export default function Reports() {
 
       console.log('Daily Stats Loaded:', dailyArray.length, 'days');
       console.log('Sample data:', dailyArray.slice(0, 3));
+      console.log('Total analysis matches:', (chatsRaw || []).filter((chat: any) => analysisMap.has(chat.id)).length, '/', (chatsRaw || []).length);
 
       setReportData({
         daily: dailyArray || [],
