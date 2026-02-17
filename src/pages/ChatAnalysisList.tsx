@@ -22,6 +22,7 @@ export default function ChatAnalysisList() {
   const [totalChatsCount, setTotalChatsCount] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
+  const [matchingChatIds, setMatchingChatIds] = useState<string[]>([]);
 
   const getIstanbulDateBoundaries = (dateStr: string): { start: Date, end: Date } => {
     const istanbulDate = new Date(dateStr + 'T00:00:00+03:00');
@@ -34,8 +35,33 @@ export default function ChatAnalysisList() {
   }, []);
 
   useEffect(() => {
+    if (searchTerm) {
+      searchInMessages(searchTerm);
+    } else {
+      setMatchingChatIds([]);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
     filterChats();
-  }, [chats, searchTerm, filterStatus, filterSentiment, dateFrom, dateTo]);
+  }, [chats, searchTerm, filterStatus, filterSentiment, dateFrom, dateTo, matchingChatIds]);
+
+  const searchInMessages = async (term: string) => {
+    try {
+      const { data: messages } = await supabase
+        .from('chat_messages')
+        .select('chat_id')
+        .ilike('text', `%${term}%`);
+
+      if (messages) {
+        const uniqueChatIds = [...new Set(messages.map(m => m.chat_id))];
+        setMatchingChatIds(uniqueChatIds);
+      }
+    } catch (error) {
+      console.error('Error searching in messages:', error);
+      setMatchingChatIds([]);
+    }
+  };
 
   const loadChats = async () => {
     try {
@@ -141,7 +167,8 @@ export default function ChatAnalysisList() {
         (chat) =>
           chat.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
           chat.agent_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          chat.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
+          chat.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          matchingChatIds.includes(chat.id)
       );
     }
 
@@ -375,7 +402,7 @@ export default function ChatAnalysisList() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Chat ID, temsilci veya müşteri adı ile ara..."
+              placeholder="Chat ID, temsilci, müşteri adı veya mesaj içeriği ile ara..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
