@@ -254,13 +254,22 @@ export default function Reports() {
                  timeRange === 'weekly' ? reportData.weekly :
                  reportData.monthly;
 
+    if (timeRange === 'daily') {
+      return data.map((item: any) => ({
+        date: item.date,
+        analysisScore: item.analysis_count > 0 ? Math.round(item.total_analysis_score / item.analysis_count) : 0,
+        personnelScore: Math.round(item.average_score || 0),
+        responseTime: Math.round(item.average_response_time || 0),
+        resolutionTime: Math.round(item.average_resolution_time || 0),
+        totalChats: item.total_chats || 0,
+      })).sort((a: any, b: any) => b.date.localeCompare(a.date));
+    }
+
     const grouped = data.reduce((acc: any, curr: any) => {
       let groupKey: string;
       const dateObj = new Date(curr.date);
 
-      if (timeRange === 'daily') {
-        groupKey = curr.date;
-      } else if (timeRange === 'weekly') {
+      if (timeRange === 'weekly') {
         groupKey = getWeekNumber(dateObj);
       } else {
         groupKey = getMonthKey(dateObj);
