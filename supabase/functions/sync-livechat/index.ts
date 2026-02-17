@@ -188,12 +188,12 @@ Deno.serve(async (req: Request) => {
         }
       } else {
         const now = new Date();
-        startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+        startDate = new Date(now.getTime() - (10 * 60 * 1000)).toISOString();
         endDate = now.toISOString();
       }
     } catch (e) {
       const now = new Date();
-      startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+      startDate = new Date(now.getTime() - (10 * 60 * 1000)).toISOString();
       endDate = now.toISOString();
     }
 
