@@ -267,9 +267,9 @@ export default function Monitoring() {
 
   const getLogColor = (type: string) => {
     switch (type) {
-      case 'success': return 'text-green-700 bg-green-50 border-green-200';
-      case 'error': return 'text-red-700 bg-red-50 border-red-200';
-      default: return 'text-blue-700 bg-blue-50 border-blue-200';
+      case 'success': return 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20';
+      case 'error': return 'text-red-300 bg-red-500/10 border-red-500/20';
+      default: return 'text-blue-300 bg-blue-500/10 border-blue-500/20';
     }
   };
 
@@ -281,12 +281,12 @@ export default function Monitoring() {
           <p className="text-sm sm:text-base text-slate-200 mt-1">Sistem durumu ve otomatik islem yonetimi</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-green-100 text-green-800 text-xs sm:text-sm">
-            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-green-500 animate-pulse" />
+          <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 text-xs sm:text-sm">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="font-medium">Senk. (2dk - Sunucu)</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-blue-100 text-blue-800 text-xs sm:text-sm">
-            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-500 animate-pulse" />
+          <div className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20 text-xs sm:text-sm">
+            <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-400 animate-pulse" />
             <span className="font-medium">Analiz (5dk - Sunucu)</span>
           </div>
         </div>
@@ -295,63 +295,63 @@ export default function Monitoring() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
-              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+            <div className="p-1.5 sm:p-2 bg-blue-500/15 rounded-lg">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
             </div>
-            <span className="text-xs sm:text-sm text-slate-600">Toplam Chat</span>
+            <span className="text-xs sm:text-sm text-slate-400">Toplam Chat</span>
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-white">{stats.total}</div>
         </div>
         <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+            <div className="p-1.5 sm:p-2 bg-emerald-500/15 rounded-lg">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
             </div>
-            <span className="text-xs sm:text-sm text-slate-600">Analiz Edilen</span>
+            <span className="text-xs sm:text-sm text-slate-400">Analiz Edilen</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-green-600">{stats.analyzed}</div>
+          <div className="text-2xl sm:text-3xl font-bold text-emerald-400">{stats.analyzed}</div>
         </div>
         <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+            <div className="p-1.5 sm:p-2 bg-orange-500/15 rounded-lg">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
             </div>
-            <span className="text-xs sm:text-sm text-slate-600">Bekleyen</span>
+            <span className="text-xs sm:text-sm text-slate-400">Bekleyen</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-orange-600">{stats.unanalyzed}</div>
+          <div className="text-2xl sm:text-3xl font-bold text-orange-400">{stats.unanalyzed}</div>
         </div>
         <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-5">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <div className="p-1.5 sm:p-2 bg-red-100 rounded-lg">
-              <Send className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+            <div className="p-1.5 sm:p-2 bg-red-500/15 rounded-lg">
+              <Send className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
             </div>
-            <span className="text-xs sm:text-sm text-slate-600">Uyari</span>
+            <span className="text-xs sm:text-sm text-slate-400">Uyari</span>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-red-600">{pendingAlerts}</div>
+          <div className="text-2xl sm:text-3xl font-bold text-red-400">{pendingAlerts}</div>
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 p-6">
+      <div className="glass-effect rounded-xl border border-blue-500/20 p-6">
         <div className="flex items-start gap-4">
-          <div className="p-3 bg-blue-100 rounded-xl">
-            <Zap className="w-6 h-6 text-blue-600" />
+          <div className="p-3 bg-blue-500/15 rounded-xl">
+            <Zap className="w-6 h-6 text-blue-400" />
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-bold text-white mb-2">Otomatik Sistem Yönetimi</h3>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-slate-400 mb-4">
               Sistem tamamen otomatik çalışmaktadır. Senkronizasyon ve analiz işlemleri sunucu tarafında otomatik olarak gerçekleştirilir.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2 text-slate-200">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
+              <div className="flex items-center gap-2 text-slate-300">
+                <div className="w-2 h-2 rounded-full bg-blue-400" />
                 <span><strong>Senkronizasyon:</strong> Her 2 dakikada bir (son senkronizasyondan sonrası)</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-200">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
+              <div className="flex items-center gap-2 text-slate-300">
+                <div className="w-2 h-2 rounded-full bg-emerald-400" />
                 <span><strong>Analiz:</strong> Her 5 dakikada bir otomatik</span>
               </div>
             </div>
-            <p className="text-xs text-slate-100 mt-3 italic">
+            <p className="text-xs text-slate-400 mt-3 italic">
               Manuel butonlar acil durumlar veya özel tarih aralıkları için kullanılabilir.
             </p>
           </div>
@@ -389,7 +389,7 @@ export default function Monitoring() {
           {syncDropdownOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setSyncDropdownOpen(false)} />
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-40">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a2236] rounded-xl shadow-xl border border-white/10 overflow-hidden z-40">
                 {syncOptions.map((option) => (
                   <button
                     key={option.days}
@@ -398,29 +398,29 @@ export default function Monitoring() {
                       runPipeline(option.days);
                     }}
                     disabled={running}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-blue-50 transition-colors text-left disabled:opacity-50"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
                   >
                     <div>
                       <div className="text-sm font-medium text-white">{option.label}</div>
-                      <div className="text-xs text-slate-100">{option.description}</div>
+                      <div className="text-xs text-slate-400">{option.description}</div>
                     </div>
-                    <span className="text-xs text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded">{option.days} gun</span>
+                    <span className="text-xs text-blue-400 font-medium bg-blue-500/15 border border-blue-500/20 px-2 py-1 rounded">{option.days} gun</span>
                   </button>
                 ))}
-                <div className="border-t border-slate-200" />
+                <div className="border-t border-white/10" />
                 <button
                   onClick={() => {
                     setSyncDropdownOpen(false);
                     setShowCustomDatePicker(true);
                   }}
                   disabled={running}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors text-left disabled:opacity-50"
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
                 >
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-slate-600" />
+                    <Calendar className="w-4 h-4 text-slate-400" />
                     <div>
                       <div className="text-sm font-medium text-white">Özel Tarih Aralığı</div>
-                      <div className="text-xs text-slate-100">Başlangıç ve bitiş tarihi seç</div>
+                      <div className="text-xs text-slate-400">Başlangıç ve bitiş tarihi seç</div>
                     </div>
                   </div>
                 </button>
@@ -461,27 +461,27 @@ export default function Monitoring() {
       </div>
 
       {lastResult && (
-        <div className={`rounded-xl border p-4 sm:p-6 ${lastResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+        <div className={`glass-effect rounded-xl border p-4 sm:p-6 ${lastResult.success ? 'border-emerald-500/20' : 'border-red-500/20'}`}>
           <h3 className="font-bold text-base sm:text-lg mb-3 text-white">Son Pipeline Sonucu</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
             <div>
-              <div className="text-xs text-slate-600 mb-1">Senkronize</div>
+              <div className="text-xs text-slate-400 mb-1">Senkronize</div>
               <div className="text-xl font-bold text-white">{lastResult.synced || 0}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-600 mb-1">Yeni Chat</div>
+              <div className="text-xs text-slate-400 mb-1">Yeni Chat</div>
               <div className="text-xl font-bold text-white">{lastResult.new_chats || 0}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-600 mb-1">Analiz Edilen</div>
+              <div className="text-xs text-slate-400 mb-1">Analiz Edilen</div>
               <div className="text-xl font-bold text-white">{lastResult.analyzed || 0}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-600 mb-1">Uyari Gonderilen</div>
+              <div className="text-xs text-slate-400 mb-1">Uyari Gonderilen</div>
               <div className="text-xl font-bold text-white">{lastResult.alerts_sent || 0}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-600 mb-1">Zaman (İstanbul)</div>
+              <div className="text-xs text-slate-400 mb-1">Zaman (İstanbul)</div>
               <div className="text-sm font-medium text-white">
                 {lastResult.timestamp ? new Date(lastResult.timestamp).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' }) : '-'}
               </div>
@@ -528,20 +528,20 @@ export default function Monitoring() {
       {showCustomDatePicker && (
         <>
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowCustomDatePicker(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-slate-100 rounded-lg">
-                  <Calendar className="w-6 h-6 text-slate-600" />
+                <div className="p-2 bg-blue-500/15 rounded-lg">
+                  <Calendar className="w-6 h-6 text-blue-400" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">Özel Tarih Aralığı</h3>
-                  <p className="text-sm text-slate-600">Senkronizasyon için tarih seçin</p>
+                  <p className="text-sm text-slate-400">Senkronizasyon için tarih seçin</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Başlangıç Tarihi
                   </label>
                   <input
@@ -549,12 +549,12 @@ export default function Monitoring() {
                     value={customStartDate}
                     onChange={(e) => setCustomStartDate(e.target.value)}
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
                     Bitiş Tarihi
                   </label>
                   <input
@@ -563,7 +563,7 @@ export default function Monitoring() {
                     onChange={(e) => setCustomEndDate(e.target.value)}
                     min={customStartDate}
                     max={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border border-white/15 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -571,7 +571,7 @@ export default function Monitoring() {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => setShowCustomDatePicker(false)}
-                  className="flex-1 px-4 py-3 border border-slate-300 rounded-lg text-slate-200 font-medium hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-3 bg-white/10 border border-white/10 rounded-lg text-slate-300 font-medium hover:bg-white/15 transition-colors"
                 >
                   İptal
                 </button>
