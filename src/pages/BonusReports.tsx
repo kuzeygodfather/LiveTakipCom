@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History } from 'lucide-react';
+import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History, Download, X, FileText } from 'lucide-react';
 import { useNotification } from '../lib/notifications';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface BonusCalculation {
   id: string;
@@ -42,6 +44,9 @@ export default function BonusReports() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [viewMode, setViewMode] = useState<'preview' | 'saved'>('preview');
+  const [selectedRecord, setSelectedRecord] = useState<BonusCalculation | null>(null);
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const today = new Date();
@@ -225,6 +230,61 @@ export default function BonusReports() {
       newExpanded.add(id);
     }
     setExpandedRows(newExpanded);
+  };
+
+  const handleDateClick = (record: BonusCalculation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedRecord(record);
+  };
+
+  const closeModal = () => {
+    setSelectedRecord(null);
+  };
+
+  const exportToPDF = async () => {
+    if (!modalContentRef.current || !selectedRecord) return;
+
+    setExportingPDF(true);
+    try {
+      const canvas = await html2canvas(modalContentRef.current, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const fileName = `Prim_Raporu_${selectedRecord.metrics_snapshot?.personnel_name}_${new Date(selectedRecord.calculated_at).toLocaleDateString('tr-TR')}.pdf`;
+      pdf.save(fileName);
+      showSuccess('PDF başarıyla indirildi');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      showError('PDF oluşturulurken hata oluştu');
+    } finally {
+      setExportingPDF(false);
+    }
   };
 
   const displayData = viewMode === 'preview' ? calculations : savedReports;
@@ -444,7 +504,10 @@ export default function BonusReports() {
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{calc.metrics_snapshot?.total_chats || 0}</td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td
+                        className="px-4 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                        onClick={(e) => handleDateClick(calc, e)}
+                      >
                         {new Date(calc.calculated_at).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
                       </td>
                     </tr>
@@ -555,6 +618,160 @@ export default function BonusReports() {
           </>
         )}
       </div>
+
+      {selectedRecord && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div ref={modalContentRef} className="p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-6 border-b pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Prim Detay Raporu</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {new Date(selectedRecord.calculated_at).toLocaleDateString('tr-TR', {
+                        timeZone: 'Europe/Istanbul',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="mb-6 bg-gradient-to-r from-slate-50 to-slate-100 p-6 rounded-xl border border-slate-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Personel</p>
+                    <p className="text-xl font-bold text-gray-900">{selectedRecord.metrics_snapshot?.personnel_name || 'Bilinmiyor'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Toplam Prim</p>
+                    <p className={`text-2xl font-bold ${selectedRecord.total_bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedRecord.total_bonus_amount >= 0 ? '+' : ''}{selectedRecord.total_bonus_amount.toLocaleString('tr-TR')} TL
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Dönem Tipi</p>
+                    <p className="text-lg font-semibold text-gray-900 capitalize">{selectedRecord.period_type === 'monthly' ? 'Aylık' : selectedRecord.period_type === 'weekly' ? 'Haftalık' : 'Günlük'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Dönem</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {new Date(selectedRecord.period_start).toLocaleDateString('tr-TR')} - {new Date(selectedRecord.period_end).toLocaleDateString('tr-TR')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  Performans Metrikleri
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                    <p className="text-xs font-medium text-blue-700 mb-1">Toplam Chat</p>
+                    <p className="text-2xl font-bold text-blue-900">{selectedRecord.metrics_snapshot?.total_chats || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                    <p className="text-xs font-medium text-green-700 mb-1">Ortalama Skor</p>
+                    <p className="text-2xl font-bold text-green-900">{selectedRecord.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                    <p className="text-xs font-medium text-purple-700 mb-1">Memnuniyet</p>
+                    <p className="text-2xl font-bold text-purple-900">{selectedRecord.metrics_snapshot?.avg_satisfaction?.toFixed(1) || '0.0'}%</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+                    <p className="text-xs font-medium text-orange-700 mb-1">Yanıt Süresi</p>
+                    <p className="text-2xl font-bold text-orange-900">{selectedRecord.metrics_snapshot?.avg_response_time?.toFixed(0) || '0'}s</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 p-4 rounded-lg border border-emerald-200">
+                    <p className="text-xs font-medium text-emerald-700 mb-1">Pozitif Chat</p>
+                    <p className="text-2xl font-bold text-emerald-900">{selectedRecord.metrics_snapshot?.positive_chats_count || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
+                    <p className="text-xs font-medium text-red-700 mb-1">Negatif Chat</p>
+                    <p className="text-2xl font-bold text-red-900">{selectedRecord.metrics_snapshot?.negative_chats_count || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs font-medium text-gray-700 mb-1">Nötr Chat</p>
+                    <p className="text-2xl font-bold text-gray-900">{selectedRecord.metrics_snapshot?.neutral_chats_count || 0}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 p-4 rounded-lg border border-cyan-200">
+                    <p className="text-xs font-medium text-cyan-700 mb-1">Uygulanan Kural</p>
+                    <p className="text-2xl font-bold text-cyan-900">{selectedRecord.calculation_details?.length || 0}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-green-600" />
+                  Uygulanan Prim Kuralları
+                </h3>
+                {selectedRecord.calculation_details && selectedRecord.calculation_details.length > 0 ? (
+                  <div className="space-y-3">
+                    {selectedRecord.calculation_details.map((detail, idx) => (
+                      <div key={idx} className="bg-gradient-to-r from-white to-gray-50 p-4 rounded-xl border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-bold text-gray-900 text-base mb-2">{detail.rule_name}</p>
+                            <div className="flex flex-wrap gap-3 text-sm">
+                              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                                {metricLabels[detail.metric_type]}
+                              </span>
+                              <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full font-medium">
+                                Değer: {detail.metric_value.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right ml-4">
+                            <p className={`text-2xl font-bold ${detail.bonus_amount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {detail.bonus_amount >= 0 ? '+' : ''}{detail.bonus_amount.toLocaleString('tr-TR')} TL
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <Calculator className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">Hiçbir prim kuralı uygulanmadı</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  onClick={exportToPDF}
+                  disabled={exportingPDF}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                >
+                  <Download className="w-5 h-5" />
+                  {exportingPDF ? 'PDF Oluşturuluyor...' : 'PDF Olarak İndir'}
+                </button>
+                <button
+                  onClick={closeModal}
+                  className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
