@@ -4,6 +4,7 @@ import { maskName } from '../lib/utils';
 import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff } from 'lucide-react';
 import type { Personnel } from '../types';
 import { useNotification } from '../lib/notifications';
+import { Modal } from '../components/Modal';
 
 interface RatingInfo {
   liked_chats: Array<{ id: string; customer_name: string }>;
@@ -26,6 +27,12 @@ export default function PersonnelAnalytics() {
   const [recalculating, setRecalculating] = useState(false);
   const [ratingInfo, setRatingInfo] = useState<Record<string, RatingInfo>>({});
   const [hoveredRating, setHoveredRating] = useState<{ personnel: string; type: string } | null>(null);
+  const [chatModal, setChatModal] = useState<{ isOpen: boolean; type: string; chats: any[]; title: string }>({
+    isOpen: false,
+    type: '',
+    chats: [],
+    title: ''
+  });
 
   useEffect(() => {
     loadPersonnel();
@@ -227,6 +234,24 @@ export default function PersonnelAnalytics() {
     }
   };
 
+  const openChatModal = (type: string, chats: any[], title: string) => {
+    setChatModal({
+      isOpen: true,
+      type,
+      chats,
+      title
+    });
+  };
+
+  const closeChatModal = () => {
+    setChatModal({
+      isOpen: false,
+      type: '',
+      chats: [],
+      title: ''
+    });
+  };
+
   const loadPersonnelDetails = async (personnelName: string) => {
     try {
       console.log(`Loading daily stats for ${personnelName}...`);
@@ -337,33 +362,13 @@ export default function PersonnelAnalytics() {
                         {getTierLabel(person.reliability_tier)}
                       </span>
                       {person.warning_count > 0 && (
-                        <div
-                          className="flex items-center gap-1 text-xs text-red-600 cursor-help relative"
-                          onMouseEnter={() => setHoveredRating({ personnel: person.name, type: 'warning' })}
-                          onMouseLeave={() => setHoveredRating(null)}
+                        <button
+                          onClick={() => openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`)}
+                          className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <AlertTriangle className="w-3 h-3" />
                           {person.warning_count}
-                          {hoveredRating?.personnel === person.name && hoveredRating?.type === 'warning' && ratings.warning_chats.length > 0 && (
-                            <div className="absolute z-50 bottom-full right-0 mb-2 w-72 max-h-64 overflow-y-auto bg-slate-900 text-white text-xs rounded-lg shadow-xl p-3">
-                              <div className="font-semibold mb-2 pb-2 border-b border-slate-700">Uyari Alan Chatler ({ratings.warning_chats.length})</div>
-                              <div className="space-y-1">
-                                {ratings.warning_chats.map((chat) => (
-                                  <div key={chat.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
-                                    <span className="font-mono">#{chat.chat_id.slice(0, 10)}</span>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-slate-400 truncate ml-2">{maskName(chat.customer_name)}</span>
-                                      <span className="text-red-400 font-medium whitespace-nowrap">{Math.round(chat.overall_score)}/100</span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="absolute top-full right-4 -mt-1">
-                                <div className="border-4 border-transparent border-t-slate-900"></div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -383,54 +388,24 @@ export default function PersonnelAnalytics() {
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-3">
-                      <div
-                        className="flex items-center gap-1 text-green-600 cursor-help relative"
-                        onMouseEnter={() => setHoveredRating({ personnel: person.name, type: 'like' })}
-                        onMouseLeave={() => setHoveredRating(null)}
-                      >
-                        <ThumbsUp className="w-3 h-3" />
-                        <span>{ratings.like_count}</span>
-                      {hoveredRating?.personnel === person.name && hoveredRating?.type === 'like' && ratings.liked_chats.length > 0 && (
-                        <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-64 overflow-y-auto bg-slate-900 text-white text-xs rounded-lg shadow-xl p-3">
-                          <div className="font-semibold mb-2 pb-2 border-b border-slate-700">Beğenilen Chatler</div>
-                          <div className="space-y-1">
-                            {ratings.liked_chats.map((chat) => (
-                              <div key={chat.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
-                                <span className="font-mono">#{chat.id.slice(0, 10)}</span>
-                                <span className="text-slate-400 truncate ml-2">{maskName(chat.customer_name)}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="absolute top-full left-4 -mt-1">
-                            <div className="border-4 border-transparent border-t-slate-900"></div>
-                          </div>
-                        </div>
+                      {ratings.like_count > 0 && (
+                        <button
+                          onClick={() => openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`)}
+                          className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 hover:bg-green-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                        >
+                          <ThumbsUp className="w-3 h-3" />
+                          <span>{ratings.like_count}</span>
+                        </button>
                       )}
-                      </div>
-                      <div
-                        className="flex items-center gap-1 text-red-600 cursor-help relative"
-                        onMouseEnter={() => setHoveredRating({ personnel: person.name, type: 'dislike' })}
-                        onMouseLeave={() => setHoveredRating(null)}
-                      >
-                        <ThumbsDown className="w-3 h-3" />
-                        <span>{ratings.dislike_count}</span>
-                        {hoveredRating?.personnel === person.name && hoveredRating?.type === 'dislike' && ratings.disliked_chats.length > 0 && (
-                          <div className="absolute z-50 bottom-full left-0 mb-2 w-64 max-h-64 overflow-y-auto bg-slate-900 text-white text-xs rounded-lg shadow-xl p-3">
-                            <div className="font-semibold mb-2 pb-2 border-b border-slate-700">Beğenilmeyen Chatler</div>
-                            <div className="space-y-1">
-                              {ratings.disliked_chats.map((chat) => (
-                                <div key={chat.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
-                                  <span className="font-mono">#{chat.id.slice(0, 10)}</span>
-                                  <span className="text-slate-400 truncate ml-2">{maskName(chat.customer_name)}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="absolute top-full left-4 -mt-1">
-                              <div className="border-4 border-transparent border-t-slate-900"></div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      {ratings.dislike_count > 0 && (
+                        <button
+                          onClick={() => openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`)}
+                          className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors cursor-pointer"
+                        >
+                          <ThumbsDown className="w-3 h-3" />
+                          <span>{ratings.dislike_count}</span>
+                        </button>
+                      )}
                     </div>
                     {ratings.missed_count > 0 && (
                       <div className="flex items-center gap-1 text-orange-600">
@@ -486,10 +461,15 @@ export default function PersonnelAnalytics() {
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
                   </div>
-                  <div
-                    className="bg-slate-50 p-4 rounded-lg relative cursor-help hover:bg-red-50 transition-colors"
-                    onMouseEnter={() => setHoveredRating({ personnel: selectedPersonnel.name, type: 'warning_detail' })}
-                    onMouseLeave={() => setHoveredRating(null)}
+                  <button
+                    onClick={() => {
+                      const ratings = ratingInfo[selectedPersonnel.name];
+                      if (ratings?.warning_chats.length > 0) {
+                        openChatModal('warning', ratings.warning_chats, `${selectedPersonnel.name} - Uyarı Alan Chatler`);
+                      }
+                    }}
+                    className="bg-slate-50 p-4 rounded-lg hover:bg-red-50 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!ratingInfo[selectedPersonnel.name]?.warning_chats.length}
                   >
                     <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
@@ -498,31 +478,16 @@ export default function PersonnelAnalytics() {
                     <div className={`text-2xl font-bold ${selectedPersonnel.warning_count > 0 ? 'text-red-600' : 'text-green-600'}`}>
                       {selectedPersonnel.warning_count}
                     </div>
-                    {hoveredRating?.personnel === selectedPersonnel.name && hoveredRating?.type === 'warning_detail' &&
-                     ratingInfo[selectedPersonnel.name]?.warning_chats.length > 0 && (
-                      <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 max-h-96 overflow-y-auto bg-slate-900 text-white text-xs rounded-lg shadow-xl p-3">
-                        <div className="font-semibold mb-2 pb-2 border-b border-slate-700">Uyari Alan Chatler ({ratingInfo[selectedPersonnel.name].warning_chats.length})</div>
-                        <div className="space-y-1">
-                          {ratingInfo[selectedPersonnel.name].warning_chats.map((chat) => (
-                            <div key={chat.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
-                              <span className="font-mono">#{chat.chat_id.slice(0, 10)}</span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-slate-400 truncate ml-2">{maskName(chat.customer_name)}</span>
-                                <span className="text-red-400 font-medium whitespace-nowrap">{Math.round(chat.overall_score)}/100</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                          <div className="border-8 border-transparent border-t-slate-900"></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    className="bg-slate-50 p-4 rounded-lg relative cursor-help hover:bg-green-50 transition-colors"
-                    onMouseEnter={() => setHoveredRating({ personnel: selectedPersonnel.name, type: 'like_detail' })}
-                    onMouseLeave={() => setHoveredRating(null)}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const ratings = ratingInfo[selectedPersonnel.name];
+                      if (ratings?.liked_chats.length > 0) {
+                        openChatModal('like', ratings.liked_chats, `${selectedPersonnel.name} - Beğenilen Chatler`);
+                      }
+                    }}
+                    className="bg-slate-50 p-4 rounded-lg hover:bg-green-50 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!ratingInfo[selectedPersonnel.name]?.liked_chats.length}
                   >
                     <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
                       <ThumbsUp className="w-3 h-3" />
@@ -531,28 +496,16 @@ export default function PersonnelAnalytics() {
                     <div className="text-2xl font-bold text-green-600">
                       {ratingInfo[selectedPersonnel.name]?.like_count || 0}
                     </div>
-                    {hoveredRating?.personnel === selectedPersonnel.name && hoveredRating?.type === 'like_detail' &&
-                     ratingInfo[selectedPersonnel.name]?.liked_chats.length > 0 && (
-                      <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 max-h-96 overflow-y-auto bg-slate-900 text-white text-xs rounded-lg shadow-xl p-3">
-                        <div className="font-semibold mb-2 pb-2 border-b border-slate-700">Beğenilen Chatler</div>
-                        <div className="space-y-1">
-                          {ratingInfo[selectedPersonnel.name].liked_chats.map((chat) => (
-                            <div key={chat.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
-                              <span className="font-mono">#{chat.id.slice(0, 10)}</span>
-                              <span className="text-slate-400 truncate ml-2">{maskName(chat.customer_name)}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                          <div className="border-8 border-transparent border-t-slate-900"></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    className="bg-slate-50 p-4 rounded-lg relative cursor-help hover:bg-red-50 transition-colors"
-                    onMouseEnter={() => setHoveredRating({ personnel: selectedPersonnel.name, type: 'dislike_detail' })}
-                    onMouseLeave={() => setHoveredRating(null)}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const ratings = ratingInfo[selectedPersonnel.name];
+                      if (ratings?.disliked_chats.length > 0) {
+                        openChatModal('dislike', ratings.disliked_chats, `${selectedPersonnel.name} - Beğenilmeyen Chatler`);
+                      }
+                    }}
+                    className="bg-slate-50 p-4 rounded-lg hover:bg-red-50 transition-colors cursor-pointer w-full text-left disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!ratingInfo[selectedPersonnel.name]?.disliked_chats.length}
                   >
                     <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
                       <ThumbsDown className="w-3 h-3" />
@@ -561,24 +514,7 @@ export default function PersonnelAnalytics() {
                     <div className="text-2xl font-bold text-red-600">
                       {ratingInfo[selectedPersonnel.name]?.dislike_count || 0}
                     </div>
-                    {hoveredRating?.personnel === selectedPersonnel.name && hoveredRating?.type === 'dislike_detail' &&
-                     ratingInfo[selectedPersonnel.name]?.disliked_chats.length > 0 && (
-                      <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 max-h-96 overflow-y-auto bg-slate-900 text-white text-xs rounded-lg shadow-xl p-3">
-                        <div className="font-semibold mb-2 pb-2 border-b border-slate-700">Beğenilmeyen Chatler</div>
-                        <div className="space-y-1">
-                          {ratingInfo[selectedPersonnel.name].disliked_chats.map((chat) => (
-                            <div key={chat.id} className="flex items-center justify-between py-1 hover:bg-slate-800 px-2 rounded">
-                              <span className="font-mono">#{chat.id.slice(0, 10)}</span>
-                              <span className="text-slate-400 truncate ml-2">{maskName(chat.customer_name)}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-                          <div className="border-8 border-transparent border-t-slate-900"></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  </button>
                   <div className="bg-slate-50 p-4 rounded-lg">
                     <div className="text-sm text-slate-600 mb-1 flex items-center gap-1">
                       <PhoneOff className="w-3 h-3" />
@@ -677,6 +613,72 @@ export default function PersonnelAnalytics() {
           )}
         </div>
       </div>
+
+      {/* Chat Details Modal */}
+      {chatModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden animate-scale-in">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold">{chatModal.title}</h3>
+              <button
+                onClick={closeChatModal}
+                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+              {chatModal.chats.length === 0 ? (
+                <p className="text-center text-slate-500 py-8">Chat bulunamadı</p>
+              ) : (
+                <div className="space-y-3">
+                  {chatModal.chats.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className="bg-gradient-to-r from-slate-50 to-blue-50/30 border border-slate-200 rounded-lg p-4 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-sm font-semibold text-blue-600">
+                            #{chat.chat_id?.slice(0, 12) || chat.id.slice(0, 12)}
+                          </span>
+                          <span className="text-slate-600 text-sm">
+                            {maskName(chat.customer_name)}
+                          </span>
+                        </div>
+                        {chatModal.type === 'warning' && chat.overall_score && (
+                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                            chat.overall_score < 40 ? 'bg-red-100 text-red-700' :
+                            chat.overall_score < 60 ? 'bg-orange-100 text-orange-700' :
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {Math.round(chat.overall_score)}/100
+                          </span>
+                        )}
+                      </div>
+                      {chat.created_at && (
+                        <div className="text-xs text-slate-500 mt-2">
+                          {new Date(chat.created_at).toLocaleString('tr-TR')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="bg-slate-50 px-6 py-4 flex justify-end border-t border-slate-200">
+              <button
+                onClick={closeChatModal}
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
