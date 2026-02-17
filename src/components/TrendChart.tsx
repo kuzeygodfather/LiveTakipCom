@@ -110,12 +110,19 @@ export default function TrendChart({ data, title, color = '#3b82f6', height = 20
         })}
       </div>
 
-      <div className="flex justify-between mt-3 text-xs text-gray-500">
-        {data.map((item, index) => (
-          <div key={index} className="text-center">
-            <div className="font-medium">{item.label}</div>
-          </div>
-        ))}
+      <div className="flex justify-between mt-3 text-xs text-slate-400">
+        {data.length <= 10
+          ? data.map((item, index) => (
+            <div key={index} className="text-center">
+              <div className="font-medium">{item.label}</div>
+            </div>
+          ))
+          : [data[0], data[Math.floor(data.length / 2)], data[data.length - 1]].map((item, index) => (
+            <div key={index} className={`text-center ${index === 1 ? 'absolute left-1/2 -translate-x-1/2' : ''}`}>
+              <div className="font-medium">{item.label}</div>
+            </div>
+          ))
+        }
       </div>
     </div>
   );

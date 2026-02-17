@@ -69,6 +69,7 @@ export default function Dashboard() {
   const [sentimentDistribution, setSentimentDistribution] = useState<{ label: string; value: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [sentimentModal, setSentimentModal] = useState<{ type: 'negative' | 'neutral' | 'positive'; date?: string } | null>(null);
+  const [trendModal, setTrendModal] = useState<PersonnelTrend | null>(null);
 
   const [complaintTrendDays, setComplaintTrendDays] = useState(30);
   const [topComplaintsFilter, setTopComplaintsFilter] = useState(30);
@@ -845,13 +846,13 @@ export default function Dashboard() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-500/15 text-red-300 border-red-500/30';
       case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-orange-500/15 text-orange-300 border-orange-500/30';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30';
       default:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-500/15 text-blue-300 border-blue-500/30';
     }
   };
 
@@ -970,24 +971,106 @@ export default function Dashboard() {
 
       {personnelTrends.length > 0 && (
         <div className="glass-effect rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-white mb-6">📈 Personel Performans Trendleri (Son 30 Gün)</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {personnelTrends.map((trend, index) => (
-              <div key={index} className="border border-slate-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-white">{trend.agent_name}</h3>
-                  <span className={`text-sm font-semibold ${trend.weekly_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {trend.weekly_change >= 0 ? '+' : ''}{trend.weekly_change.toFixed(1)}%
-                  </span>
+          <h2 className="text-xl font-bold text-white mb-5">📈 Personel Performans Trendleri (Son 30 Gün)</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {personnelTrends.map((trend, index) => {
+              const lastScore = trend.daily_scores[trend.daily_scores.length - 1]?.score ?? 0;
+              const isPositive = trend.weekly_change >= 0;
+              const color = isPositive ? '#10b981' : '#ef4444';
+              const sparkPoints = trend.daily_scores.map((s, i) => {
+                const max = Math.max(...trend.daily_scores.map(d => d.score), 1);
+                const min = Math.min(...trend.daily_scores.map(d => d.score), 0);
+                const range = max - min || 1;
+                const x = (i / (trend.daily_scores.length - 1 || 1)) * 100;
+                const y = ((max - s.score) / range) * 100;
+                return `${x},${y}`;
+              }).join(' ');
+              return (
+                <button
+                  key={index}
+                  onClick={() => setTrendModal(trend)}
+                  className="group flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all text-left"
+                >
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-white" style={{ background: `${color}33`, border: `2px solid ${color}66` }}>
+                    {trend.agent_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-semibold text-white text-sm truncate">{trend.agent_name}</span>
+                      <span className={`text-xs font-bold flex-shrink-0 ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{trend.weekly_change.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-8">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id={`spark-${index}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.25 }} />
+                              <stop offset="100%" style={{ stopColor: color, stopOpacity: 0.02 }} />
+                            </linearGradient>
+                          </defs>
+                          <polyline fill={`url(#spark-${index})`} stroke="none" points={`0,100 ${sparkPoints} 100,100`} />
+                          <polyline fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={sparkPoints} />
+                        </svg>
+                      </div>
+                      <span className="text-xs text-slate-400 flex-shrink-0">Skor: <span className="text-white font-bold">{lastScore}</span></span>
+                    </div>
+                  </div>
+                  <TrendingUp className="w-4 h-4 text-slate-500 group-hover:text-slate-300 transition-colors flex-shrink-0" />
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-slate-500 mt-4">Grafik görmek için isme tıklayın</p>
+        </div>
+      )}
+
+      {trendModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setTrendModal(null)}>
+          <div className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
+                  style={{ background: `${trendModal.weekly_change >= 0 ? '#10b981' : '#ef4444'}33`, border: `2px solid ${trendModal.weekly_change >= 0 ? '#10b981' : '#ef4444'}66` }}
+                >
+                  {trendModal.agent_name.charAt(0).toUpperCase()}
                 </div>
-                <TrendChart
-                  data={trend.daily_scores.map(s => ({ label: s.date, value: s.score }))}
-                  title=""
-                  color={trend.weekly_change >= 0 ? '#10b981' : '#ef4444'}
-                  height={150}
-                />
+                <div>
+                  <h3 className="text-lg font-bold text-white">{trendModal.agent_name}</h3>
+                  <p className="text-sm text-slate-400">Son 30 Gün Performans Trendi</p>
+                </div>
               </div>
-            ))}
+              <div className="flex items-center gap-4">
+                <div className={`px-3 py-1.5 rounded-full text-sm font-bold ${trendModal.weekly_change >= 0 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/15 text-red-400 border border-red-500/20'}`}>
+                  {trendModal.weekly_change >= 0 ? '+' : ''}{trendModal.weekly_change.toFixed(1)}%
+                </div>
+                <button onClick={() => setTrendModal(null)} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {[
+                { label: 'Başlangıç Skoru', value: trendModal.daily_scores[0]?.score ?? 0 },
+                { label: 'Son Skor', value: trendModal.daily_scores[trendModal.daily_scores.length - 1]?.score ?? 0 },
+                { label: 'Veri Noktası', value: trendModal.daily_scores.length },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                  <div className="text-xs text-slate-400 mb-1">{stat.label}</div>
+                  <div className="text-xl font-bold text-white">{stat.value}</div>
+                </div>
+              ))}
+            </div>
+
+            <TrendChart
+              data={trendModal.daily_scores.map(s => ({ label: s.date, value: s.score }))}
+              title=""
+              color={trendModal.weekly_change >= 0 ? '#10b981' : '#ef4444'}
+              height={220}
+            />
           </div>
         </div>
       )}
@@ -1000,35 +1083,35 @@ export default function Dashboard() {
               <div className="relative">
                 <button
                   onClick={() => setShowComplaintTrendFilter(!showComplaintTrendFilter)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white/10 hover:bg-white/15 text-slate-300 rounded-lg transition-colors border border-white/10"
                 >
                   <Filter className="w-4 h-4" />
                   {isCustomTrendRange ? 'Özel Aralık' : `Son ${complaintTrendDays} Gün`}
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showComplaintTrendFilter && (
-                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                  <div className="absolute right-0 mt-2 w-36 bg-[#1a2236] rounded-lg shadow-xl border border-white/10 z-10">
                     <button
                       onClick={() => { setComplaintTrendDays(7); setIsCustomTrendRange(false); setShowComplaintTrendFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTrendRange && complaintTrendDays === 7 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 ${!isCustomTrendRange && complaintTrendDays === 7 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 7 Gün
                     </button>
                     <button
                       onClick={() => { setComplaintTrendDays(30); setIsCustomTrendRange(false); setShowComplaintTrendFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTrendRange && complaintTrendDays === 30 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 ${!isCustomTrendRange && complaintTrendDays === 30 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 30 Gün
                     </button>
                     <button
                       onClick={() => { setComplaintTrendDays(90); setIsCustomTrendRange(false); setShowComplaintTrendFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTrendRange && complaintTrendDays === 90 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomTrendRange && complaintTrendDays === 90 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 90 Gün
                     </button>
                     <button
                       onClick={() => { setIsCustomTrendRange(true); setShowComplaintTrendFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${isCustomTrendRange ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 rounded-b-lg ${isCustomTrendRange ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Özel Aralık
                     </button>
@@ -1042,14 +1125,14 @@ export default function Dashboard() {
                   type="date"
                   value={trendStartDate}
                   onChange={(e) => setTrendStartDate(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                  className="px-2 py-1 bg-white/5 border border-white/15 text-white rounded text-sm"
                 />
-                <span className="text-slate-600">-</span>
+                <span className="text-slate-400">-</span>
                 <input
                   type="date"
                   value={trendEndDate}
                   onChange={(e) => setTrendEndDate(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                  className="px-2 py-1 bg-white/5 border border-white/15 text-white rounded text-sm"
                 />
               </div>
             )}
@@ -1072,35 +1155,35 @@ export default function Dashboard() {
               <div className="relative">
                 <button
                   onClick={() => setShowTopComplaintsFilter(!showTopComplaintsFilter)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white/10 hover:bg-white/15 text-slate-300 rounded-lg transition-colors border border-white/10"
                 >
                   <Filter className="w-4 h-4" />
                   {isCustomTopComplaintsRange ? 'Özel Aralık' : `Son ${topComplaintsFilter} Gün`}
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showTopComplaintsFilter && (
-                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                  <div className="absolute right-0 mt-2 w-36 bg-[#1a2236] rounded-lg shadow-xl border border-white/10 z-10">
                     <button
                       onClick={() => { setTopComplaintsFilter(7); setIsCustomTopComplaintsRange(false); setShowTopComplaintsFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTopComplaintsRange && topComplaintsFilter === 7 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomTopComplaintsRange && topComplaintsFilter === 7 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 7 Gün
                     </button>
                     <button
                       onClick={() => { setTopComplaintsFilter(30); setIsCustomTopComplaintsRange(false); setShowTopComplaintsFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTopComplaintsRange && topComplaintsFilter === 30 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomTopComplaintsRange && topComplaintsFilter === 30 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 30 Gün
                     </button>
                     <button
                       onClick={() => { setTopComplaintsFilter(90); setIsCustomTopComplaintsRange(false); setShowTopComplaintsFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomTopComplaintsRange && topComplaintsFilter === 90 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomTopComplaintsRange && topComplaintsFilter === 90 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 90 Gün
                     </button>
                     <button
                       onClick={() => { setIsCustomTopComplaintsRange(true); setShowTopComplaintsFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${isCustomTopComplaintsRange ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 rounded-b-lg ${isCustomTopComplaintsRange ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Özel Aralık
                     </button>
@@ -1114,14 +1197,14 @@ export default function Dashboard() {
                   type="date"
                   value={topComplaintsStartDate}
                   onChange={(e) => setTopComplaintsStartDate(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                  className="px-2 py-1 bg-white/5 border border-white/15 text-white rounded text-sm"
                 />
-                <span className="text-slate-600">-</span>
+                <span className="text-slate-400">-</span>
                 <input
                   type="date"
                   value={topComplaintsEndDate}
                   onChange={(e) => setTopComplaintsEndDate(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                  className="px-2 py-1 bg-white/5 border border-white/15 text-white rounded text-sm"
                 />
               </div>
             )}
@@ -1146,35 +1229,35 @@ export default function Dashboard() {
               <div className="relative">
                 <button
                   onClick={() => setShowDetailsTableFilter(!showDetailsTableFilter)}
-                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white/10 hover:bg-white/15 text-slate-300 rounded-lg transition-colors border border-white/10"
                 >
                   <Filter className="w-4 h-4" />
                   {isCustomDetailsRange ? 'Özel Aralık' : `Son ${detailsTableDays} Gün`}
                   <ChevronDown className="w-3 h-3" />
                 </button>
                 {showDetailsTableFilter && (
-                  <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-slate-200 z-10">
+                  <div className="absolute right-0 mt-2 w-36 bg-[#1a2236] rounded-lg shadow-xl border border-white/10 z-10">
                     <button
                       onClick={() => { setDetailsTableDays(7); setIsCustomDetailsRange(false); setShowDetailsTableFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomDetailsRange && detailsTableDays === 7 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomDetailsRange && detailsTableDays === 7 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 7 Gün
                     </button>
                     <button
                       onClick={() => { setDetailsTableDays(30); setIsCustomDetailsRange(false); setShowDetailsTableFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomDetailsRange && detailsTableDays === 30 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomDetailsRange && detailsTableDays === 30 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 30 Gün
                     </button>
                     <button
                       onClick={() => { setDetailsTableDays(90); setIsCustomDetailsRange(false); setShowDetailsTableFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${!isCustomDetailsRange && detailsTableDays === 90 ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-white/5 hover:text-white ${!isCustomDetailsRange && detailsTableDays === 90 ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Son 90 Gün
                     </button>
                     <button
                       onClick={() => { setIsCustomDetailsRange(true); setShowDetailsTableFilter(false); }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 rounded-b-lg ${isCustomDetailsRange ? 'bg-slate-50 font-semibold' : ''}`}
+                      className={`w-full text-left px-4 py-2 text-sm hover:bg-white/5 rounded-b-lg ${isCustomDetailsRange ? 'bg-white/5 font-semibold text-white' : ''}`}
                     >
                       Özel Aralık
                     </button>
@@ -1188,14 +1271,14 @@ export default function Dashboard() {
                   type="date"
                   value={detailsStartDate}
                   onChange={(e) => setDetailsStartDate(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                  className="px-2 py-1 bg-white/5 border border-white/15 text-white rounded text-sm"
                 />
-                <span className="text-slate-600">-</span>
+                <span className="text-slate-400">-</span>
                 <input
                   type="date"
                   value={detailsEndDate}
                   onChange={(e) => setDetailsEndDate(e.target.value)}
-                  className="px-2 py-1 border border-slate-300 rounded text-sm"
+                  className="px-2 py-1 bg-white/5 border border-white/15 text-white rounded text-sm"
                 />
               </div>
             )}
@@ -1333,11 +1416,11 @@ export default function Dashboard() {
                     <p className="text-xs sm:text-sm whitespace-pre-line">{alert.message}</p>
                   </div>
                   {alert.sent_to_telegram ? (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex-shrink-0 self-start">
+                    <span className="text-xs bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded flex-shrink-0 self-start">
                       Gonderildi
                     </span>
                   ) : (
-                    <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded flex-shrink-0 self-start">
+                    <span className="text-xs bg-white/10 text-slate-400 border border-white/10 px-2 py-1 rounded flex-shrink-0 self-start">
                       Bekliyor
                     </span>
                   )}
