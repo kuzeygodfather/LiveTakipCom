@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
     // Check for background mode
     const url = new URL(req.url);
     const backgroundMode = url.searchParams.get("background") === "true";
-    const jobId = url.searchParams.get("job_id");
+    let jobId = url.searchParams.get("job_id");
 
     // If background mode is requested and no job_id, create job and trigger async
     if (backgroundMode && !jobId) {
@@ -135,6 +135,54 @@ Deno.serve(async (req: Request) => {
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // If no job_id provided, create a job record for tracking (for cron jobs)
+    if (!jobId) {
+      console.log("=== No job_id provided, creating job for tracking ===");
+
+      const startParam = url.searchParams.get("start_date");
+      const endParam = url.searchParams.get("end_date");
+      const daysParam = url.searchParams.get("days");
+
+      let startDate: string;
+      let endDate: string;
+      let days: number | null = null;
+
+      if (startParam && endParam) {
+        startDate = new Date(startParam).toISOString();
+        endDate = new Date(endParam).toISOString();
+      } else if (daysParam) {
+        days = parseInt(daysParam, 10);
+        const now = new Date();
+        startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000)).toISOString();
+        endDate = now.toISOString();
+      } else {
+        // Default to 20 minutes
+        const now = new Date();
+        startDate = new Date(now.getTime() - (20 * 60 * 1000)).toISOString();
+        endDate = now.toISOString();
+      }
+
+      const { data: job, error: jobError } = await supabase
+        .from("sync_jobs")
+        .insert({
+          status: "processing",
+          start_date: startDate,
+          end_date: endDate,
+          days: days,
+          started_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (jobError || !job) {
+        console.error("Failed to create job:", jobError);
+        // Continue without job tracking
+      } else {
+        jobId = job.id;
+        console.log(`Job created for tracking: ${jobId}`);
+      }
     }
 
     // Update job status to processing if job_id provided
