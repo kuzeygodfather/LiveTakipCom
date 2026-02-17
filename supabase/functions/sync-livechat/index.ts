@@ -62,6 +62,45 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // CRITICAL: Clean up stuck jobs (processing for more than 10 minutes)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    await supabase
+      .from("sync_jobs")
+      .update({
+        status: "failed",
+        completed_at: new Date().toISOString(),
+        error: "Job timeout - exceeded 10 minutes"
+      })
+      .eq("status", "processing")
+      .lt("started_at", tenMinutesAgo);
+
+    // CRITICAL: Check if another job is already running
+    const { data: runningJobs } = await supabase
+      .from("sync_jobs")
+      .select("id, started_at")
+      .eq("status", "processing")
+      .order("started_at", { ascending: false })
+      .limit(1);
+
+    if (runningJobs && runningJobs.length > 0) {
+      const runningJob = runningJobs[0];
+      const runningDuration = Date.now() - new Date(runningJob.started_at).getTime();
+
+      // If job has been running for less than 10 minutes, reject new request
+      if (runningDuration < 10 * 60 * 1000) {
+        console.log(`Another job is already running: ${runningJob.id}`);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Another sync job is already running. Please wait for it to complete.",
+            running_job_id: runningJob.id,
+            running_duration_seconds: Math.floor(runningDuration / 1000)
+          }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // Check for background mode
     const url = new URL(req.url);
     const backgroundMode = url.searchParams.get("background") === "true";
@@ -112,10 +151,15 @@ Deno.serve(async (req: Request) => {
 
       console.log(`Job created: ${job.id}`);
 
-      // Trigger async processing by calling self without background param
+      // CRITICAL FIX: Trigger async processing with all parameters preserved
       const asyncUrl = new URL(req.url);
       asyncUrl.searchParams.delete("background");
       asyncUrl.searchParams.set("job_id", job.id);
+
+      // Preserve original date parameters for the async job
+      if (startParam) asyncUrl.searchParams.set("start_date", startParam);
+      if (endParam) asyncUrl.searchParams.set("end_date", endParam);
+      if (daysParam) asyncUrl.searchParams.set("days", daysParam);
 
       // Fire and forget - don't await
       fetch(asyncUrl.toString(), {
@@ -326,16 +370,30 @@ Deno.serve(async (req: Request) => {
 
     console.log(`Processing ${chats.length} chats...`);
 
+    // CRITICAL: Track execution time to prevent timeout
+    const executionStartTime = Date.now();
+    const MAX_EXECUTION_TIME = 4.5 * 60 * 1000; // 4.5 minutes (leave 30s buffer)
+    let timeoutReached = false;
+
     // Process in batches to avoid timeout
     const BATCH_SIZE = 50;
     const totalBatches = Math.ceil(chats.length / BATCH_SIZE);
 
     for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+      // Check if we're approaching timeout limit
+      const elapsedTime = Date.now() - executionStartTime;
+      if (elapsedTime > MAX_EXECUTION_TIME) {
+        console.log(`\n⚠️ TIMEOUT PROTECTION: Stopping after ${Math.floor(elapsedTime / 1000)}s to prevent function timeout`);
+        console.log(`Processed ${batchIndex} of ${totalBatches} batches (${batchIndex * BATCH_SIZE} of ${chats.length} chats)`);
+        timeoutReached = true;
+        break;
+      }
+
       const batchStart = batchIndex * BATCH_SIZE;
       const batchEnd = Math.min(batchStart + BATCH_SIZE, chats.length);
       const batchChats = chats.slice(batchStart, batchEnd);
 
-      console.log(`\n=== Processing batch ${batchIndex + 1}/${totalBatches} (${batchChats.length} chats) ===`);
+      console.log(`\n=== Processing batch ${batchIndex + 1}/${totalBatches} (${batchChats.length} chats) [Elapsed: ${Math.floor(elapsedTime / 1000)}s] ===`);
 
     for (const chat of batchChats) {
       const fullChatData = chat.properties?.full_chat_data || {};
@@ -645,6 +703,9 @@ Deno.serve(async (req: Request) => {
       console.error('Error fetching today chats:', todayChatsError);
     }
 
+    const executionEndTime = Date.now();
+    const totalExecutionTime = executionEndTime - executionStartTime;
+
     const result = {
       success: true,
       synced: syncedCount,
@@ -657,6 +718,9 @@ Deno.serve(async (req: Request) => {
       today_chats_istanbul: todayChatsCount,
       timestamp: new Date().toISOString(),
       timestamp_istanbul: istanbulNow.toISOString().replace('T', ' ').substring(0, 19),
+      execution_time_seconds: Math.floor(totalExecutionTime / 1000),
+      timeout_reached: timeoutReached,
+      warning: timeoutReached ? "Function stopped early to prevent timeout. Some chats may not have been processed." : undefined,
     };
 
     // Update job status if processing as background job
