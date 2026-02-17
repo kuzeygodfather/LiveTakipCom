@@ -70,19 +70,35 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
     try {
       setLoading(true);
 
-      let query = supabase
-        .from('chat_analysis')
-        .select('chat_id, overall_score, created_at')
-        .eq('sentiment', sentiment)
-        .order('overall_score', { ascending: true });
+      let chatIdsForDate: string[] | null = null;
 
       if (date) {
         const dayStart = new Date(`${date}T00:00:00+03:00`).toISOString();
         const dayEnd = new Date(`${date}T23:59:59+03:00`).toISOString();
-        query = query.gte('created_at', dayStart).lte('created_at', dayEnd);
+        const { data: dateChats, error: dateError } = await supabase
+          .from('chats')
+          .select('id')
+          .gte('created_at', dayStart)
+          .lte('created_at', dayEnd);
+        if (dateError) throw dateError;
+        chatIdsForDate = (dateChats || []).map(c => c.id);
+        if (chatIdsForDate.length === 0) {
+          setChats([]);
+          return;
+        }
       }
 
-      const { data, error } = await query;
+      let analysisQuery = supabase
+        .from('chat_analysis')
+        .select('chat_id, overall_score')
+        .eq('sentiment', sentiment)
+        .order('overall_score', { ascending: true });
+
+      if (chatIdsForDate) {
+        analysisQuery = analysisQuery.in('chat_id', chatIdsForDate);
+      }
+
+      const { data, error } = await analysisQuery;
       if (error) throw error;
 
       if (!data || data.length === 0) {
