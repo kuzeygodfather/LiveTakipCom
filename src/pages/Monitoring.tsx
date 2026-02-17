@@ -110,20 +110,76 @@ export default function Monitoring() {
     }
   }, [addLog, loadStats, stats.unanalyzed]);
 
+  const pollJobStatus = useCallback(async (jobId: string, label: string) => {
+    const maxAttempts = 60;
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const { data: job, error } = await supabase
+          .from('sync_jobs')
+          .select('*')
+          .eq('id', jobId)
+          .single();
+
+        if (error) {
+          console.error('Error polling job status:', error);
+          addLog(`Job status kontrolu hatasi: ${error.message}`, 'error');
+          setRunning(false);
+          return;
+        }
+
+        if (job.status === 'completed') {
+          const result = job.result as PipelineResult;
+          setLastResult(result);
+          const skippedMsg = result.skipped ? `, ${result.skipped} atlandi (limit)` : '';
+          addLog(
+            `Senkronizasyon tamamlandi (${label}): ${result.synced} chat senkronize, ${result.new_chats} yeni, ${result.analyzed} analiz edildi, ${result.alerts_sent} uyari gonderildi${skippedMsg}`,
+            'success'
+          );
+          await loadStats();
+          setRunning(false);
+          return;
+        }
+
+        if (job.status === 'failed') {
+          addLog(`Senkronizasyon hatasi: ${job.error || 'Bilinmeyen hata'}`, 'error');
+          setRunning(false);
+          return;
+        }
+
+        attempts++;
+        if (attempts >= maxAttempts) {
+          addLog(`Senkronizasyon zaman asimina ugradi (${label})`, 'error');
+          setRunning(false);
+          return;
+        }
+
+        setTimeout(poll, 2000);
+      } catch (error: any) {
+        console.error('Polling error:', error);
+        addLog(`Polling hatasi: ${error.message}`, 'error');
+        setRunning(false);
+      }
+    };
+
+    poll();
+  }, [addLog, loadStats]);
+
   const runPipeline = useCallback(async (days?: number, customRange?: { start: string; end: string }) => {
     setRunning(true);
-    let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat`;
+    let url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-livechat?background=true`;
     let label = '';
 
     if (customRange) {
       const start = new Date(customRange.start).toLocaleDateString('tr-TR');
       const end = new Date(customRange.end).toLocaleDateString('tr-TR');
       label = `${start} - ${end}`;
-      url += `?start_date=${customRange.start}&end_date=${customRange.end}`;
+      url += `&start_date=${customRange.start}&end_date=${customRange.end}`;
     } else {
       const daysParam = days || 7;
       label = syncOptions.find(o => o.days === daysParam)?.label || `${daysParam} gun`;
-      url += `?days=${daysParam}`;
+      url += `&days=${daysParam}`;
     }
 
     addLog(`Senkronizasyon baslatildi (${label})...`, 'info');
@@ -135,9 +191,6 @@ export default function Monitoring() {
         },
       });
 
-      console.log('Sync Response Status:', response.status);
-
-      // Check if response is ok first
       if (!response.ok) {
         let errorText = '';
         try {
@@ -148,38 +201,26 @@ export default function Monitoring() {
           errorText = await response.text();
           console.error('HTTP Error Text:', errorText);
         }
-        addLog(`Pipeline hatasi: ${errorText}`, 'error');
+        addLog(`Senkronizasyon baslatma hatasi: ${errorText}`, 'error');
+        setRunning(false);
         return;
       }
 
-      const data: PipelineResult = await response.json();
-      console.log('Sync Response Data:', data);
-      setLastResult(data);
+      const data = await response.json();
 
-      if (data.success) {
-        const skippedMsg = data.skipped ? `, ${data.skipped} atlandi (limit)` : '';
-        addLog(
-          `Pipeline tamamlandi: ${data.synced} chat senkronize, ${data.new_chats} yeni, ${data.analyzed} analiz edildi, ${data.alerts_sent} uyari gonderildi${skippedMsg}`,
-          'success'
-        );
+      if (data.job_id) {
+        addLog(`Senkronizasyon arka planda devam ediyor (${label})...`, 'info');
+        pollJobStatus(data.job_id, label);
       } else {
-        const errorMsg = data.error || 'Bilinmeyen hata olustu';
-        console.error('Pipeline error details:', {
-          error: data.error,
-          fullData: data,
-          responseStatus: response.status
-        });
-        addLog(`Pipeline hatasi: ${errorMsg}`, 'error');
+        addLog('Beklenmeyen yanit alindi', 'error');
+        setRunning(false);
       }
-
-      await loadStats();
     } catch (error: any) {
       console.error('Sync Error:', error);
       addLog(`Baglanti hatasi: ${error.message}`, 'error');
-    } finally {
       setRunning(false);
     }
-  }, [addLog, loadStats]);
+  }, [addLog, pollJobStatus]);
 
   useEffect(() => {
     loadStats();

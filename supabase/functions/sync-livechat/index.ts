@@ -51,6 +51,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     console.log("Supabase URL:", supabaseUrl ? "SET" : "NOT SET");
     console.log("Supabase Key:", supabaseKey ? "SET" : "NOT SET");
@@ -60,6 +61,90 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check for background mode
+    const url = new URL(req.url);
+    const backgroundMode = url.searchParams.get("background") === "true";
+    const jobId = url.searchParams.get("job_id");
+
+    // If background mode is requested and no job_id, create job and trigger async
+    if (backgroundMode && !jobId) {
+      console.log("=== Background Mode: Creating Job ===");
+
+      const startParam = url.searchParams.get("start_date");
+      const endParam = url.searchParams.get("end_date");
+      const daysParam = url.searchParams.get("days");
+
+      let startDate: string;
+      let endDate: string;
+      let days: number | null = null;
+
+      if (startParam && endParam) {
+        startDate = new Date(startParam).toISOString();
+        endDate = new Date(endParam).toISOString();
+      } else if (daysParam) {
+        days = parseInt(daysParam, 10);
+        const now = new Date();
+        startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000)).toISOString();
+        endDate = now.toISOString();
+      } else {
+        days = 7;
+        const now = new Date();
+        startDate = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+        endDate = now.toISOString();
+      }
+
+      // Create job record
+      const { data: job, error: jobError } = await supabase
+        .from("sync_jobs")
+        .insert({
+          status: "pending",
+          start_date: startDate,
+          end_date: endDate,
+          days: days,
+        })
+        .select()
+        .single();
+
+      if (jobError || !job) {
+        throw new Error(`Failed to create job: ${jobError?.message}`);
+      }
+
+      console.log(`Job created: ${job.id}`);
+
+      // Trigger async processing by calling self without background param
+      const asyncUrl = new URL(req.url);
+      asyncUrl.searchParams.delete("background");
+      asyncUrl.searchParams.set("job_id", job.id);
+
+      // Fire and forget - don't await
+      fetch(asyncUrl.toString(), {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+        },
+      }).catch(err => console.error("Failed to trigger async job:", err));
+
+      // Return immediately with job ID
+      return new Response(
+        JSON.stringify({
+          success: true,
+          job_id: job.id,
+          status: "pending",
+          message: "Sync job created and processing in background"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Update job status to processing if job_id provided
+    if (jobId) {
+      console.log(`=== Processing Job: ${jobId} ===`);
+      await supabase
+        .from("sync_jobs")
+        .update({ status: "processing", started_at: new Date().toISOString() })
+        .eq("id", jobId);
+    }
 
     console.log("Fetching settings from database...");
     const { data: settings, error: settingsError } = await supabase
@@ -505,26 +590,67 @@ Deno.serve(async (req: Request) => {
       console.error('Error fetching today chats:', todayChatsError);
     }
 
+    const result = {
+      success: true,
+      synced: syncedCount,
+      new_chats: newChatsCount,
+      analyzed: analyzedCount,
+      alerts_sent: alertsSent,
+      skipped: skippedCount,
+      total_chats: totalChats,
+      total_analyzed: totalAnalyzed,
+      today_chats_istanbul: todayChatsCount,
+      timestamp: new Date().toISOString(),
+      timestamp_istanbul: istanbulNow.toISOString().replace('T', ' ').substring(0, 19),
+    };
+
+    // Update job status if processing as background job
+    if (jobId) {
+      await supabase
+        .from("sync_jobs")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          result: result,
+        })
+        .eq("id", jobId);
+      console.log(`Job ${jobId} marked as completed`);
+    }
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        synced: syncedCount,
-        new_chats: newChatsCount,
-        analyzed: analyzedCount,
-        alerts_sent: alertsSent,
-        skipped: skippedCount,
-        total_chats: totalChats,
-        total_analyzed: totalAnalyzed,
-        today_chats_istanbul: todayChatsCount,
-        timestamp: new Date().toISOString(),
-        timestamp_istanbul: istanbulNow.toISOString().replace('T', ' ').substring(0, 19),
-      }),
+      JSON.stringify(result),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Pipeline error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error || "Unknown error");
     const errorStack = error instanceof Error ? error.stack : undefined;
+
+    // Update job status to failed if this is a background job
+    const url = new URL(req.url);
+    const jobId = url.searchParams.get("job_id");
+
+    if (jobId) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && supabaseKey) {
+        try {
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          await supabase
+            .from("sync_jobs")
+            .update({
+              status: "failed",
+              completed_at: new Date().toISOString(),
+              error: errorMessage,
+            })
+            .eq("id", jobId);
+          console.log(`Job ${jobId} marked as failed`);
+        } catch (updateErr) {
+          console.error("Failed to update job status:", updateErr);
+        }
+      }
+    }
 
     return new Response(
       JSON.stringify({
