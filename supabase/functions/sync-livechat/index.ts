@@ -97,16 +97,22 @@ Deno.serve(async (req: Request) => {
         console.log(`Page ${currentPage}: No chats found, stopping pagination`);
         hasMorePages = false;
       } else {
+        const firstChat = pageChats[0];
+        const lastChat = pageChats[pageChats.length - 1];
+        console.log(`Page ${currentPage}: ${pageChats.length} chats`);
+        console.log(`  First: ${firstChat?.id} at ${firstChat?.created_at} (${firstChat?.agent_name})`);
+        console.log(`  Last: ${lastChat?.id} at ${lastChat?.created_at} (${lastChat?.agent_name})`);
+
         allChats = [...allChats, ...pageChats];
-        console.log(`Page ${currentPage}: Fetched ${pageChats.length} chats (Total so far: ${allChats.length})`);
+        console.log(`Total so far: ${allChats.length} chats`);
         currentPage++;
 
         if (livechatData.pagination) {
           const { page, total_pages, total } = livechatData.pagination;
-          console.log(`Pagination info: Page ${page}/${total_pages}, Total: ${total}`);
+          console.log(`Pagination info: Page ${page}/${total_pages}, Total chats in range: ${total}`);
           hasMorePages = page < total_pages;
           if (!hasMorePages) {
-            console.log(`Fetched all ${total} chats from ${total_pages} pages`);
+            console.log(`✓ Fetched all ${total} chats from ${total_pages} pages`);
           }
         } else {
           if (pageChats.length < perPage) {
