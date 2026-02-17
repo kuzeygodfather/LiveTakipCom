@@ -27,7 +27,7 @@ interface DashboardStats {
 
 interface PersonnelTrend {
   agent_name: string;
-  daily_scores: { date: string; score: number }[];
+  daily_scores: { date: string; score: number; count: number; sortKey: number }[];
   weekly_change: number;
 }
 
@@ -291,41 +291,38 @@ export default function Dashboard() {
 
       if (allAnalysisData.length === 0) return;
 
-      const agentDailyScores: { [agent: string]: { [date: string]: number[] } } = {};
+      const agentDailyMap: { [agent: string]: { [dayKey: string]: { scores: number[]; label: string; ts: number } } } = {};
 
       allAnalysisData.forEach(item => {
         const agent = chatIdToAgent.get(item.chat_id);
         const createdAt = chatIdToDate.get(item.chat_id);
         if (!agent || !createdAt) return;
 
-        const date = new Date(createdAt).toLocaleDateString('tr-TR', {
-          timeZone: 'Europe/Istanbul',
-          day: '2-digit',
-          month: '2-digit',
-        });
+        const d = new Date(createdAt);
+        const istanbul = new Date(d.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+        const year = istanbul.getFullYear();
+        const month = istanbul.getMonth();
+        const day = istanbul.getDate();
+        const dayKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const label = `${String(day).padStart(2, '0')}/${String(month + 1).padStart(2, '0')}`;
+        const ts = new Date(year, month, day).getTime();
 
-        if (!agentDailyScores[agent]) agentDailyScores[agent] = {};
-        if (!agentDailyScores[agent][date]) agentDailyScores[agent][date] = [];
-        agentDailyScores[agent][date].push(item.overall_score || 0);
+        if (!agentDailyMap[agent]) agentDailyMap[agent] = {};
+        if (!agentDailyMap[agent][dayKey]) agentDailyMap[agent][dayKey] = { scores: [], label, ts };
+        agentDailyMap[agent][dayKey].scores.push(item.overall_score || 0);
       });
 
       const trends: PersonnelTrend[] = [];
-      const now = new Date();
-      const istanbulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
 
-      for (const [agentName, dailyMap] of Object.entries(agentDailyScores)) {
-        const scores = Object.entries(dailyMap)
-          .map(([date, vals]) => ({
-            date,
-            score: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
-          }))
-          .sort((a, b) => {
-            const [dayA, monthA] = a.date.split('.');
-            const [dayB, monthB] = b.date.split('.');
-            const dateA = new Date(istanbulNow.getFullYear(), parseInt(monthA) - 1, parseInt(dayA));
-            const dateB = new Date(istanbulNow.getFullYear(), parseInt(monthB) - 1, parseInt(dayB));
-            return dateA.getTime() - dateB.getTime();
-          });
+      for (const [agentName, dailyMap] of Object.entries(agentDailyMap)) {
+        const scores = Object.values(dailyMap)
+          .sort((a, b) => a.ts - b.ts)
+          .map(entry => ({
+            date: entry.label,
+            score: Math.round(entry.scores.reduce((a, b) => a + b, 0) / entry.scores.length),
+            count: entry.scores.length,
+            sortKey: entry.ts,
+          }));
 
         if (scores.length >= 1) {
           const firstScore = scores[0].score;
@@ -1061,7 +1058,7 @@ export default function Dashboard() {
             </div>
 
             <TrendChart
-              data={trendModal.daily_scores.map(s => ({ label: s.date, value: s.score }))}
+              data={trendModal.daily_scores.map(s => ({ label: s.date, value: s.score, count: s.count }))}
               title=""
               color={trendModal.weekly_change >= 0 ? '#10b981' : '#ef4444'}
               height={220}

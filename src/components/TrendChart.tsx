@@ -1,5 +1,5 @@
 interface TrendChartProps {
-  data: { label: string; value: number; change?: number }[];
+  data: { label: string; value: number; change?: number; count?: number }[];
   title: string;
   color?: string;
   height?: number;
@@ -98,7 +98,10 @@ export default function TrendChart({ data, title, color = '#3b82f6', height = 20
               style={{ left: `${x}%`, top: `${y}px` }}
             >
               <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap -translate-x-1/2 left-1/2 z-10">
-                <div className="font-semibold">{item.value}</div>
+                <div className="font-semibold">Skor: {item.value}</div>
+                {item.count !== undefined && (
+                  <div className="text-gray-300">{item.count} chat</div>
+                )}
                 {item.change !== undefined && (
                   <div className={item.change >= 0 ? 'text-green-400' : 'text-red-400'}>
                     {item.change >= 0 ? '+' : ''}{item.change.toFixed(1)}%
