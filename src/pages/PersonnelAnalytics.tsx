@@ -118,13 +118,15 @@ export default function PersonnelAnalytics() {
             const batchIds = chatIds.slice(i, i + analysisBatchSize);
             const { data: batch } = await supabase
               .from('chat_analysis')
-              .select('id, chat_id, overall_score')
-              .lt('overall_score', 50)
-              .gt('overall_score', 0)
+              .select('id, chat_id, overall_score, sentiment')
               .in('chat_id', batchIds);
 
             if (batch) {
-              allWarningAnalyses = [...allWarningAnalyses, ...batch];
+              // Filter for negative chats only (low score OR negative sentiment)
+              const negativeChats = batch.filter(
+                item => item.overall_score < 50 || item.sentiment === 'negative'
+              );
+              allWarningAnalyses = [...allWarningAnalyses, ...negativeChats];
             }
           }
         }
