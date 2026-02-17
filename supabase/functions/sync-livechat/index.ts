@@ -216,7 +216,7 @@ Deno.serve(async (req: Request) => {
       console.log(`Fetching page ${currentPage}...`);
 
       const livechatResponse = await fetchWithRetry(
-        `https://livechat.systemtest.store/api/v1/chats?page=${currentPage}&per_page=${perPage}&start_date=${startDate}&end_date=${endDate}&date_field=created_at`,
+        `https://livechat.systemtest.store/api/v1/chats?page=${currentPage}&per_page=${perPage}&start_date=${startDate}&end_date=${endDate}&date_field=created_at&sort_by=created_at&sort_order=desc`,
         { headers: { "X-API-Key": settings.livechat_api_key } },
         3,
         2000
@@ -226,7 +226,7 @@ Deno.serve(async (req: Request) => {
         throw new Error(`LiveChat API error: ${livechatResponse.statusText}`);
       }
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const livechatData = await livechatResponse.json();
       const pageChats = livechatData.data || [];
