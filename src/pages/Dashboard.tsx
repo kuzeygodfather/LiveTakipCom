@@ -7,6 +7,7 @@ import DonutChart from '../components/DonutChart';
 import HeatMap from '../components/HeatMap';
 import Leaderboard from '../components/Leaderboard';
 import { extractComplaintTopics } from '../lib/complaintCategories';
+import { getIstanbulDateStartUTC } from '../lib/utils';
 
 interface DashboardStats {
   totalChats: number;
@@ -213,8 +214,7 @@ export default function Dashboard() {
 
   const loadPersonnelTrends = async () => {
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
+      const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
 
       let allChatsForAgents: any[] = [];
       let from = 0;
@@ -247,7 +247,7 @@ export default function Dashboard() {
           const { data: batch } = await supabase
             .from('chat_analysis')
             .select('analysis_date, overall_score, chat_id')
-            .gte('analysis_date', sevenDaysAgo.toISOString())
+            .gte('analysis_date', thirtyDaysAgoUTC)
             .gt('overall_score', 0)
             .order('analysis_date', { ascending: true })
             .range(from, from + batchSize - 1);
@@ -317,8 +317,7 @@ export default function Dashboard() {
 
   const loadComplaintData = async () => {
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
+      const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
 
       let allAnalysis: any[] = [];
       let from = 0;
@@ -328,7 +327,7 @@ export default function Dashboard() {
         const { data: batch } = await supabase
           .from('chat_analysis')
           .select('analysis_date, sentiment, chat_id, overall_score')
-          .gte('analysis_date', sevenDaysAgo.toISOString())
+          .gte('analysis_date', thirtyDaysAgoUTC)
           .gt('overall_score', 0)
           .order('analysis_date', { ascending: true })
           .range(from, from + batchSize - 1);
@@ -417,6 +416,8 @@ export default function Dashboard() {
 
   const loadHourlyDistribution = async () => {
     try {
+      const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
+
       let allChats: any[] = [];
       let from = 0;
       const batchSize = 1000;
@@ -425,7 +426,7 @@ export default function Dashboard() {
         const { data: batch } = await supabase
           .from('chats')
           .select('created_at')
-          .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+          .gte('created_at', thirtyDaysAgoUTC)
           .range(from, from + batchSize - 1);
 
         if (!batch || batch.length === 0) break;
@@ -451,8 +452,7 @@ export default function Dashboard() {
 
   const loadPerformersRanking = async () => {
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 30);
+      const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
 
       let allChatsForRanking: any[] = [];
       let from = 0;
@@ -485,7 +485,7 @@ export default function Dashboard() {
               .from('chats')
               .select('id, rating_score')
               .eq('agent_name', agentName)
-              .gte('created_at', sevenDaysAgo.toISOString())
+              .gte('created_at', thirtyDaysAgoUTC)
               .range(from, from + batchSize - 1);
 
             if (!batch || batch.length === 0) break;

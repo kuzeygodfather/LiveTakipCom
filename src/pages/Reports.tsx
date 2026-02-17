@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter, Send, CheckCircle, TrendingUp, Users, Target } from 'lucide-react';
+import { getIstanbulDateStartUTC } from '../lib/utils';
 
 interface ReportData {
   daily: any[];
@@ -83,8 +84,7 @@ export default function Reports() {
 
   const loadData = async () => {
     try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
 
       const { data: chatsRaw, error: chatsError } = await supabase
         .from('chats')
@@ -97,7 +97,7 @@ export default function Reports() {
           rating_score,
           first_response_time
         `)
-        .gte('created_at', thirtyDaysAgo.toISOString())
+        .gte('created_at', thirtyDaysAgoUTC)
         .order('created_at', { ascending: false });
 
       if (chatsError) {
@@ -110,7 +110,7 @@ export default function Reports() {
       const { data: analysisData, error: analysisError } = await supabase
         .from('chat_analysis')
         .select('chat_id, overall_score')
-        .gte('analysis_date', thirtyDaysAgo.toISOString());
+        .gte('analysis_date', thirtyDaysAgoUTC);
 
       if (analysisError) {
         console.error('Error loading analysis:', analysisError);
@@ -204,7 +204,7 @@ export default function Reports() {
           )
         `)
         .or('sentiment.eq.negative,overall_score.lt.50')
-        .gte('analysis_date', thirtyDaysAgo.toISOString())
+        .gte('analysis_date', thirtyDaysAgoUTC)
         .order('analysis_date', { ascending: false })
         .limit(50);
 

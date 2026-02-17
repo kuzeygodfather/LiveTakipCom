@@ -23,6 +23,12 @@ export default function ChatAnalysisList() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
 
+  const getIstanbulDateBoundaries = (dateStr: string): { start: Date, end: Date } => {
+    const istanbulDate = new Date(dateStr + 'T00:00:00+03:00');
+    const istanbulDateEnd = new Date(dateStr + 'T23:59:59.999+03:00');
+    return { start: istanbulDate, end: istanbulDateEnd };
+  };
+
   useEffect(() => {
     loadChats();
   }, []);
@@ -146,15 +152,13 @@ export default function ChatAnalysisList() {
     }
 
     if (dateFrom) {
-      const fromDate = new Date(dateFrom);
-      fromDate.setHours(0, 0, 0, 0);
-      filtered = filtered.filter((chat) => new Date(chat.created_at) >= fromDate);
+      const { start } = getIstanbulDateBoundaries(dateFrom);
+      filtered = filtered.filter((chat) => new Date(chat.created_at) >= start);
     }
 
     if (dateTo) {
-      const toDate = new Date(dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      filtered = filtered.filter((chat) => new Date(chat.created_at) <= toDate);
+      const { end } = getIstanbulDateBoundaries(dateTo);
+      filtered = filtered.filter((chat) => new Date(chat.created_at) <= end);
     }
 
     console.log('Filter sentiment:', filterSentiment);
