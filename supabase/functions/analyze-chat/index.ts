@@ -28,6 +28,8 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    await supabase.from("system_config").update({ last_analyze_run: new Date().toISOString() }).eq("id", 1);
+
     console.log("Fetching settings...");
     const { data: settings, error: settingsError } = await supabase
       .from("settings")
@@ -115,6 +117,19 @@ Deno.serve(async (req: Request) => {
       console.log(`Agent: ${chat.agent_name}, Customer: ${chat.customer_name}`);
 
       try {
+        const { data: existingAnalysis } = await supabase
+          .from("chat_analysis")
+          .select("id")
+          .eq("chat_id", chat.id)
+          .maybeSingle();
+
+        if (existingAnalysis) {
+          await supabase.from("chats").update({ analyzed: true }).eq("id", chat.id);
+          analyzedCount++;
+          console.log(`Chat ${chat.id} already analyzed, marked as done`);
+          continue;
+        }
+
         const { data: messages, error: msgError } = await supabase
           .from("chat_messages")
           .select("*")
@@ -163,9 +178,15 @@ Deno.serve(async (req: Request) => {
           avgResponseTime = Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length);
         }
 
-        const conversationText = messages
+        const MAX_MESSAGES = 50;
+        const trimmedMessages = messages.length > MAX_MESSAGES
+          ? messages.slice(-MAX_MESSAGES)
+          : messages;
+
+        const conversationText = trimmedMessages
           .map((m: Message) => `${m.author_type === "agent" ? "Temsilci" : "Müşteri"}: ${m.text}`)
-          .join("\n");
+          .join("\n")
+          .substring(0, 12000);
 
         console.log(`Conversation text length: ${conversationText.length}`);
         console.log(`First response time: ${firstResponseTime} seconds`);
@@ -267,12 +288,24 @@ JSON formatı:
       });
 
       if (!claudeResponse.ok) {
-        console.error("Claude API error:", await claudeResponse.text());
+        const claudeError = await claudeResponse.text();
+        console.error("Claude API error:", claudeError);
+        await supabase.from("system_config").update({
+          last_analyze_error: `Chat ${chat.id} | HTTP ${claudeResponse.status} | ${claudeError.substring(0, 500)}`
+        }).eq("id", 1);
+        errors.push(`${chat.id}: Claude HTTP ${claudeResponse.status}`);
         continue;
       }
 
       const claudeData = await claudeResponse.json();
-      const analysisResult = JSON.parse(claudeData.content[0].text);
+      const rawText = claudeData.content[0].text;
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error(`No JSON found in Claude response for chat ${chat.id}:`, rawText.substring(0, 200));
+        errors.push(`${chat.id}: No JSON in Claude response`);
+        continue;
+      }
+      const analysisResult = JSON.parse(jsonMatch[0]);
 
       const { data: analysisRecord, error: analysisError } = await supabase
         .from("chat_analysis")
