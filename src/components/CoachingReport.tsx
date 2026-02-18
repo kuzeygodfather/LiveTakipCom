@@ -796,88 +796,109 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
         )}
 
         {/* Son Koçluk Aktiviteleri */}
-        {feedbackRecords.length > 0 && (
-          <section>
-            <h2 className="text-base font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2 print:text-slate-700">
-              <Award className="w-4 h-4 text-cyan-400" />
-              Son Koçluk Aktiviteleri
-            </h2>
-            <div className="space-y-4">
-              {feedbackRecords.slice(0, 15).map((fb, i) => {
-                const parsed = parseCoachingSuggestion(fb.coaching_suggestion);
-                const hasContent = parsed.anaSorun || parsed.bullets.length > 0 || parsed.ornekCevap || parsed.fallback;
-                return (
-                  <div key={i} className="rounded-xl border border-slate-700/40 overflow-hidden bg-slate-800/20 print:bg-white print:border-slate-200">
-                    <div className="flex items-center gap-3 px-5 py-3 bg-slate-700/30 border-b border-slate-700/40">
+        {feedbackRecords.length > 0 && (() => {
+          const grouped = feedbackRecords.reduce<Record<string, CoachingFeedbackRecord[]>>((acc, fb) => {
+            if (!acc[fb.agent_name]) acc[fb.agent_name] = [];
+            acc[fb.agent_name].push(fb);
+            return acc;
+          }, {});
+          const agents = Object.entries(grouped);
+          return (
+            <section>
+              <h2 className="text-base font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2 print:text-slate-700">
+                <Award className="w-4 h-4 text-cyan-400" />
+                Son Koçluk Aktiviteleri
+              </h2>
+              <div className="space-y-5">
+                {agents.map(([agentName, records]) => (
+                  <div key={agentName} className="rounded-xl border border-slate-700/40 overflow-hidden bg-slate-800/20 print:bg-white print:border-slate-200">
+                    <div className="flex items-center gap-3 px-5 py-3.5 bg-slate-700/30 border-b border-slate-700/40">
                       <div className="w-9 h-9 rounded-full bg-slate-600/60 border border-slate-500/40 flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-bold text-slate-200">
-                          {fb.agent_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                          {agentName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-white">{fb.agent_name}</span>
+                        <span className="text-sm font-semibold text-white">{agentName}</span>
                       </div>
-                      <span className="text-xs text-slate-500 flex-shrink-0">
-                        {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      <span className="text-xs text-slate-500 bg-slate-600/40 px-2.5 py-1 rounded-full">
+                        {records.length} koçluk seansı
                       </span>
                     </div>
 
-                    {hasContent ? (
-                      <div className="divide-y divide-slate-700/30">
-                        {parsed.anaSorun && (
-                          <div className="px-5 py-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
-                              <span className="text-xs font-semibold text-rose-400 uppercase tracking-wide">Tespit Edilen Sorun</span>
-                            </div>
-                            <p className="text-sm text-slate-200 leading-relaxed print:text-slate-800">{parsed.anaSorun}</p>
-                          </div>
-                        )}
-
-                        {parsed.bullets.length > 0 && (
-                          <div className="px-5 py-4">
+                    <div className="divide-y divide-slate-700/30">
+                      {records.map((fb, si) => {
+                        const parsed = parseCoachingSuggestion(fb.coaching_suggestion);
+                        const hasContent = parsed.anaSorun || parsed.bullets.length > 0 || parsed.ornekCevap || parsed.fallback;
+                        return (
+                          <div key={si} className="px-5 py-4">
                             <div className="flex items-center gap-2 mb-3">
-                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                              <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Yapılması Gerekenler</span>
+                              <span className="w-5 h-5 rounded-full bg-slate-600/50 flex items-center justify-center flex-shrink-0">
+                                <span className="text-[10px] font-semibold text-slate-400">{si + 1}</span>
+                              </span>
+                              <span className="text-xs text-slate-500">
+                                {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </span>
                             </div>
-                            <ul className="space-y-2">
-                              {parsed.bullets.map((bullet, bi) => (
-                                <li key={bi} className="flex items-start gap-2.5">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70 flex-shrink-0 mt-2" />
-                                  <span className="text-sm text-slate-300 leading-relaxed print:text-slate-700">{bullet}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
 
-                        {parsed.ornekCevap && (
-                          <div className="px-5 py-4 bg-slate-700/10">
-                            <div className="flex items-center gap-2 mb-2">
-                              <MessageSquare className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-                              <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Örnek Yaklaşım</span>
-                            </div>
-                            <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-cyan-500/40 pl-3 print:text-slate-700">
-                              {parsed.ornekCevap}
-                            </p>
-                          </div>
-                        )}
+                            {hasContent ? (
+                              <div className="pl-7 space-y-4">
+                                {parsed.anaSorun && (
+                                  <div>
+                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                      <AlertTriangle className="w-3 h-3 text-rose-400 flex-shrink-0" />
+                                      <span className="text-[11px] font-semibold text-rose-400 uppercase tracking-wide">Tespit Edilen Sorun</span>
+                                    </div>
+                                    <p className="text-sm text-slate-200 leading-relaxed print:text-slate-800">{parsed.anaSorun}</p>
+                                  </div>
+                                )}
 
-                        {parsed.fallback && (
-                          <div className="px-5 py-4">
-                            <p className="text-sm text-slate-300 leading-relaxed print:text-slate-700">{parsed.fallback}</p>
+                                {parsed.bullets.length > 0 && (
+                                  <div>
+                                    <div className="flex items-center gap-1.5 mb-2">
+                                      <CheckCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                                      <span className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wide">Yapılması Gerekenler</span>
+                                    </div>
+                                    <ul className="space-y-1.5">
+                                      {parsed.bullets.map((bullet, bi) => (
+                                        <li key={bi} className="flex items-start gap-2">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 flex-shrink-0 mt-2" />
+                                          <span className="text-sm text-slate-300 leading-relaxed print:text-slate-700">{bullet}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {parsed.ornekCevap && (
+                                  <div>
+                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                      <MessageSquare className="w-3 h-3 text-cyan-400 flex-shrink-0" />
+                                      <span className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wide">Örnek Yaklaşım</span>
+                                    </div>
+                                    <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-cyan-500/30 pl-3 print:text-slate-700">
+                                      {parsed.ornekCevap}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {parsed.fallback && (
+                                  <p className="text-sm text-slate-300 leading-relaxed print:text-slate-700">{parsed.fallback}</p>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="pl-7 text-sm text-slate-500 italic">Genel performans değerlendirmesi yapıldı.</p>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="px-5 py-4 text-sm text-slate-500 italic">Genel performans değerlendirmesi yapıldı.</div>
-                    )}
+                        );
+                      })}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        )}
+                ))}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Stratejik Değerlendirme */}
         <section>
