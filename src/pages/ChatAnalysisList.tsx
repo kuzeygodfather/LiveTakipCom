@@ -238,6 +238,7 @@ export default function ChatAnalysisList() {
           chatId: selectedChat.id,
           chatAnalysisId: selectedChat.analysis.id,
           messages,
+          customerName: selectedChat.customer_name || '',
           analysis: {
             sentiment: selectedChat.analysis.sentiment,
             score: selectedChat.analysis.overall_score,

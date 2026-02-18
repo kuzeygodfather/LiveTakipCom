@@ -10,6 +10,7 @@ const corsHeaders = {
 interface CoachingRequest {
   chatId: string;
   chatAnalysisId: string;
+  customerName?: string;
   messages: Array<{
     author: { name: string };
     text: string;
@@ -43,7 +44,8 @@ Deno.serve(async (req: Request) => {
       hasAnalysis: !!body.analysis
     });
 
-    const { chatId, chatAnalysisId, messages, analysis }: CoachingRequest = body;
+    const { chatId, chatAnalysisId, customerName, messages, analysis }: CoachingRequest = body;
+    const firstName = customerName ? customerName.trim().split(/\s+/)[0] : '';
 
     if (!chatAnalysisId) {
       console.error('No chatAnalysisId provided');
@@ -120,7 +122,7 @@ Yazım kuralları:
 - Doğal, akıcı ve anlaşılır Türkçe kullan.
 - Yargı bildiren cümleleri "-dır/-dir" yerine "-yor", "-meli" veya "-acak" ile bitir.
 - Resmi ama samimi bir ton benimse.
-- Diyalogda temsilci "Sayın Üye" veya "Merhaba" ile başlasın.`;
+- Diyalogda temsilci müşteriyi ismiyle hitap etsin${firstName ? ` (bu konuşmada müşterinin adı: ${firstName})` : ', örneğin "Ahmet Bey" veya "Ayşe Hanım" gibi'}. "Sayın Üye" gibi genel ifadeler kullanma.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
