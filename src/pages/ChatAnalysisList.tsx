@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName, SCORE_TIERS, ScoreTierKey } from '../lib/utils';
-import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones } from 'lucide-react';
+import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones, RotateCcw, AlertTriangle } from 'lucide-react';
 import type { Chat, ChatAnalysis, ChatMessage } from '../types';
 
 interface ChatWithAnalysis extends Chat {
@@ -24,6 +24,8 @@ export default function ChatAnalysisList() {
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [matchingChatIds, setMatchingChatIds] = useState<string[]>([]);
   const [loadingCoaching, setLoadingCoaching] = useState(false);
+  const [reanalyzing, setReanalyzing] = useState(false);
+  const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
 
   const getIstanbulDateBoundaries = (dateStr: string): { start: Date, end: Date } => {
     const istanbulDate = new Date(dateStr + 'T00:00:00+03:00');
@@ -259,6 +261,53 @@ export default function ChatAnalysisList() {
     }
   };
 
+  const reanalyzeSingleChat = async () => {
+    if (!selectedChat) return;
+    setReanalyzing(true);
+    try {
+      await supabase.from('chat_analysis').delete().eq('chat_id', selectedChat.id);
+      await supabase.from('chats').update({ analyzed: false }).eq('id', selectedChat.id);
+      setSelectedChat(null);
+      setChats(prev => prev.map(c =>
+        c.id === selectedChat.id ? { ...c, analyzed: false, analysis: undefined } : c
+      ));
+      setAnalyzeStatus('Chat sıfırlandı, analiz başlatılıyor...');
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
+      await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      });
+      setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 6000);
+    } catch (err) {
+      console.error('Reanalyze error:', err);
+    } finally {
+      setReanalyzing(false);
+    }
+  };
+
+  const reanalyzeAll = async () => {
+    setShowReanalyzeConfirm(false);
+    setReanalyzing(true);
+    setAnalyzeStatus('Tüm analizler sıfırlanıyor...');
+    try {
+      await supabase.from('chat_analysis').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('chats').update({ analyzed: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+      setChats(prev => prev.map(c => ({ ...c, analyzed: false, analysis: undefined })));
+      setAnalyzeStatus('Tüm analizler sıfırlandı. Analiz başlatılıyor... (Her çalışmada 10 chat işlenir)');
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
+      await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      });
+      setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 8000);
+    } catch (err) {
+      console.error('Reanalyze all error:', err);
+      setAnalyzeStatus('Hata oluştu.');
+    } finally {
+      setReanalyzing(false);
+    }
+  };
+
   const startAnalysis = async () => {
     setAnalyzing(true);
     setAnalyzeStatus('Analiz başlatılıyor...');
@@ -438,7 +487,7 @@ export default function ChatAnalysisList() {
 
             <button
               onClick={startAnalysis}
-              disabled={analyzing}
+              disabled={analyzing || reanalyzing}
               className={`px-4 py-2.5 rounded-lg text-sm flex items-center gap-1.5 border transition-colors ${
                 analyzing
                   ? 'bg-slate-700 border-slate-600 text-slate-400 cursor-not-allowed'
@@ -448,7 +497,34 @@ export default function ChatAnalysisList() {
               <PlayCircle className="w-3.5 h-3.5" />
               {analyzing ? 'Analiz Ediliyor...' : 'Analiz Başlat'}
             </button>
+
+            <button
+              onClick={() => setShowReanalyzeConfirm(true)}
+              disabled={analyzing || reanalyzing}
+              className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-1.5 border transition-colors bg-amber-600/20 border-amber-500/40 text-amber-300 hover:bg-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Tümünü Yeniden Analiz Et
+            </button>
           </div>
+
+          {showReanalyzeConfirm && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-amber-300 mb-1">Tüm analizler sıfırlanacak</p>
+                <p className="text-xs text-slate-400">Mevcut tüm chat analizleri silinecek ve güncel AI modeliyle yeniden analiz edilecek. Her seferinde 10 chat işlenir. Devam etmek istiyor musunuz?</p>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={reanalyzeAll} className="px-3 py-1.5 bg-amber-500/30 border border-amber-500/50 text-amber-200 rounded-lg text-xs font-medium hover:bg-amber-500/40 transition-colors">
+                    Evet, Sıfırla ve Yeniden Analiz Et
+                  </button>
+                  <button onClick={() => setShowReanalyzeConfirm(false)} className="px-3 py-1.5 bg-white/5 border border-white/10 text-slate-300 rounded-lg text-xs hover:bg-white/10 transition-colors">
+                    İptal
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {analyzeStatus && (
             <div className="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-lg text-sm">
@@ -537,6 +613,17 @@ export default function ChatAnalysisList() {
                 </p>
                 <p className="text-xs text-slate-600 mt-0.5 font-mono truncate">{selectedChat.id}</p>
               </div>
+              {selectedChat?.analysis && (
+                <button
+                  onClick={reanalyzeSingleChat}
+                  disabled={reanalyzing}
+                  title="Bu chati yeniden analiz et"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors disabled:opacity-50 flex-shrink-0"
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 ${reanalyzing ? 'animate-spin' : ''}`} />
+                  Yeniden Analiz Et
+                </button>
+              )}
               <button
                 onClick={() => setSelectedChat(null)}
                 className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
