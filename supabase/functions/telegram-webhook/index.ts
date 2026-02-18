@@ -252,47 +252,45 @@ Deno.serve(async (req: Request) => {
 
     const chatCmdMatch = withoutSlash.match(/^chat\s+(.+)/i);
     if (chatCmdMatch) {
-      const targetChatId = chatCmdMatch[1].trim().toUpperCase();
+      const rawInputId = chatCmdMatch[1].trim().toUpperCase();
 
-      console.log("Searching for chat:", JSON.stringify(targetChatId), "length:", targetChatId.length);
+      // Generate search variants to handle O/0 and I/1/L ambiguity in monospace fonts
+      const variants = new Set<string>();
+      variants.add(rawInputId);
+      // Replace 0 with O and O with 0
+      variants.add(rawInputId.replace(/0/g, "O").replace(/O/g, "0").replace(/0/g, "O"));
+      variants.add(rawInputId.replace(/O/g, "0"));
+      variants.add(rawInputId.replace(/0/g, "O"));
+
+      console.log("Searching for chat variants:", Array.from(variants));
 
       let chatInfo: any = null;
-      let searchError: string | null = null;
 
-      const byId = await supabase
-        .from("chats")
-        .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-        .eq("id", targetChatId)
-        .maybeSingle();
+      for (const variant of Array.from(variants)) {
+        const byId = await supabase
+          .from("chats")
+          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
+          .eq("id", variant)
+          .maybeSingle();
 
-      console.log("byId result:", JSON.stringify({ data: byId.data, error: byId.error }));
-
-      if (byId.data) {
-        chatInfo = byId.data;
-      } else {
-        if (byId.error) searchError = byId.error.message;
+        if (byId.data) { chatInfo = byId.data; break; }
 
         const byChatId = await supabase
           .from("chats")
           .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .eq("chat_id", targetChatId)
+          .eq("chat_id", variant)
           .maybeSingle();
 
-        console.log("byChatId result:", JSON.stringify({ data: byChatId.data, error: byChatId.error }));
-
-        if (byChatId.data) {
-          chatInfo = byChatId.data;
-        } else if (byChatId.error) {
-          searchError = byChatId.error.message;
-        }
+        if (byChatId.data) { chatInfo = byChatId.data; break; }
       }
 
+      const targetChatId = rawInputId;
+
       if (!chatInfo) {
-        const errDetail = searchError ? `\nHata: <code>${escapeHtml(searchError)}</code>` : "";
         await sendTelegramMessage(
           settings.telegram_bot_token,
           chatId,
-          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>${errDetail}\n\nAranan ID uzunlugu: ${targetChatId.length}`
+          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>`
         );
         return new Response(JSON.stringify({ ok: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
