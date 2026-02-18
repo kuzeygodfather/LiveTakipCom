@@ -262,14 +262,13 @@ export default function ChatAnalysisList() {
   };
 
   const callResetFunction = async (chatId?: string) => {
-    const resetUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-analyses`;
-    const res = await fetch(resetUrl, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(chatId ? { chatId } : {}),
-    });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Reset failed');
+    if (chatId) {
+      const { error } = await supabase.rpc('reset_single_chat_analysis', { p_chat_id: chatId });
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase.rpc('reset_all_analyses');
+      if (error) throw new Error(error.message);
+    }
   };
 
   const reanalyzeSingleChat = async () => {
