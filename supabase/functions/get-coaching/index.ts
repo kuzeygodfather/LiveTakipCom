@@ -91,23 +91,27 @@ Deno.serve(async (req: Request) => {
     const sentimentText = analysis?.sentiment || "olumsuz";
     const scoreText = analysis?.score || "düşük";
 
-    const prompt = `Sen bir müşteri hizmetleri koçusun. Aşağıdaki chat görüşmesini analiz et ve destek personeline nasıl daha iyi cevap verebileceğine dair öneriler sun.
+    const prompt = `Aşağıdaki müşteri hizmetleri chat görüşmesini incele ve destek personeline yönelik koçluk önerileri hazırla.
 
 Chat:
 ${chatTranscript}
 
 Mevcut Analiz:
 - Duygu: ${sentimentText}
-- Skor: ${scoreText}
+- Puan: ${scoreText}
 - Sorunlar: ${issuesText}
 
-Lütfen şu formatta coaching önerileri ver:
+Lütfen aşağıdaki formatta yaz:
 
-1. **Ana Sorun**: Konuşmadaki ana sorunu kısaca belirt
-2. **Yapılması Gerekenler**: 3-4 madde halinde iyileştirme önerileri
-3. **Örnek Cevap**: Bu durumda nasıl cevap verilmeli? Örnek bir cevap yaz (en fazla 2-3 cümle)
+1. **Ana Sorun**: Görüşmedeki temel sorunu açık ve net bir şekilde ifade et.
+2. **Yapılması Gerekenler**: Personelin geliştirebileceği 3-4 somut öneriyi madde madde sırala.
+3. **Örnek Cevap**: Bu durumda kullanılabilecek, doğal ve samimi bir örnek yanıt yaz (2-3 cümle).
 
-Türkçe, profesyonel ve yapıcı bir dille yaz.`;
+Yazım kuralları:
+- Cümleleri özne-yüklem sırasına göre kur; devrik cümle kullanma.
+- Doğal, akıcı ve anlaşılır Türkçe kullan.
+- Yargı bildiren cümleleri "-dır/-dir" yerine "-yor", "-meli" veya "-acak" ile bitir.
+- Resmi ama samimi bir ton benimse.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -119,6 +123,7 @@ Türkçe, profesyonel ve yapıcı bir dille yaz.`;
       body: JSON.stringify({
         model: "claude-3-haiku-20240307",
         max_tokens: 2048,
+        system: "Sen deneyimli bir müşteri hizmetleri koçusun. Türkçeyi akıcı, doğal ve devrik cümle içermeyecek şekilde kullanırsın. Özne-yüklem sırasına uyar, anlaşılır ve yapıcı bir dille yazarsın.",
         messages: [
           {
             role: "user",
