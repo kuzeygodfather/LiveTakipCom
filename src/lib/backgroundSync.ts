@@ -31,7 +31,7 @@ export function useBackgroundSync() {
       const { data: latestSync } = await supabase
         .from('sync_jobs')
         .select('status, completed_at, error')
-        .order('started_at', { ascending: false })
+        .order('completed_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
