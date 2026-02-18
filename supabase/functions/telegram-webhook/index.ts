@@ -252,17 +252,20 @@ Deno.serve(async (req: Request) => {
 
     const chatCmdMatch = withoutSlash.match(/^chat\s+(.+)/i);
     if (chatCmdMatch) {
-      const rawInputId = chatCmdMatch[1].trim().toUpperCase();
+      const rawInputId = chatCmdMatch[1]
+        .normalize("NFC")
+        .replace(/[\u200B-\u200F\u2028-\u202F\uFEFF\u00A0\u0000-\u001F]/g, "")
+        .trim()
+        .toUpperCase();
 
-      // Generate search variants to handle O/0 and I/1/L ambiguity in monospace fonts
       const variants = new Set<string>();
       variants.add(rawInputId);
-      // Replace 0 with O and O with 0
-      variants.add(rawInputId.replace(/0/g, "O").replace(/O/g, "0").replace(/0/g, "O"));
-      variants.add(rawInputId.replace(/O/g, "0"));
       variants.add(rawInputId.replace(/0/g, "O"));
+      variants.add(rawInputId.replace(/O/g, "0"));
+      variants.add(rawInputId.replace(/1/g, "L").replace(/L/g, "1"));
+      variants.add(rawInputId.replace(/I/g, "1").replace(/L/g, "1"));
 
-      console.log("Searching for chat variants:", Array.from(variants));
+      console.log("Searching for chat variants:", Array.from(variants), "rawLength:", rawInputId.length);
 
       let chatInfo: any = null;
 
@@ -284,13 +287,31 @@ Deno.serve(async (req: Request) => {
         if (byChatId.data) { chatInfo = byChatId.data; break; }
       }
 
+      if (!chatInfo) {
+        const { data: ilikeById } = await supabase
+          .from("chats")
+          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
+          .ilike("id", rawInputId)
+          .maybeSingle();
+        if (ilikeById) chatInfo = ilikeById;
+      }
+
+      if (!chatInfo) {
+        const { data: ilikeByChat } = await supabase
+          .from("chats")
+          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
+          .ilike("chat_id", rawInputId)
+          .maybeSingle();
+        if (ilikeByChat) chatInfo = ilikeByChat;
+      }
+
       const targetChatId = rawInputId;
 
       if (!chatInfo) {
         await sendTelegramMessage(
           settings.telegram_bot_token,
           chatId,
-          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>`
+          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>\n\n<i>ID uzunlugu: ${rawInputId.length} karakter</i>\n<i>Lufen ID'yi tam olarak kopyalayin.</i>`
         );
         return new Response(JSON.stringify({ ok: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
