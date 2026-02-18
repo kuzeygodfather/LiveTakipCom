@@ -938,6 +938,7 @@ export default function CoachingCenter() {
             const isSentToday = lastCoachingDate ? new Date(lastCoachingDate).toDateString() === todayStr : false;
             const wasCoachedBefore = !!lastCoachingDate && !isSentToday;
             const isRepeatCoaching = wasCoachedBefore && agent.evidencedIssues.length > 0;
+            const hasImproved = wasCoachedBefore && agent.evidencedIssues.length === 0;
             const activeScript = isExpanded
               ? buildDetailedScript(agent.agentName, agent.evidencedIssues, agent.avgScore, agent.totalChats, dateRange, agent.lowestScoringChats, agent.actionItems, isRepeatCoaching)
               : agent.coachingScript;
@@ -978,10 +979,16 @@ export default function CoachingCenter() {
                             Bugün görüşüldü
                           </span>
                         )}
-                        {wasCoachedBefore && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400 border border-slate-600/30 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            Son görüşme: {formatDaysAgo(lastCoachingDate!)}
+                        {isRepeatCoaching && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                            <Repeat className="w-3 h-3" />
+                            Sorunlar devam ediyor ({formatDaysAgo(lastCoachingDate!)} görüşüldü)
+                          </span>
+                        )}
+                        {hasImproved && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                            <TrendingUp className="w-3 h-3" />
+                            İyileşti ({formatDaysAgo(lastCoachingDate!)} görüşüldü)
                           </span>
                         )}
                       </div>
@@ -1048,7 +1055,7 @@ export default function CoachingCenter() {
                     <div className="p-5">
                       {tab === 'issues' && (
                         <div className="space-y-4">
-                          {(wasCoachedBefore || isSentToday) && agent.evidencedIssues.length > 0 && (
+                          {isRepeatCoaching && (
                             <div className="bg-amber-950/20 rounded-lg border border-amber-500/20 p-3 flex items-start gap-3">
                               <Repeat className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                               <div>
@@ -1318,7 +1325,7 @@ export default function CoachingCenter() {
                               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isSentToday
                                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 cursor-default'
-                                  : wasCoachedBefore
+                                  : isRepeatCoaching
                                     ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30'
                                     : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30'
                               }`}
@@ -1327,14 +1334,14 @@ export default function CoachingCenter() {
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                               ) : isSentToday ? (
                                 <CheckCircle className="w-4 h-4" />
-                              ) : wasCoachedBefore ? (
+                              ) : isRepeatCoaching ? (
                                 <Repeat className="w-4 h-4" />
                               ) : (
                                 <Send className="w-4 h-4" />
                               )}
                               {isSentToday
                                 ? 'Bugün Görüşme Kaydedildi'
-                                : wasCoachedBefore
+                                : isRepeatCoaching
                                   ? `Tekrar Görüşme Yap (son: ${formatDaysAgo(lastCoachingDate!)})`
                                   : 'Görüşme Yapıldı Olarak Kaydet'}
                             </button>
