@@ -112,19 +112,35 @@ function parseCoachingTopics(suggestion: string): { label: string; text: string;
   if (!suggestion) return [];
   const topics: { label: string; text: string; type: 'issue' | 'action' | 'info' }[] = [];
 
-  const anaMatch = suggestion.match(/\*?\*?Ana Sorun\*?\*?\s*:?\s*([^\n*]{10,})/i);
-  if (anaMatch) {
-    topics.push({ label: 'Ana Sorun', text: stripMarkdown(anaMatch[1]).slice(0, 90), type: 'issue' });
+  const sections = suggestion.split(/\n(?=\*?\*?(?:Ana Sorun|Yapılması Gerekenler?)\*?\*?\s*:)/i);
+
+  let anaText = '';
+  let yapText = '';
+
+  for (const section of sections) {
+    const anaMatch = section.match(/\*?\*?Ana Sorun\*?\*?\s*:?\s*([\s\S]+)/i);
+    if (anaMatch && !anaText) {
+      anaText = stripMarkdown(anaMatch[1]).replace(/\s+/g, ' ').trim();
+    }
+    const yapMatch = section.match(/\*?\*?Yapılması Gerekenler?\*?\*?\s*:?\s*([\s\S]+)/i);
+    if (yapMatch && !yapText) {
+      yapText = stripMarkdown(yapMatch[1]).replace(/\s+/g, ' ').trim();
+    }
   }
 
-  const yapMatch = suggestion.match(/\*?\*?Yapılması Gerekenler?\*?\*?\s*:?\s*([^\n*]{10,})/i);
-  if (yapMatch) {
-    topics.push({ label: 'Öneri', text: stripMarkdown(yapMatch[1]).slice(0, 90), type: 'action' });
+  if (!anaText && !yapText) {
+    const anaFallback = suggestion.match(/\*?\*?Ana Sorun\*?\*?\s*:?\s*([^\n]+)/i);
+    if (anaFallback) anaText = stripMarkdown(anaFallback[1]).trim();
+    const yapFallback = suggestion.match(/\*?\*?Yapılması Gerekenler?\*?\*?\s*:?\s*([^\n]+)/i);
+    if (yapFallback) yapText = stripMarkdown(yapFallback[1]).trim();
   }
+
+  if (anaText) topics.push({ label: 'Ana Sorun', text: anaText, type: 'issue' });
+  if (yapText) topics.push({ label: 'Öneri', text: yapText, type: 'action' });
 
   if (topics.length === 0) {
     const parts = suggestion.split(/[;\n]/).map(s => stripMarkdown(s)).filter(s => s.length > 8).slice(0, 3);
-    parts.forEach(p => topics.push({ label: '', text: p.slice(0, 90), type: 'info' }));
+    parts.forEach(p => topics.push({ label: '', text: p.trim(), type: 'info' }));
   }
 
   return topics.slice(0, 3);
@@ -783,46 +799,52 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
               <Award className="w-4 h-4 text-cyan-400" />
               Son Koçluk Aktiviteleri
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {feedbackRecords.slice(0, 15).map((fb, i) => {
                 const topics = parseCoachingTopics(fb.coaching_suggestion);
                 return (
-                  <div key={i} className="bg-slate-800/30 print:bg-slate-50 rounded-xl px-4 py-3 border border-slate-700/30 print:border-slate-200">
-                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                      <div className="flex items-center gap-3 sm:w-44 flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                          <span className="text-[10px] font-bold text-cyan-400">
-                            {fb.agent_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-white print:text-slate-900 leading-tight">{fb.agent_name}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">
-                            {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long' })}
+                  <div key={i} className="bg-slate-800/30 print:bg-slate-50 rounded-xl border border-slate-700/30 print:border-slate-200 overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700/20">
+                      <div className="w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[10px] font-bold text-cyan-400">
+                          {fb.agent_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <span className="text-sm font-semibold text-white print:text-slate-900">{fb.agent_name}</span>
+                        <span className="text-xs text-slate-500 ml-3">
+                          {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="divide-y divide-slate-700/20">
+                      {topics.length > 0 ? topics.map((topic, ti) => (
+                        <div
+                          key={ti}
+                          className={`px-4 py-3 flex items-start gap-3 ${
+                            topic.type === 'issue'
+                              ? 'bg-rose-500/5'
+                              : topic.type === 'action'
+                              ? 'bg-cyan-500/5'
+                              : ''
+                          }`}
+                        >
+                          <div className={`flex items-center gap-1.5 flex-shrink-0 pt-0.5 w-24 ${
+                            topic.type === 'issue' ? 'text-rose-400' : topic.type === 'action' ? 'text-cyan-400' : 'text-slate-400'
+                          }`}>
+                            {topic.type === 'issue' && <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />}
+                            {topic.type === 'action' && <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                            {topic.label && <span className="text-xs font-bold">{topic.label}</span>}
                           </div>
+                          <p className={`flex-1 text-sm leading-relaxed ${
+                            topic.type === 'issue' ? 'text-rose-200' : topic.type === 'action' ? 'text-cyan-200' : 'text-slate-300'
+                          } print:text-slate-700`}>
+                            {topic.text}
+                          </p>
                         </div>
-                      </div>
-                      <div className="flex-1 flex flex-wrap gap-2">
-                        {topics.length > 0 ? topics.map((topic, ti) => (
-                          <span
-                            key={ti}
-                            className={`inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border leading-tight max-w-xs ${
-                              topic.type === 'issue'
-                                ? 'bg-rose-500/10 border-rose-500/20 text-rose-300'
-                                : topic.type === 'action'
-                                ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-300'
-                                : 'bg-slate-700/50 border-slate-600/40 text-slate-300'
-                            }`}
-                          >
-                            {topic.type === 'issue' && <AlertTriangle className="w-3 h-3 flex-shrink-0" />}
-                            {topic.type === 'action' && <CheckCircle className="w-3 h-3 flex-shrink-0" />}
-                            {topic.label && <strong className="font-semibold">{topic.label}:</strong>}
-                            <span>{topic.text.length > 70 ? topic.text.slice(0, 70) + '…' : topic.text}</span>
-                          </span>
-                        )) : (
-                          <span className="text-xs text-slate-500 italic">Genel performans değerlendirmesi</span>
-                        )}
-                      </div>
+                      )) : (
+                        <div className="px-4 py-3 text-xs text-slate-500 italic">Genel performans değerlendirmesi</div>
+                      )}
                     </div>
                   </div>
                 );
