@@ -1039,7 +1039,7 @@ export default function Reports() {
                     <select
                       value={selectedAgent}
                       onChange={(e) => setSelectedAgent(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
                     >
                       <option value="all">Tümü ({negativeChats.length})</option>
                       {uniqueAgents.map(agent => (
@@ -1055,7 +1055,7 @@ export default function Reports() {
                     <select
                       value={selectedDateRange}
                       onChange={(e) => setSelectedDateRange(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
                     >
                       <option value="all">Tüm Zamanlar</option>
                       <option value="7">Son 7 Gün</option>
@@ -1070,7 +1070,7 @@ export default function Reports() {
                     <select
                       value={selectedIssue}
                       onChange={(e) => setSelectedIssue(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
                     >
                       <option value="all">Tüm Sorunlar</option>
                       {allIssues.map(issue => (
@@ -1088,7 +1088,7 @@ export default function Reports() {
                     <select
                       value={selectedCoachingStatus}
                       onChange={(e) => setSelectedCoachingStatus(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
                     >
                       <option value="all">Tümü</option>
                       <option value="generated">Öneri Oluşturulmuş ({negativeChats.filter(c => c.coaching).length})</option>
@@ -1101,7 +1101,7 @@ export default function Reports() {
                     <select
                       value={selectedFeedbackStatus}
                       onChange={(e) => setSelectedFeedbackStatus(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
                     >
                       <option value="all">Tümü</option>
                       <option value="sent">İletilmiş ({negativeChats.filter(c => c.sent_feedback).length})</option>
