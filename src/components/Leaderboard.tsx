@@ -21,6 +21,7 @@ interface LeaderboardItem {
   weakestCategory?: WeakCategory | null;
   criticalCount?: number;
   avgResponseTime?: number;
+  isNewAgent?: boolean;
 }
 
 interface LeaderboardProps {
@@ -57,7 +58,7 @@ function ScoreBar({ label, score, color }: { label: string; score: number; color
 }
 
 function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: number, teamTopScore: number) {
-  const { score, chatCount = 0, avgSatisfaction = 0, trendDiff = 0, criticalCount = 0, avgResponseTime = 0, weakestCategory } = item;
+  const { score, chatCount = 0, avgSatisfaction = 0, trendDiff = 0, criticalCount = 0, avgResponseTime = 0, weakestCategory, isNewAgent = false } = item;
   const gap = teamTopScore - score;
 
   const suggestions: string[] = [];
@@ -66,16 +67,20 @@ function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: n
   let motivationMessage = '';
 
   if (type === 'bottom') {
-    if (trendDiff < 0) {
+    if (isNewAgent) {
+      whyHere = `${item.name} için henüz geçen aya ait veri bulunmuyor — son 30 günde sistemde aktif olan yeni bir personel. Bu liste trend bazlı sıralanamadığı için düşük mutlak skor nedeniyle buraya dahil edildi. Bir ay sonra tam trend karşılaştırması yapılabilecek.`;
+    } else if (trendDiff < 0) {
       whyHere = `${item.name}, geçen aya kıyasla ${Math.abs(trendDiff)} puan düşüş yaşadı (${item.prevScore ?? '?'} → ${score}). Bu liste en büyük puan kayıplarına göre sıralanır — düşük mutlak skor değil, düşüş trendi belirleyicidir.`;
     } else {
       whyHere = `Bu liste, takım içinde görece en düşük ortalama performansa sahip personeli gösterir. ${item.name}'in puanı düşük değil — takımın genel seviyesi yüksek. ${gap > 0 ? `Lider performansçıdan yalnızca ${gap} puan geride.` : 'Aslında en yüksek skorla eşit seviyede!'}`;
     }
 
-    if (score >= 85) {
+    if (isNewAgent) {
+      motivationMessage = `İlk ay her zaman en zor olandır. ${score >= 75 ? `${score} puanla gerçekten iyi bir başlangıç yaptın — bu tempoyu koru.` : 'Şu an öğrenme sürecinin en yoğun dönemdesin. Zorlu chatler seni hızla geliştirecek.'} Bir ay sonra tam bir trend karşılaştırmasıyla nerede olduğunu net göreceksin.`;
+    } else if (score >= 85) {
       motivationMessage = `Performansın gerçekten güçlü! ${trendDiff < 0 ? `Geçen aya göre ${Math.abs(trendDiff)} puanlık düşüş geçici olabilir — nedenini analiz edelim.` : 'Bu listede görünmen, takımın ne kadar yüksek bir çıtaya sahip olduğunu gösteriyor.'} Birkaç küçük adımla liderlik tablosuna geçebilirsin.`;
     } else if (score >= 80) {
-      motivationMessage = `Sağlam bir performans sergiliyorsun. ${trendDiff < -3 ? `Düşüş trendi dikkat gerektiriyor ama bu çevrilebilir bir süreç.` : 'Odaklanman gereken birkaç alan var ama potansiyelinin farkındayız.'} Tutarlı bir çalışmayla önümüzdeki ay büyük fark yaratabilirsin.`;
+      motivationMessage = `Sağlam bir performans sergiliyorsun. ${trendDiff < -3 ? 'Düşüş trendi dikkat gerektiriyor ama bu çevrilebilir bir süreç.' : 'Odaklanman gereken birkaç alan var ama potansiyelinin farkındayız.'} Tutarlı bir çalışmayla önümüzdeki ay büyük fark yaratabilirsin.`;
     } else {
       motivationMessage = `Her uzmanlık bir süreç gerektirir. Şu an gelişim eğrisinin tam ortasındasın — doğru odaklanmayla hızla yükseleceksin. Takım sana inanıyor.`;
     }
@@ -200,7 +205,10 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
     return 'bg-cyan-500/40 border-cyan-400/60 text-cyan-200';
   };
 
-  const TrendBadge = ({ diff }: { diff?: number }) => {
+  const TrendBadge = ({ diff, isNew }: { diff?: number; isNew?: boolean }) => {
+    if (isNew) return (
+      <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">Yeni</span>
+    );
     if (diff === undefined || diff === 0) return <Minus className="w-3 h-3 text-slate-500" />;
     if (diff > 0) return (
       <span className="flex items-center gap-0.5 text-xs font-semibold text-emerald-400">
@@ -269,7 +277,7 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
 
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <span className="font-bold text-lg">{item.score}</span>
-              <TrendBadge diff={item.trendDiff} />
+              <TrendBadge diff={item.trendDiff} isNew={item.isNewAgent} />
             </div>
           </button>
         ))}
@@ -300,7 +308,9 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
                       {type === 'top' ? `#${selectedItem.rank + 1} En İyi` : `#${selectedItem.rank + 1} Gelişim`}
                     </span>
                     <span className="text-xs text-slate-400">Son 30 gün</span>
-                    {selectedItem.item.trendDiff !== undefined && selectedItem.item.trendDiff !== 0 && selectedItem.item.prevScore !== undefined && selectedItem.item.prevScore > 0 && (
+                    {selectedItem.item.isNewAgent ? (
+                      <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">Yeni Personel</span>
+                    ) : selectedItem.item.trendDiff !== undefined && selectedItem.item.trendDiff !== 0 && selectedItem.item.prevScore !== undefined && selectedItem.item.prevScore > 0 && (
                       <span className={`text-xs font-semibold flex items-center gap-1 ${selectedItem.item.trendDiff > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {selectedItem.item.trendDiff > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                         {selectedItem.item.prevScore} → {selectedItem.item.score}

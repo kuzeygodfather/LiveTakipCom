@@ -671,8 +671,10 @@ export default function Dashboard() {
             f += batchSize;
           }
 
+          const isNewAgent = prevChats.length === 0;
+
           if (currentChats.length === 0) {
-            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0, trendDiff: 0, prevScore: 0, langScore: 0, qualityScore: 0, perfScore: 0, weakestCategory: null, criticalCount: 0, avgResponseTime: 0 };
+            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0, trendDiff: 0, prevScore: 0, langScore: 0, qualityScore: 0, perfScore: 0, weakestCategory: null, criticalCount: 0, avgResponseTime: 0, isNewAgent };
           }
 
           const currentChatIds = currentChats.map(c => c.id);
@@ -691,7 +693,7 @@ export default function Dashboard() {
           }
 
           if (currentAnalysis.length === 0) {
-            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0, trendDiff: 0, prevScore: 0, langScore: 0, qualityScore: 0, perfScore: 0, weakestCategory: null, criticalCount: 0, avgResponseTime: 0 };
+            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0, trendDiff: 0, prevScore: 0, langScore: 0, qualityScore: 0, perfScore: 0, weakestCategory: null, criticalCount: 0, avgResponseTime: 0, isNewAgent };
           }
 
           let prevScore = 0;
@@ -777,6 +779,7 @@ export default function Dashboard() {
             weakestCategory,
             criticalCount,
             avgResponseTime,
+            isNewAgent,
           };
         })
       );
@@ -785,11 +788,23 @@ export default function Dashboard() {
       const sortedByScore = [...qualified].sort((a, b) => b.score - a.score);
       setTopPerformers(sortedByScore.slice(0, 5));
 
-      const withTrend = qualified.filter(r => r.trendDiff !== 0);
-      const bottomSource = withTrend.length >= 3
-        ? [...qualified].sort((a, b) => (a.trendDiff ?? 0) - (b.trendDiff ?? 0))
-        : [...qualified].sort((a, b) => a.score - b.score);
-      setBottomPerformers(bottomSource.slice(0, 5));
+      const existingAgents = qualified.filter(r => !r.isNewAgent);
+      const newAgents = qualified.filter(r => r.isNewAgent);
+
+      const decliners = existingAgents
+        .filter(r => (r.trendDiff ?? 0) < 0)
+        .sort((a, b) => (a.trendDiff ?? 0) - (b.trendDiff ?? 0));
+
+      const stableByScore = existingAgents
+        .filter(r => (r.trendDiff ?? 0) >= 0)
+        .sort((a, b) => a.score - b.score);
+
+      const lowScoringNew = newAgents
+        .filter(r => r.score < 75)
+        .sort((a, b) => a.score - b.score);
+
+      const bottomCandidates = [...decliners, ...stableByScore, ...lowScoringNew];
+      setBottomPerformers(bottomCandidates.slice(0, 5));
     } catch (error) {
       console.error('Error loading performers ranking:', error);
     }
