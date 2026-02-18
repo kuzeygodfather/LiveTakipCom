@@ -521,6 +521,23 @@ export default function CoachingCenter() {
     loadSentFeedbacks();
   }, [dateRange]);
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('coaching-center-analysis-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_analysis' },
+        () => {
+          loadCoachingData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [dateRange]);
+
   const loadSentFeedbacks = async () => {
     const { data } = await supabase
       .from('coaching_feedbacks')
