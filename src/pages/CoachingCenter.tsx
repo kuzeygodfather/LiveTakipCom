@@ -1062,6 +1062,39 @@ export default function CoachingCenter() {
                       ))}
                     </div>
 
+                    <div className="px-5 pt-4 pb-2 flex items-center justify-between border-b border-slate-700/30">
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>Son aktivite: {formatDateTime(agent.lastActivityDate)}</span>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); markFeedbackSent(agent); }}
+                        disabled={sendingFeedback === agent.agentName || isSentToday}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                          isSentToday
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 cursor-default'
+                            : isRepeatCoaching
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30'
+                              : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30'
+                        }`}
+                      >
+                        {sendingFeedback === agent.agentName ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : isSentToday ? (
+                          <CheckCircle className="w-4 h-4" />
+                        ) : isRepeatCoaching ? (
+                          <Repeat className="w-4 h-4" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        {isSentToday
+                          ? 'Bugün Görüşme Kaydedildi'
+                          : isRepeatCoaching
+                            ? `Tekrar Görüşme Yap (son: ${formatDaysAgo(lastCoachingDate!)})`
+                            : 'Görüşme Yapıldı Olarak Kaydet'}
+                      </button>
+                    </div>
+
                     <div className="p-5">
                       {tab === 'issues' && (
                         <div className="space-y-4">
