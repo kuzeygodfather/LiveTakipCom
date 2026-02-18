@@ -97,53 +97,56 @@ const SCORE_COLOR = (s: number) => {
   return '#f43f5e';
 };
 
-function stripMarkdown(text: string): string {
+function cleanText(text: string): string {
   return text
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/\*(.*?)\*/g, '$1')
-    .replace(/^[-•*]\s*/gm, '')
     .replace(/^#+\s*/gm, '')
     .replace(/_/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
-function parseCoachingTopics(suggestion: string): { label: string; text: string; type: 'issue' | 'action' | 'info' }[] {
-  if (!suggestion) return [];
-  const topics: { label: string; text: string; type: 'issue' | 'action' | 'info' }[] = [];
+interface ParsedCoaching {
+  anaSorun: string;
+  bullets: string[];
+  ornekCevap: string;
+  fallback: string;
+}
 
-  const sections = suggestion.split(/\n(?=\*?\*?(?:Ana Sorun|Yapılması Gerekenler?)\*?\*?\s*:)/i);
+function parseCoachingSuggestion(suggestion: string): ParsedCoaching {
+  if (!suggestion) return { anaSorun: '', bullets: [], ornekCevap: '', fallback: '' };
 
-  let anaText = '';
-  let yapText = '';
+  let text = suggestion;
 
-  for (const section of sections) {
-    const anaMatch = section.match(/\*?\*?Ana Sorun\*?\*?\s*:?\s*([\s\S]+)/i);
-    if (anaMatch && !anaText) {
-      anaText = stripMarkdown(anaMatch[1]).replace(/\s+/g, ' ').trim();
-    }
-    const yapMatch = section.match(/\*?\*?Yapılması Gerekenler?\*?\*?\s*:?\s*([\s\S]+)/i);
-    if (yapMatch && !yapText) {
-      yapText = stripMarkdown(yapMatch[1]).replace(/\s+/g, ' ').trim();
-    }
+  const ornekMatch = text.match(/(?:\d+\.\s*)?(?:\*\*)?Örnek Cevap(?:\*\*)?\s*:?\s*"?([\s\S]*?)(?:Bu şekilde[\s\S]*)?$/i);
+  const ornekCevap = ornekMatch ? cleanText(ornekMatch[1]).replace(/["""]+$/, '').trim() : '';
+  if (ornekMatch) text = text.slice(0, ornekMatch.index || text.length);
+
+  const anaSorunMatch = text.match(/(?:\d+\.\s*)?(?:\*\*)?Ana Sorun(?:\*\*)?\s*:?\s*([\s\S]*?)(?=(?:\d+\.\s*)?(?:\*\*)?Yapılması|$)/i);
+  const anaSorun = anaSorunMatch ? cleanText(anaSorunMatch[1]).replace(/\s+/g, ' ').trim() : '';
+
+  const yapMatch = text.match(/(?:\d+\.\s*)?(?:\*\*)?Yapılması Gerekenler?(?:\*\*)?\s*:?\s*([\s\S]*?)$/i);
+  let bullets: string[] = [];
+  if (yapMatch) {
+    const bulletText = yapMatch[1];
+    bullets = bulletText
+      .split(/\n|-(?=\s)/)
+      .map(s => cleanText(s).trim())
+      .filter(s => s.length > 5);
   }
 
-  if (!anaText && !yapText) {
-    const anaFallback = suggestion.match(/\*?\*?Ana Sorun\*?\*?\s*:?\s*([^\n]+)/i);
-    if (anaFallback) anaText = stripMarkdown(anaFallback[1]).trim();
-    const yapFallback = suggestion.match(/\*?\*?Yapılması Gerekenler?\*?\*?\s*:?\s*([^\n]+)/i);
-    if (yapFallback) yapText = stripMarkdown(yapFallback[1]).trim();
+  if (!anaSorun && bullets.length === 0 && !ornekCevap) {
+    const parts = text
+      .replace(/\*\*/g, '')
+      .split(/\.\s+(?=[A-ZÇĞİÖŞÜa-zçğışöüA-Z])/)
+      .map(s => s.trim())
+      .filter(s => s.length > 10)
+      .slice(0, 4);
+    return { anaSorun: '', bullets: [], ornekCevap: '', fallback: parts.join('. ') };
   }
 
-  if (anaText) topics.push({ label: 'Ana Sorun', text: anaText, type: 'issue' });
-  if (yapText) topics.push({ label: 'Öneri', text: yapText, type: 'action' });
-
-  if (topics.length === 0) {
-    const parts = suggestion.split(/[;\n]/).map(s => stripMarkdown(s)).filter(s => s.length > 8).slice(0, 3);
-    parts.forEach(p => topics.push({ label: '', text: p.trim(), type: 'info' }));
-  }
-
-  return topics.slice(0, 3);
+  return { anaSorun, bullets, ornekCevap, fallback: '' };
 }
 
 export default function CoachingReport({ coachingData, coachingHistory, dateRange, onClose }: CoachingReportProps) {
@@ -799,53 +802,76 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
               <Award className="w-4 h-4 text-cyan-400" />
               Son Koçluk Aktiviteleri
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {feedbackRecords.slice(0, 15).map((fb, i) => {
-                const topics = parseCoachingTopics(fb.coaching_suggestion);
+                const parsed = parseCoachingSuggestion(fb.coaching_suggestion);
+                const hasContent = parsed.anaSorun || parsed.bullets.length > 0 || parsed.ornekCevap || parsed.fallback;
                 return (
-                  <div key={i} className="bg-slate-800/30 print:bg-slate-50 rounded-xl border border-slate-700/30 print:border-slate-200 overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700/20">
-                      <div className="w-8 h-8 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[10px] font-bold text-cyan-400">
+                  <div key={i} className="rounded-xl border border-slate-700/40 overflow-hidden bg-slate-800/20 print:bg-white print:border-slate-200">
+                    <div className="flex items-center gap-3 px-5 py-3 bg-slate-700/30 border-b border-slate-700/40">
+                      <div className="w-9 h-9 rounded-full bg-slate-600/60 border border-slate-500/40 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-slate-200">
                           {fb.agent_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                         </span>
                       </div>
-                      <div className="flex-1">
-                        <span className="text-sm font-semibold text-white print:text-slate-900">{fb.agent_name}</span>
-                        <span className="text-xs text-slate-500 ml-3">
-                          {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-white">{fb.agent_name}</span>
                       </div>
+                      <span className="text-xs text-slate-500 flex-shrink-0">
+                        {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      </span>
                     </div>
-                    <div className="divide-y divide-slate-700/20">
-                      {topics.length > 0 ? topics.map((topic, ti) => (
-                        <div
-                          key={ti}
-                          className={`px-4 py-3 flex items-start gap-3 ${
-                            topic.type === 'issue'
-                              ? 'bg-rose-500/5'
-                              : topic.type === 'action'
-                              ? 'bg-cyan-500/5'
-                              : ''
-                          }`}
-                        >
-                          <div className={`flex items-center gap-1.5 flex-shrink-0 pt-0.5 w-24 ${
-                            topic.type === 'issue' ? 'text-rose-400' : topic.type === 'action' ? 'text-cyan-400' : 'text-slate-400'
-                          }`}>
-                            {topic.type === 'issue' && <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />}
-                            {topic.type === 'action' && <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />}
-                            {topic.label && <span className="text-xs font-bold">{topic.label}</span>}
+
+                    {hasContent ? (
+                      <div className="divide-y divide-slate-700/30">
+                        {parsed.anaSorun && (
+                          <div className="px-5 py-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" />
+                              <span className="text-xs font-semibold text-rose-400 uppercase tracking-wide">Tespit Edilen Sorun</span>
+                            </div>
+                            <p className="text-sm text-slate-200 leading-relaxed print:text-slate-800">{parsed.anaSorun}</p>
                           </div>
-                          <p className={`flex-1 text-sm leading-relaxed ${
-                            topic.type === 'issue' ? 'text-rose-200' : topic.type === 'action' ? 'text-cyan-200' : 'text-slate-300'
-                          } print:text-slate-700`}>
-                            {topic.text}
-                          </p>
-                        </div>
-                      )) : (
-                        <div className="px-4 py-3 text-xs text-slate-500 italic">Genel performans değerlendirmesi</div>
-                      )}
-                    </div>
+                        )}
+
+                        {parsed.bullets.length > 0 && (
+                          <div className="px-5 py-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                              <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wide">Yapılması Gerekenler</span>
+                            </div>
+                            <ul className="space-y-2">
+                              {parsed.bullets.map((bullet, bi) => (
+                                <li key={bi} className="flex items-start gap-2.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70 flex-shrink-0 mt-2" />
+                                  <span className="text-sm text-slate-300 leading-relaxed print:text-slate-700">{bullet}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {parsed.ornekCevap && (
+                          <div className="px-5 py-4 bg-slate-700/10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <MessageSquare className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                              <span className="text-xs font-semibold text-cyan-400 uppercase tracking-wide">Örnek Yaklaşım</span>
+                            </div>
+                            <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-cyan-500/40 pl-3 print:text-slate-700">
+                              {parsed.ornekCevap}
+                            </p>
+                          </div>
+                        )}
+
+                        {parsed.fallback && (
+                          <div className="px-5 py-4">
+                            <p className="text-sm text-slate-300 leading-relaxed print:text-slate-700">{parsed.fallback}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="px-5 py-4 text-sm text-slate-500 italic">Genel performans değerlendirmesi yapıldı.</div>
+                    )}
                   </div>
                 );
               })}
