@@ -539,7 +539,9 @@ export default function CoachingCenter() {
     setLoading(true);
     try {
       const daysAgo = new Date();
-      daysAgo.setDate(daysAgo.getDate() - parseInt(dateRange));
+      if (dateRange !== '1') {
+        daysAgo.setDate(daysAgo.getDate() - parseInt(dateRange));
+      }
       daysAgo.setHours(0, 0, 0, 0);
 
       let allChats: any[] = [];
