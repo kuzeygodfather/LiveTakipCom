@@ -255,55 +255,18 @@ Deno.serve(async (req: Request) => {
       const rawInputId = chatCmdMatch[1]
         .normalize("NFC")
         .replace(/[\u200B-\u200F\u2028-\u202F\uFEFF\u00A0\u0000-\u001F]/g, "")
+        .replace(/\s+/g, "")
         .trim()
         .toUpperCase();
 
-      const variants = new Set<string>();
-      variants.add(rawInputId);
-      variants.add(rawInputId.replace(/0/g, "O"));
-      variants.add(rawInputId.replace(/O/g, "0"));
-      variants.add(rawInputId.replace(/1/g, "L").replace(/L/g, "1"));
-      variants.add(rawInputId.replace(/I/g, "1").replace(/L/g, "1"));
+      console.log("Chat lookup for:", JSON.stringify(rawInputId), "length:", rawInputId.length);
 
-      console.log("Searching for chat variants:", Array.from(variants), "rawLength:", rawInputId.length);
+      const { data: rpcResults, error: rpcError } = await supabase
+        .rpc("find_chat_by_id", { search_id: rawInputId });
 
-      let chatInfo: any = null;
+      console.log("RPC result:", JSON.stringify(rpcResults), "error:", JSON.stringify(rpcError));
 
-      for (const variant of Array.from(variants)) {
-        const byId = await supabase
-          .from("chats")
-          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .eq("id", variant)
-          .maybeSingle();
-
-        if (byId.data) { chatInfo = byId.data; break; }
-
-        const byChatId = await supabase
-          .from("chats")
-          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .eq("chat_id", variant)
-          .maybeSingle();
-
-        if (byChatId.data) { chatInfo = byChatId.data; break; }
-      }
-
-      if (!chatInfo) {
-        const { data: ilikeById } = await supabase
-          .from("chats")
-          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .ilike("id", rawInputId)
-          .maybeSingle();
-        if (ilikeById) chatInfo = ilikeById;
-      }
-
-      if (!chatInfo) {
-        const { data: ilikeByChat } = await supabase
-          .from("chats")
-          .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .ilike("chat_id", rawInputId)
-          .maybeSingle();
-        if (ilikeByChat) chatInfo = ilikeByChat;
-      }
+      const chatInfo = rpcResults && rpcResults.length > 0 ? rpcResults[0] : null;
 
       const targetChatId = rawInputId;
 
@@ -311,7 +274,7 @@ Deno.serve(async (req: Request) => {
         await sendTelegramMessage(
           settings.telegram_bot_token,
           chatId,
-          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>\n\n<i>ID uzunlugu: ${rawInputId.length} karakter</i>\n<i>Lufen ID'yi tam olarak kopyalayin.</i>`
+          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>\n<i>(${rawInputId.length} karakter, v3)</i>`
         );
         return new Response(JSON.stringify({ ok: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
