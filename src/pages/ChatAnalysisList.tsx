@@ -24,6 +24,7 @@ export default function ChatAnalysisList() {
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [matchingChatIds, setMatchingChatIds] = useState<string[]>([]);
   const [loadingCoaching, setLoadingCoaching] = useState(false);
+  const [coachingError, setCoachingError] = useState<string>('');
   const [reanalyzing, setReanalyzing] = useState(false);
   const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
 
@@ -184,6 +185,7 @@ export default function ChatAnalysisList() {
   };
 
   const loadChatMessages = async (chat: ChatWithAnalysis) => {
+    setCoachingError('');
     try {
       const { data: messages } = await supabase
         .from('chat_messages')
@@ -212,6 +214,7 @@ export default function ChatAnalysisList() {
   const fetchCoaching = async () => {
     if (!selectedChat || !selectedChat.analysis) return;
     setLoadingCoaching(true);
+    setCoachingError('');
     try {
       const messages = (selectedChat.messages || []).map(m => ({
         author: { name: m.author_name || (m.author_type === 'agent' ? 'Temsilci' : 'Üye') },
@@ -244,30 +247,46 @@ export default function ChatAnalysisList() {
 
       if (res.ok) {
         const result = await res.json();
-        setSelectedChat(prev => prev ? {
-          ...prev,
-          analysis: prev.analysis ? { ...prev.analysis, coaching_suggestion: result.suggestion } : prev.analysis,
-        } : prev);
-        setChats(prev => prev.map(c =>
-          c.id === selectedChat.id && c.analysis
-            ? { ...c, analysis: { ...c.analysis, coaching_suggestion: result.suggestion } }
-            : c
-        ));
+        if (result.suggestion) {
+          setSelectedChat(prev => prev ? {
+            ...prev,
+            analysis: prev.analysis ? { ...prev.analysis, coaching_suggestion: result.suggestion } : prev.analysis,
+          } : prev);
+          setChats(prev => prev.map(c =>
+            c.id === selectedChat.id && c.analysis
+              ? { ...c, analysis: { ...c.analysis, coaching_suggestion: result.suggestion } }
+              : c
+          ));
+        } else {
+          setCoachingError(result.error || 'Koçluk önerisi oluşturulamadı.');
+        }
+      } else {
+        const errData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        setCoachingError(errData.error || errData.details || `Hata: HTTP ${res.status}`);
       }
     } catch (err) {
       console.error('Coaching fetch error:', err);
+      setCoachingError(err instanceof Error ? err.message : 'Bağlantı hatası oluştu.');
     } finally {
       setLoadingCoaching(false);
     }
   };
 
   const callResetFunction = async (chatId?: string) => {
-    if (chatId) {
-      const { error } = await supabase.rpc('reset_single_chat_analysis', { p_chat_id: chatId });
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await supabase.rpc('reset_all_analyses');
-      if (error) throw new Error(error.message);
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const resetUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-analyses`;
+    const res = await fetch(resetUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(chatId ? { chatId } : {}),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Bilinmeyen hata' }));
+      throw new Error(err.error || `HTTP ${res.status}`);
     }
   };
 
@@ -888,7 +907,7 @@ export default function ChatAnalysisList() {
                       </div>
                       {!selectedChat.analysis.coaching_suggestion && (
                         <button
-                          onClick={fetchCoaching}
+                          onClick={() => { setCoachingError(''); fetchCoaching(); }}
                           disabled={loadingCoaching}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                         >
@@ -897,7 +916,7 @@ export default function ChatAnalysisList() {
                           ) : (
                             <Sparkles className="w-3.5 h-3.5" />
                           )}
-                          {loadingCoaching ? 'Oluşturuluyor...' : 'Oluştur'}
+                          {loadingCoaching ? 'Oluşturuluyor...' : coachingError ? 'Tekrar Dene' : 'Oluştur'}
                         </button>
                       )}
                     </div>
@@ -972,10 +991,20 @@ export default function ChatAnalysisList() {
                         </div>
                       );
                     })() : (
-                      <div className="p-6 text-center text-slate-500 text-sm">
-                        {loadingCoaching
-                          ? 'AI koçluk önerisi ve örnek konuşma oluşturuluyor...'
-                          : 'Koçluk önerisi ve örnek konuşma oluşturmak için butona tıklayın.'}
+                      <div className="p-5 space-y-3">
+                        {coachingError && (
+                          <div className="p-3 bg-rose-500/10 border border-rose-500/25 rounded-lg text-sm text-rose-300 flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>{coachingError}</span>
+                          </div>
+                        )}
+                        <div className="text-center text-slate-500 text-sm py-4">
+                          {loadingCoaching
+                            ? 'AI koçluk önerisi ve örnek konuşma oluşturuluyor...'
+                            : coachingError
+                            ? 'Oluşturma sırasında hata oluştu. Yukarıdaki butona tıklayarak tekrar deneyebilirsiniz.'
+                            : 'Koçluk önerisi ve örnek konuşma oluşturmak için butona tıklayın.'}
+                        </div>
                       </div>
                     )}
                   </div>
