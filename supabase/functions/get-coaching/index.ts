@@ -46,6 +46,7 @@ Deno.serve(async (req: Request) => {
 
     const { chatId, chatAnalysisId, customerName, messages, analysis }: CoachingRequest = body;
     const firstName = customerName ? customerName.trim().split(/\s+/)[0] : '';
+    const formalName = firstName ? `${firstName} Bey/Hanım` : '';
 
     if (!chatAnalysisId) {
       console.error('No chatAnalysisId provided');
@@ -122,7 +123,8 @@ Yazım kuralları:
 - Doğal, akıcı ve anlaşılır Türkçe kullan.
 - Yargı bildiren cümleleri "-dır/-dir" yerine "-yor", "-meli" veya "-acak" ile bitir.
 - Resmi ama samimi bir ton benimse.
-- Diyalogda temsilci müşteriyi ismiyle hitap etsin${firstName ? ` (bu konuşmada müşterinin adı: ${firstName})` : ', örneğin "Ahmet Bey" veya "Ayşe Hanım" gibi'}. "Sayın Üye" gibi genel ifadeler kullanma.`;
+- Temsilci müşteriye HER ZAMAN "Ad Bey" veya "Ad Hanım" şeklinde hitap etmeli. Sadece isim kullanmak (örn. "Kerim") kabul edilemez, mutlaka saygı eki eklenmeli.${firstName ? ` Bu konuşmada müşterinin adı "${firstName}" — cinsiyet bağlamdan anlaşılıyorsa "Bey" veya "Hanım" seç, anlaşılamıyorsa "Bey" kullan (örn. "${firstName} Bey").` : ' Örneğin "Ahmet Bey" veya "Ayşe Hanım" gibi.'} "Sayın Üye", "Değerli Müşteri" gibi genel ifadeler kullanma.
+- Temsilci hiçbir zaman müşteriyi azarlamaz, uyarmaz veya davranışı hakkında yorum yapmaz. Bunun yerine sorunun çözümüne odaklanır ve sakin, nazik bir dil kullanır.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
