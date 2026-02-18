@@ -1,10 +1,21 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName } from '../lib/utils';
-import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff } from 'lucide-react';
+import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff, X, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 import type { Personnel } from '../types';
 import { useNotification } from '../lib/notifications';
 import { Modal } from '../components/Modal';
+
+interface RecurringIssue {
+  chat_id: string;
+  customer_name: string;
+  overall_score: number;
+  critical_errors: string[];
+  improvement_areas: string[];
+  coaching_suggestion: string | null;
+  recommendations: string | null;
+  analysis_date: string;
+}
 
 interface RatingInfo {
   liked_chats: Array<{ id: string; customer_name: string }>;
@@ -27,6 +38,13 @@ export default function PersonnelAnalytics() {
   const [recalculating, setRecalculating] = useState(false);
   const [ratingInfo, setRatingInfo] = useState<Record<string, RatingInfo>>({});
   const [hoveredRating, setHoveredRating] = useState<{ personnel: string; type: string } | null>(null);
+  const [recurringModal, setRecurringModal] = useState<{ isOpen: boolean; personnelName: string; issues: RecurringIssue[]; loading: boolean; expandedIndex: number | null }>({
+    isOpen: false,
+    personnelName: '',
+    issues: [],
+    loading: false,
+    expandedIndex: null,
+  });
   const [chatModal, setChatModal] = useState<{ isOpen: boolean; type: string; chats: any[]; title: string }>({
     isOpen: false,
     type: '',
@@ -323,6 +341,47 @@ export default function PersonnelAnalytics() {
     }
   };
 
+  const openRecurringModal = async (person: Personnel) => {
+    setRecurringModal({ isOpen: true, personnelName: person.name, issues: [], loading: true, expandedIndex: null });
+
+    try {
+      const { data: chatIds } = await supabase
+        .from('chats')
+        .select('id, customer_name')
+        .eq('agent_name', person.name);
+
+      if (!chatIds || chatIds.length === 0) {
+        setRecurringModal(prev => ({ ...prev, loading: false }));
+        return;
+      }
+
+      const idList = chatIds.map(c => c.id);
+      const customerMap = new Map(chatIds.map(c => [c.id, c.customer_name || 'Bilinmiyor']));
+
+      const { data: analyses } = await supabase
+        .from('chat_analysis')
+        .select('chat_id, overall_score, issues_detected, coaching_suggestion, recommendations, analysis_date')
+        .in('chat_id', idList)
+        .lt('overall_score', 50)
+        .order('overall_score', { ascending: true });
+
+      const issues: RecurringIssue[] = (analyses || []).map(a => ({
+        chat_id: a.chat_id,
+        customer_name: customerMap.get(a.chat_id) || 'Bilinmiyor',
+        overall_score: a.overall_score,
+        critical_errors: a.issues_detected?.critical_errors || [],
+        improvement_areas: a.issues_detected?.improvement_areas || [],
+        coaching_suggestion: a.coaching_suggestion || null,
+        recommendations: a.recommendations || null,
+        analysis_date: a.analysis_date,
+      }));
+
+      setRecurringModal(prev => ({ ...prev, issues, loading: false }));
+    } catch {
+      setRecurringModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   const parseScore = (score: number | string): number => {
     if (typeof score === 'string') {
       const parsed = parseFloat(score);
@@ -414,10 +473,13 @@ export default function PersonnelAnalytics() {
                         {getTierLabel(person.reliability_tier)}
                       </span>
                       {(person.recurring_issues_count ?? 0) > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2 py-0.5 rounded-full" title={`${person.recurring_issues_count} tekrarlayan kritik hata — skora yansıtıldı`}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openRecurringModal(person); }}
+                          className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2 py-0.5 rounded-full hover:bg-orange-500/20 transition-colors cursor-pointer"
+                        >
                           <AlertTriangle className="w-3 h-3" />
                           {person.recurring_issues_count} tekrar
-                        </span>
+                        </button>
                       )}
                       {ratings.warning_chats.length > 0 && (
                         <button
@@ -749,6 +811,119 @@ export default function PersonnelAnalytics() {
               <button
                 onClick={closeChatModal}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all shadow-md hover:shadow-lg"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recurring Issues Modal */}
+      {recurringModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden animate-scale-in">
+            <div className="bg-gradient-to-r from-orange-600 to-amber-500 text-white px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Tekrarlayan Hatalar
+                </h3>
+                <p className="text-sm text-orange-100 mt-0.5">{recurringModal.personnelName}</p>
+              </div>
+              <button
+                onClick={() => setRecurringModal(prev => ({ ...prev, isOpen: false }))}
+                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
+              {recurringModal.loading ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="w-10 h-10 border-4 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mb-4" />
+                  <p className="text-slate-400">Veriler yükleniyor...</p>
+                </div>
+              ) : recurringModal.issues.length === 0 ? (
+                <p className="text-center text-slate-400 py-8">Kritik hata bulunamadı</p>
+              ) : (
+                <div className="space-y-3">
+                  {recurringModal.issues.map((issue, idx) => (
+                    <div key={issue.chat_id} className="border border-white/10 rounded-xl overflow-hidden">
+                      <button
+                        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left"
+                        onClick={() => setRecurringModal(prev => ({ ...prev, expandedIndex: prev.expandedIndex === idx ? null : idx }))}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                            issue.overall_score < 30
+                              ? 'bg-rose-500/15 text-rose-400 border border-rose-500/25'
+                              : 'bg-orange-500/15 text-orange-400 border border-orange-500/25'
+                          }`}>
+                            {Math.round(issue.overall_score)}/100
+                          </span>
+                          <span className="text-sm text-slate-200 font-medium">{maskName(issue.customer_name)}</span>
+                          <span className="text-xs text-slate-500">
+                            {new Date(issue.analysis_date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })}
+                          </span>
+                        </div>
+                        {recurringModal.expandedIndex === idx ? <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />}
+                      </button>
+
+                      {recurringModal.expandedIndex === idx && (
+                        <div className="px-4 pb-4 space-y-3 border-t border-white/10 pt-3">
+                          {issue.critical_errors.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-rose-400 uppercase tracking-wide mb-2">Kritik Hatalar</p>
+                              <ul className="space-y-1.5">
+                                {issue.critical_errors.map((err, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-rose-400 flex-shrink-0" />
+                                    {err}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {issue.improvement_areas.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide mb-2">Geliştirilmesi Gereken Alanlar</p>
+                              <ul className="space-y-1.5">
+                                {issue.improvement_areas.map((area, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                                    {area}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {(issue.coaching_suggestion || issue.recommendations) && (
+                            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                              <p className="text-xs font-semibold text-blue-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                <Lightbulb className="w-3.5 h-3.5" />
+                                Öneri
+                              </p>
+                              <p className="text-sm text-slate-300 leading-relaxed">
+                                {issue.coaching_suggestion || issue.recommendations}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white/5 px-6 py-4 flex justify-end border-t border-white/10">
+              <button
+                onClick={() => setRecurringModal(prev => ({ ...prev, isOpen: false }))}
+                className="px-6 py-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white font-medium rounded-lg hover:from-orange-700 hover:to-amber-600 transition-all shadow-md"
               >
                 Kapat
               </button>
