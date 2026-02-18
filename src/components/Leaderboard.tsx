@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { TrendingUp, TrendingDown, Award, Medal, X, Star, MessageSquare, Target, Zap, ThumbsUp, AlertTriangle, ChevronRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Award, Medal, X, Star, MessageSquare, Target, Zap, ThumbsUp, AlertTriangle, ChevronRight, Clock, Minus } from 'lucide-react';
+
+interface WeakCategory {
+  name: string;
+  score: number;
+}
 
 interface LeaderboardItem {
   name: string;
@@ -8,6 +13,14 @@ interface LeaderboardItem {
   details?: string;
   chatCount?: number;
   avgSatisfaction?: number;
+  trendDiff?: number;
+  prevScore?: number;
+  langScore?: number;
+  qualityScore?: number;
+  perfScore?: number;
+  weakestCategory?: WeakCategory | null;
+  criticalCount?: number;
+  avgResponseTime?: number;
 }
 
 interface LeaderboardProps {
@@ -17,53 +30,86 @@ interface LeaderboardProps {
   teamTopScore?: number;
 }
 
+function formatSeconds(s: number): string {
+  if (s <= 0) return '—';
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return rem > 0 ? `${m}d ${rem}s` : `${m}d`;
+}
+
+function ScoreBar({ label, score, color }: { label: string; score: number; color: string }) {
+  if (!score || score <= 0) return null;
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs text-slate-400">{label}</span>
+        <span className="text-xs font-semibold text-white">{score}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-slate-700/60 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${Math.min(score, 100)}%`, background: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: number, teamTopScore: number) {
-  const { score, chatCount = 0, avgSatisfaction = 0 } = item;
+  const { score, chatCount = 0, avgSatisfaction = 0, trendDiff = 0, criticalCount = 0, avgResponseTime = 0, weakestCategory } = item;
   const gap = teamTopScore - score;
 
-  const motivations: string[] = [];
   const suggestions: string[] = [];
+  const motivations: string[] = [];
   let whyHere = '';
   let motivationMessage = '';
 
   if (type === 'bottom') {
-    whyHere = `Bu liste, takım içinde görece en düşük ortalama performansa sahip personeli gösterir. ${item.name}'in puanı düşük değil — takımın genel seviyesi yüksek. ${gap > 0 ? `Lider performansçıdan yalnızca ${gap} puan geride.` : 'Aslında en yüksek skorla eşit seviyede!'}`;
+    if (trendDiff < 0) {
+      whyHere = `${item.name}, geçen aya kıyasla ${Math.abs(trendDiff)} puan düşüş yaşadı (${item.prevScore ?? '?'} → ${score}). Bu liste en büyük puan kayıplarına göre sıralanır — düşük mutlak skor değil, düşüş trendi belirleyicidir.`;
+    } else {
+      whyHere = `Bu liste, takım içinde görece en düşük ortalama performansa sahip personeli gösterir. ${item.name}'in puanı düşük değil — takımın genel seviyesi yüksek. ${gap > 0 ? `Lider performansçıdan yalnızca ${gap} puan geride.` : 'Aslında en yüksek skorla eşit seviyede!'}`;
+    }
 
     if (score >= 85) {
-      motivationMessage = `Performansın gerçekten güçlü! Bu listede görünmen, takımın ne kadar yüksek bir çıtaya sahip olduğunu gösteriyor. Birkaç küçük adımla liderlik tablosuna geçebilirsin.`;
+      motivationMessage = `Performansın gerçekten güçlü! ${trendDiff < 0 ? `Geçen aya göre ${Math.abs(trendDiff)} puanlık düşüş geçici olabilir — nedenini analiz edelim.` : 'Bu listede görünmen, takımın ne kadar yüksek bir çıtaya sahip olduğunu gösteriyor.'} Birkaç küçük adımla liderlik tablosuna geçebilirsin.`;
     } else if (score >= 80) {
-      motivationMessage = `Sağlam bir performans sergiliyorsun. Odaklanman gereken birkaç alan var ama potansiyelinin farkındayız. Tutarlı bir çalışmayla önümüzdeki ay büyük fark yaratabilirsin.`;
+      motivationMessage = `Sağlam bir performans sergiliyorsun. ${trendDiff < -3 ? `Düşüş trendi dikkat gerektiriyor ama bu çevrilebilir bir süreç.` : 'Odaklanman gereken birkaç alan var ama potansiyelinin farkındayız.'} Tutarlı bir çalışmayla önümüzdeki ay büyük fark yaratabilirsin.`;
     } else {
       motivationMessage = `Her uzmanlık bir süreç gerektirir. Şu an gelişim eğrisinin tam ortasındasın — doğru odaklanmayla hızla yükseleceksin. Takım sana inanıyor.`;
     }
 
-    if (avgSatisfaction > 0 && avgSatisfaction < 3.5) {
-      suggestions.push(`Müşteri memnuniyeti puanın ${avgSatisfaction}/5 — daha empatik ve kişiselleştirilmiş yanıtlarla bu puanı hızla artırabilirsin.`);
-    } else if (avgSatisfaction >= 4.5) {
-      suggestions.push(`Müşteri memnuniyetin ${avgSatisfaction}/5 ile mükemmel — bu güçlü yanını performans puanına da yansıtmaya çalış.`);
+    if (weakestCategory) {
+      suggestions.push(`En zayıf kategori: "${weakestCategory.name}" (${weakestCategory.score} puan). Bu alana odaklanmak genel puanını en hızlı artıracak yöntem.`);
     }
 
-    if (chatCount > 200) {
-      suggestions.push(`${chatCount} chat yüksek bir yük — önceliklendirme ve hızlı şablon kullanımı kaliteni düşürmeden verimliliğini artırabilir.`);
-    } else if (chatCount < 30) {
-      suggestions.push(`Daha fazla chat deneyimi, performans puanını doğrudan etkiler. Aktif chat saatlerini artırmayı dene.`);
+    if (criticalCount > 0) {
+      const criticalRatio = chatCount > 0 ? Math.round((criticalCount / chatCount) * 100) : 0;
+      suggestions.push(`Son 30 günde ${criticalCount} kritik chat (puan < 60) — toplamın %${criticalRatio}'i. Bu konuşmaların ortak paydalarını incele.`);
+    }
+
+    if (avgSatisfaction > 0 && avgSatisfaction < 3.5) {
+      suggestions.push(`Müşteri memnuniyeti ${avgSatisfaction}/5 ile düşük. Daha empatik ve kişiselleştirilmiş yanıtlarla bu puanı hızla artırabilirsin.`);
+    } else if (avgSatisfaction >= 4.5) {
+      suggestions.push(`Müşteri memnuniyetin ${avgSatisfaction}/5 ile mükemmel — bu güçlü yanını AI analiz puanına da yansıtmaya çalış.`);
+    }
+
+    if (avgResponseTime > 120) {
+      suggestions.push(`Ortalama ilk yanıt süresi ${formatSeconds(avgResponseTime)} — hızlanmak puan ve memnuniyeti doğrudan etkiler.`);
     }
 
     if (gap >= 5) {
-      suggestions.push(`En iyi performansçıdan ${gap} puan geride. Bu farkı kapatmak için her chat'te analiz kalitesine ve çözüm hızına odaklan.`);
-    } else if (gap > 0) {
+      suggestions.push(`En iyi performansçıdan ${gap} puan geride. Bu farkı kapatmak için her chat'te çözüm kalitesine odaklan.`);
+    } else if (gap > 0 && gap < 5) {
       suggestions.push(`Lider performansçıdan sadece ${gap} puan geridsin — bu fark son derece küçük, bir haftalık odaklanmayla kapatılabilir.`);
-    }
-
-    if (score < 85) {
-      suggestions.push(`Chat başına ortalama çözüm süreni kısaltmak ve müşteriyi doğru anladığını teyit etmek puanını artıracak temel iki adım.`);
     }
 
     motivations.push('Her chat bir öğrenme fırsatı — zorlu konuşmalar seni güçlendirir.');
     motivations.push('Takım içi en iyi uygulamaları gözlemle ve kendi stiline adapte et.');
     if (chatCount > 100) motivations.push('Yüksek hacimde çalışmak ciddi bir deneyim birikimi sağlıyor — bu değerli.');
   } else {
-    whyHere = `${item.name}, son 30 günde takımın en yüksek performans puanlarından birine ulaştı. ${rank <= 2 ? 'Liderlik tablosunun zirvesinde yer almak büyük bir başarı.' : 'Top 5\'te yer almak güçlü ve tutarlı bir performansın göstergesi.'}`;
+    whyHere = `${item.name}, son 30 günde takımın en yüksek performans puanlarından birine ulaştı (${score} puan${trendDiff !== 0 ? `, geçen aya göre ${trendDiff > 0 ? '+' : ''}${trendDiff}` : ''}). ${rank <= 2 ? 'Liderlik tablosunun zirvesinde yer almak büyük bir başarı.' : 'Top 5\'te yer almak güçlü ve tutarlı bir performansın göstergesi.'}`;
 
     if (score >= 90) {
       motivationMessage = `Olağanüstü bir performans! ${score} puanla takımın zirvesinde parlıyorsun. Bu seviyeyi korumak, ulaşmak kadar değerli — tebrikler!`;
@@ -73,10 +119,20 @@ function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: n
       motivationMessage = `Top 5'e girdin — bu takdir edilesi bir başarı. Momentum'unu kaybetme ve bir sonraki seviyeye tırman!`;
     }
 
+    if (trendDiff > 0) {
+      suggestions.push(`Geçen aya kıyasla +${trendDiff} puan artış — bu yükseliş trendini koru.`);
+    } else if (trendDiff < 0) {
+      suggestions.push(`Yüksek puanda olsun da geçen aya göre ${Math.abs(trendDiff)} puanlık düşüş var. Nedenini anlamak bu seviyeyi korumanı sağlar.`);
+    }
+
     if (avgSatisfaction >= 4.5) {
       suggestions.push(`${avgSatisfaction}/5 müşteri memnuniyetiyle harika bir müşteri deneyimi sunuyorsun — bu standartı koru.`);
     } else if (avgSatisfaction > 0 && avgSatisfaction < 4.0) {
-      suggestions.push(`Performans puanın yüksek ama müşteri memnuniyeti ${avgSatisfaction}/5 — bu iki puanı birlikte yükseltmek seni gerçek bir lider yapar.`);
+      suggestions.push(`Performans puanın yüksek ama müşteri memnuniyeti ${avgSatisfaction}/5. Bu iki puanı birlikte yükseltmek seni gerçek bir lider yapar.`);
+    }
+
+    if (avgResponseTime > 0 && avgResponseTime <= 60) {
+      suggestions.push(`${formatSeconds(avgResponseTime)} ortalama yanıt süresiyle hız konusunda öne çıkıyorsun.`);
     }
 
     if (chatCount > 150) {
@@ -84,10 +140,9 @@ function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: n
     }
 
     suggestions.push('Deneyimini takım arkadaşlarınla paylaş — en iyi uygulamalarını mentor olarak aktarabilirsin.');
-    suggestions.push('Performansını belgele: hangi yaklaşımlar işe yarıyor? Bunu sistematikleştir.');
 
     motivations.push('Liderlik tablosunda kalmak, sürekli gelişime bağlıdır — hiçbir zaman rahat etme.');
-    if (gap === 0 && rank === 0) motivations.push('Takımın en iyisisin — başkalarına ilham oluyorsun.');
+    if (rank === 0) motivations.push('Takımın en iyisisin — başkalarına ilham oluyorsun.');
   }
 
   return { whyHere, motivationMessage, suggestions, motivations };
@@ -102,11 +157,7 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
         <h3 className="text-base font-semibold text-white mb-4">{title}</h3>
         <div className="flex flex-col items-center justify-center py-12 px-4 bg-slate-700/40 rounded-lg border-2 border-dashed border-cyan-400/50">
           <div className="w-16 h-16 bg-slate-600/60 rounded-full flex items-center justify-center mb-4">
-            {type === 'top' ? (
-              <Award className="w-8 h-8 text-cyan-300" />
-            ) : (
-              <TrendingDown className="w-8 h-8 text-rose-300" />
-            )}
+            {type === 'top' ? <Award className="w-8 h-8 text-cyan-300" /> : <TrendingDown className="w-8 h-8 text-rose-300" />}
           </div>
           <h3 className="text-lg font-bold text-white mb-2">Henüz Performans Verisi Yok</h3>
           <p className="text-sm text-slate-200 text-center max-w-md">
@@ -129,13 +180,13 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
 
   const getRankColor = (index: number) => {
     if (type === 'bottom') {
-      if (index === 0) return 'bg-gradient-to-r from-rose-500/30 to-red-500/30 text-white border-rose-400/50 shadow-lg shadow-rose-500/30';
-      return 'bg-gradient-to-r from-orange-500/25 to-amber-500/25 text-white border-orange-400/50 shadow-lg shadow-orange-500/20';
+      if (index === 0) return 'bg-gradient-to-r from-rose-500/30 to-red-500/30 border-rose-400/50 shadow-lg shadow-rose-500/30';
+      return 'bg-gradient-to-r from-orange-500/25 to-amber-500/25 border-orange-400/50 shadow-lg shadow-orange-500/20';
     }
-    if (index === 0) return 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 text-white border-amber-400/60 shadow-lg shadow-amber-500/40';
-    if (index === 1) return 'bg-gradient-to-r from-slate-600/40 to-slate-500/40 text-white border-slate-400/50 shadow-lg shadow-slate-500/30';
-    if (index === 2) return 'bg-gradient-to-r from-orange-500/30 to-amber-600/30 text-white border-orange-400/50 shadow-lg shadow-orange-500/30';
-    return 'bg-gradient-to-r from-cyan-500/25 to-blue-500/25 text-white border-cyan-400/50 shadow-lg shadow-cyan-500/20';
+    if (index === 0) return 'bg-gradient-to-r from-amber-500/30 to-yellow-500/30 border-amber-400/60 shadow-lg shadow-amber-500/40';
+    if (index === 1) return 'bg-gradient-to-r from-slate-600/40 to-slate-500/40 border-slate-400/50 shadow-lg shadow-slate-500/30';
+    if (index === 2) return 'bg-gradient-to-r from-orange-500/30 to-amber-600/30 border-orange-400/50 shadow-lg shadow-orange-500/30';
+    return 'bg-gradient-to-r from-cyan-500/25 to-blue-500/25 border-cyan-400/50 shadow-lg shadow-cyan-500/20';
   };
 
   const getAvatarColor = (index: number, t: 'top' | 'bottom') => {
@@ -147,6 +198,20 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
     if (index === 1) return 'bg-slate-500/40 border-slate-400/60 text-slate-200';
     if (index === 2) return 'bg-orange-500/40 border-orange-400/60 text-orange-200';
     return 'bg-cyan-500/40 border-cyan-400/60 text-cyan-200';
+  };
+
+  const TrendBadge = ({ diff }: { diff?: number }) => {
+    if (diff === undefined || diff === 0) return <Minus className="w-3 h-3 text-slate-500" />;
+    if (diff > 0) return (
+      <span className="flex items-center gap-0.5 text-xs font-semibold text-emerald-400">
+        <TrendingUp className="w-3 h-3" />+{diff}
+      </span>
+    );
+    return (
+      <span className="flex items-center gap-0.5 text-xs font-semibold text-rose-400">
+        <TrendingDown className="w-3 h-3" />{diff}
+      </span>
+    );
   };
 
   const insights = selectedItem
@@ -168,29 +233,43 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
           <button
             key={index}
             onClick={() => setSelectedItem({ item, rank: index })}
-            className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all hover:shadow-2xl hover:scale-[1.02] backdrop-blur-sm cursor-pointer text-left ${getRankColor(index)}`}
+            className={`w-full flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all hover:shadow-2xl hover:scale-[1.02] backdrop-blur-sm cursor-pointer text-left text-white ${getRankColor(index)}`}
           >
             <div className="flex items-center justify-center w-8 h-8 font-bold text-lg flex-shrink-0">
               {getMedalIcon(index) || `#${index + 1}`}
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm truncate">{item.name}</div>
-              {item.details && (
-                <div className="text-xs opacity-75 truncate">{item.details}</div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="text-right">
-                <div className="font-bold text-lg">{item.score}</div>
-                {item.change !== undefined && (
-                  <div className={`flex items-center gap-1 text-xs ${item.change >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {item.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    <span>{Math.abs(item.change).toFixed(0)}%</span>
-                  </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-sm">{item.name}</span>
+                {type === 'bottom' && item.weakestCategory && (
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-rose-500/25 text-rose-300 border border-rose-500/30 flex-shrink-0">
+                    Zayıf: {item.weakestCategory.name} {item.weakestCategory.score}
+                  </span>
                 )}
               </div>
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                {item.chatCount !== undefined && (
+                  <span className="text-xs opacity-70 flex items-center gap-1">
+                    <MessageSquare className="w-3 h-3" />{item.chatCount}
+                  </span>
+                )}
+                {item.avgSatisfaction !== undefined && item.avgSatisfaction > 0 && (
+                  <span className="text-xs opacity-70 flex items-center gap-1">
+                    <Star className="w-3 h-3" />{item.avgSatisfaction}
+                  </span>
+                )}
+                {item.avgResponseTime !== undefined && item.avgResponseTime > 0 && (
+                  <span className="text-xs opacity-60 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />{formatSeconds(item.avgResponseTime)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <span className="font-bold text-lg">{item.score}</span>
+              <TrendBadge diff={item.trendDiff} />
             </div>
           </button>
         ))}
@@ -206,8 +285,9 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
             style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', border: '1px solid rgba(255,255,255,0.1)' }}
             onClick={e => e.stopPropagation()}
           >
-            <div className={`px-6 py-5 flex items-center justify-between ${type === 'top' ? 'border-b border-amber-500/20' : 'border-b border-rose-500/20'}`}
-              style={{ background: type === 'top' ? 'linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(234,179,8,0.08) 100%)' : 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(249,115,22,0.08) 100%)' }}
+            <div
+              className={`px-6 py-5 flex items-center justify-between border-b ${type === 'top' ? 'border-amber-500/20' : 'border-rose-500/20'}`}
+              style={{ background: type === 'top' ? 'linear-gradient(135deg,rgba(245,158,11,0.12),rgba(234,179,8,0.08))' : 'linear-gradient(135deg,rgba(239,68,68,0.12),rgba(249,115,22,0.08))' }}
             >
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg border-2 ${getAvatarColor(selectedItem.rank, type)}`}>
@@ -215,46 +295,55 @@ export default function Leaderboard({ data, title, type = 'top', teamTopScore = 
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">{selectedItem.item.name}</h2>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${type === 'top' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'}`}>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${type === 'top' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-rose-500/20 text-rose-300 border-rose-500/30'}`}>
                       {type === 'top' ? `#${selectedItem.rank + 1} En İyi` : `#${selectedItem.rank + 1} Gelişim`}
                     </span>
                     <span className="text-xs text-slate-400">Son 30 gün</span>
+                    {selectedItem.item.trendDiff !== undefined && selectedItem.item.trendDiff !== 0 && selectedItem.item.prevScore !== undefined && selectedItem.item.prevScore > 0 && (
+                      <span className={`text-xs font-semibold flex items-center gap-1 ${selectedItem.item.trendDiff > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {selectedItem.item.trendDiff > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                        {selectedItem.item.prevScore} → {selectedItem.item.score}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              >
+              <button onClick={() => setSelectedItem(null)} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="px-6 py-4 grid grid-cols-3 gap-3 border-b border-white/5">
-              <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="text-2xl font-bold text-white">{selectedItem.item.score}</div>
-                <div className="text-xs text-slate-400 mt-0.5 flex items-center justify-center gap-1">
-                  <Target className="w-3 h-3" /> Puan
+            <div className="px-6 py-4 grid grid-cols-4 gap-2 border-b border-white/5">
+              {[
+                { label: 'Puan', value: selectedItem.item.score, icon: <Target className="w-3 h-3" /> },
+                { label: 'Chat', value: selectedItem.item.chatCount ?? '—', icon: <MessageSquare className="w-3 h-3" /> },
+                { label: 'Memnuniyet', value: selectedItem.item.avgSatisfaction ? `${selectedItem.item.avgSatisfaction}` : '—', icon: <Star className="w-3 h-3" /> },
+                { label: 'Yanıt', value: selectedItem.item.avgResponseTime ? formatSeconds(selectedItem.item.avgResponseTime) : '—', icon: <Clock className="w-3 h-3" /> },
+              ].map(({ label, value, icon }) => (
+                <div key={label} className="text-center p-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="text-xl font-bold text-white">{value}</div>
+                  <div className="text-xs text-slate-400 mt-0.5 flex items-center justify-center gap-1">{icon}{label}</div>
                 </div>
-              </div>
-              <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="text-2xl font-bold text-white">{selectedItem.item.chatCount ?? '—'}</div>
-                <div className="text-xs text-slate-400 mt-0.5 flex items-center justify-center gap-1">
-                  <MessageSquare className="w-3 h-3" /> Chat
-                </div>
-              </div>
-              <div className="text-center p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="text-2xl font-bold text-white">
-                  {selectedItem.item.avgSatisfaction ? selectedItem.item.avgSatisfaction.toFixed(1) : '—'}
-                </div>
-                <div className="text-xs text-slate-400 mt-0.5 flex items-center justify-center gap-1">
-                  <Star className="w-3 h-3" /> Memnuniyet
-                </div>
-              </div>
+              ))}
             </div>
 
-            <div className="px-6 py-4 space-y-4 max-h-[50vh] overflow-y-auto">
+            {(selectedItem.item.langScore || selectedItem.item.qualityScore || selectedItem.item.perfScore) ? (
+              <div className="px-6 py-4 border-b border-white/5 space-y-2.5">
+                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Kategori Kırılımı</div>
+                <ScoreBar label="Dil ve Üslup" score={selectedItem.item.langScore ?? 0} color="linear-gradient(90deg,#06b6d4,#0ea5e9)" />
+                <ScoreBar label="Kalite" score={selectedItem.item.qualityScore ?? 0} color="linear-gradient(90deg,#10b981,#34d399)" />
+                <ScoreBar label="Performans" score={selectedItem.item.perfScore ?? 0} color="linear-gradient(90deg,#f59e0b,#fbbf24)" />
+                {selectedItem.item.criticalCount !== undefined && selectedItem.item.criticalCount > 0 && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20 rounded-lg px-3 py-2">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {selectedItem.item.criticalCount} kritik chat (puan &lt; 60) — toplam {selectedItem.item.chatCount ? Math.round((selectedItem.item.criticalCount / selectedItem.item.chatCount) * 100) : 0}%
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            <div className="px-6 py-4 space-y-4 max-h-[40vh] overflow-y-auto">
               <div className="rounded-xl p-4" style={{ background: type === 'bottom' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${type === 'bottom' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}` }}>
                 <div className="flex items-center gap-2 mb-2">
                   {type === 'bottom' ? <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" /> : <Award className="w-4 h-4 text-amber-400 flex-shrink-0" />}

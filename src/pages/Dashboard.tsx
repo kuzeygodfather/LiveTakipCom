@@ -611,15 +611,16 @@ export default function Dashboard() {
   const loadPerformersRanking = async () => {
     try {
       const thirtyDaysAgoUTC = getIstanbulDateStartUTC(30);
+      const sixtyDaysAgoUTC = getIstanbulDateStartUTC(60);
+      const batchSize = 1000;
 
       let allChatsForRanking: any[] = [];
       let from = 0;
-      const batchSize = 1000;
 
       while (true) {
         const { data: batch } = await supabase
           .from('chats')
-          .select('agent_name, rating_score')
+          .select('agent_name')
           .not('agent_name', 'is', null)
           .range(from, from + batchSize - 1);
 
@@ -635,36 +636,71 @@ export default function Dashboard() {
 
       const rankings = await Promise.all(
         uniqueAgents.map(async (agentName) => {
-          let allAgentChats: any[] = [];
-          let from = 0;
+          let currentChats: any[] = [];
+          let f = 0;
 
           while (true) {
             const { data: batch } = await supabase
               .from('chats')
-              .select('id, rating_score')
+              .select('id, rating_score, first_response_time')
               .eq('agent_name', agentName)
               .gte('created_at', thirtyDaysAgoUTC)
-              .range(from, from + batchSize - 1);
+              .range(f, f + batchSize - 1);
 
             if (!batch || batch.length === 0) break;
-            allAgentChats = [...allAgentChats, ...batch];
+            currentChats = [...currentChats, ...batch];
             if (batch.length < batchSize) break;
-            from += batchSize;
+            f += batchSize;
           }
 
-          if (allAgentChats.length === 0) {
-            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0 };
+          let prevChats: any[] = [];
+          f = 0;
+
+          while (true) {
+            const { data: batch } = await supabase
+              .from('chats')
+              .select('id')
+              .eq('agent_name', agentName)
+              .gte('created_at', sixtyDaysAgoUTC)
+              .lt('created_at', thirtyDaysAgoUTC)
+              .range(f, f + batchSize - 1);
+
+            if (!batch || batch.length === 0) break;
+            prevChats = [...prevChats, ...batch];
+            if (batch.length < batchSize) break;
+            f += batchSize;
           }
 
-          const chatIds = allAgentChats.map(c => c.id);
+          if (currentChats.length === 0) {
+            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0, trendDiff: 0, prevScore: 0, langScore: 0, qualityScore: 0, perfScore: 0, weakestCategory: null, criticalCount: 0, avgResponseTime: 0 };
+          }
 
-          let allAnalysisData: any[] = [];
-          let analysisFrom = 0;
+          const currentChatIds = currentChats.map(c => c.id);
+          let currentAnalysis: any[] = [];
 
-          if (chatIds.length > 0) {
-            const batchSize = 1000;
-            for (let i = 0; i < chatIds.length; i += batchSize) {
-              const batchIds = chatIds.slice(i, i + batchSize);
+          for (let i = 0; i < currentChatIds.length; i += batchSize) {
+            const batchIds = currentChatIds.slice(i, i + batchSize);
+            const { data: batch } = await supabase
+              .from('chat_analysis')
+              .select('overall_score, language_compliance, quality_metrics, performance_metrics')
+              .in('chat_id', batchIds)
+              .not('overall_score', 'is', null)
+              .gt('overall_score', 0);
+
+            if (batch) currentAnalysis = [...currentAnalysis, ...batch];
+          }
+
+          if (currentAnalysis.length === 0) {
+            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0, trendDiff: 0, prevScore: 0, langScore: 0, qualityScore: 0, perfScore: 0, weakestCategory: null, criticalCount: 0, avgResponseTime: 0 };
+          }
+
+          let prevScore = 0;
+          if (prevChats.length > 0) {
+            const prevChatIds = prevChats.map(c => c.id);
+            let prevAnalysis: any[] = [];
+
+            for (let i = 0; i < prevChatIds.length; i += batchSize) {
+              const batchIds = prevChatIds.slice(i, i + batchSize);
               const { data: batch } = await supabase
                 .from('chat_analysis')
                 .select('overall_score')
@@ -672,39 +708,88 @@ export default function Dashboard() {
                 .not('overall_score', 'is', null)
                 .gt('overall_score', 0);
 
-              if (batch) {
-                allAnalysisData = [...allAnalysisData, ...batch];
-              }
+              if (batch) prevAnalysis = [...prevAnalysis, ...batch];
+            }
+
+            if (prevAnalysis.length > 0) {
+              prevScore = prevAnalysis.reduce((sum, a) => sum + (a.overall_score || 0), 0) / prevAnalysis.length;
             }
           }
 
-          if (allAnalysisData.length === 0) {
-            return { name: agentName, score: 0, chatCount: 0, avgSatisfaction: 0 };
-          }
+          const avgScore = currentAnalysis.reduce((sum, a) => sum + (a.overall_score || 0), 0) / currentAnalysis.length;
+          const trendDiff = prevScore > 0 ? Math.round(avgScore - prevScore) : 0;
 
-          const avgScore = allAnalysisData.reduce((sum, a) => sum + (a.overall_score || 0), 0) / allAnalysisData.length;
+          const langScores: number[] = [];
+          const qualityScores: number[] = [];
+          const perfScores: number[] = [];
 
-          const ratedChats = allAgentChats.filter(c => c.rating_score !== null && c.rating_score > 0);
+          currentAnalysis.forEach(a => {
+            const lc = a.language_compliance || {};
+            const qm = a.quality_metrics || {};
+            const pm = a.performance_metrics || {};
+
+            const langVals = [lc.professional_language, lc.polite_tone].filter(v => v != null && v > 0);
+            const qualVals = [qm.answer_relevance].filter(v => v != null && v > 0);
+            const perfVals = [pm.first_response_quality, pm.solution_focused, pm.communication_effectiveness].filter(v => v != null && v > 0);
+
+            if (langVals.length > 0) langScores.push(langVals.reduce((s, v) => s + v, 0) / langVals.length);
+            if (qualVals.length > 0) qualityScores.push(qualVals[0]);
+            if (perfVals.length > 0) perfScores.push(perfVals.reduce((s, v) => s + v, 0) / perfVals.length);
+          });
+
+          const langScore = langScores.length > 0 ? Math.round(langScores.reduce((s, v) => s + v, 0) / langScores.length) : 0;
+          const qualityScore = qualityScores.length > 0 ? Math.round(qualityScores.reduce((s, v) => s + v, 0) / qualityScores.length) : 0;
+          const perfScore = perfScores.length > 0 ? Math.round(perfScores.reduce((s, v) => s + v, 0) / perfScores.length) : 0;
+
+          const categories = [
+            { name: 'Dil', score: langScore },
+            { name: 'Kalite', score: qualityScore },
+            { name: 'Performans', score: perfScore },
+          ].filter(c => c.score > 0);
+
+          const weakestCategory = categories.length > 0
+            ? categories.sort((a, b) => a.score - b.score)[0]
+            : null;
+
+          const criticalCount = currentAnalysis.filter(a => (a.overall_score || 0) < 60).length;
+
+          const ratedChats = currentChats.filter(c => c.rating_score !== null && c.rating_score > 0);
           const avgSatisfaction = ratedChats.length > 0
             ? ratedChats.reduce((sum, c) => sum + (c.rating_score || 0), 0) / ratedChats.length
+            : 0;
+
+          const responseChats = currentChats.filter(c => c.first_response_time && c.first_response_time > 0);
+          const avgResponseTime = responseChats.length > 0
+            ? Math.round(responseChats.reduce((sum, c) => sum + (c.first_response_time || 0), 0) / responseChats.length)
             : 0;
 
           return {
             name: agentName,
             score: Math.round(avgScore),
-            chatCount: allAgentChats.length,
+            chatCount: currentChats.length,
             avgSatisfaction: parseFloat(avgSatisfaction.toFixed(1)),
-            details: `${allAgentChats.length} chat, ⭐${avgSatisfaction.toFixed(1)}`,
+            details: `${currentChats.length} chat, ⭐${avgSatisfaction.toFixed(1)}`,
+            trendDiff,
+            prevScore: Math.round(prevScore),
+            langScore,
+            qualityScore,
+            perfScore,
+            weakestCategory,
+            criticalCount,
+            avgResponseTime,
           };
         })
       );
 
-      const sortedRankings = rankings
-        .filter(r => r.score > 0)
-        .sort((a, b) => b.score - a.score);
+      const qualified = rankings.filter(r => r.score > 0 && r.chatCount >= 50);
+      const sortedByScore = [...qualified].sort((a, b) => b.score - a.score);
+      setTopPerformers(sortedByScore.slice(0, 5));
 
-      setTopPerformers(sortedRankings.slice(0, 5));
-      setBottomPerformers(sortedRankings.slice(-5).reverse());
+      const withTrend = qualified.filter(r => r.trendDiff !== 0);
+      const bottomSource = withTrend.length >= 3
+        ? [...qualified].sort((a, b) => (a.trendDiff ?? 0) - (b.trendDiff ?? 0))
+        : [...qualified].sort((a, b) => a.score - b.score);
+      setBottomPerformers(bottomSource.slice(0, 5));
     } catch (error) {
       console.error('Error loading performers ranking:', error);
     }
