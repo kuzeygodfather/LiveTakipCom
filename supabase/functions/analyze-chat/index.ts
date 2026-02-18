@@ -205,11 +205,13 @@ Ortalama Yanıt Süresi: ${avgResponseTime !== null ? `${avgResponseTime} saniye
 
 Aşağıdaki kriterlere göre analiz yap:
 
-1. DİL VE ÜSLUP UYUM DENETİMİ:
-- Profesyonel dil kullanımı (0-100 puan): Temsilcinin resmi, uygun dil kullanıp kullanmadığı
-- Saygılı ve kibar üslup (0-100 puan): Müşteriye saygılı davranılıp davranılmadığı
-- Yasaklı veya uygunsuz kelime kullanımı (varsa listele)
-- Kopyala-yapıştır / ezber mesaj tespiti (var/yok)
+ÖNEMLİ KURAL: Tüm değerlendirmeler YALNIZCA TEMSİLCİNİN mesajlarına uygulanır. Müşteri (Müşteri:) mesajları değerlendirme kapsamı dışındadır. Müşteri uygunsuz veya küfürlü dil kullansa bile bu temsilcinin puanını ETKİLEMEZ. Müşteri küfürü/saldırısı tespit edilirse, bunu "issues_detected.improvement_areas" alanına "Müşteri saldırgan/küfürlü dil kullandı — temsilcinin bu durumu nasıl yönettiği değerlendirildi" şeklinde not edilmeli; temsilcinin dil puanı bundan etkilenmemelidir.
+
+1. DİL VE ÜSLUP UYUM DENETİMİ (YALNIZCA TEMSİLCİ MESAJLARI):
+- Profesyonel dil kullanımı (0-100 puan): TEMSİLCİNİN resmi ve uygun dil kullanıp kullanmadığı
+- Saygılı ve kibar üslup (0-100 puan): TEMSİLCİNİN müşteriye saygılı davranıp davranmadığı
+- Yasaklı veya uygunsuz kelime kullanımı: YALNIZCA TEMSİLCİNİN kullandığı yasaklı kelimeler (müşterinin kullandığı kelimeler buraya yazılmaz)
+- Kopyala-yapıştır / ezber mesaj tespiti (var/yok): YALNIZCA TEMSİLCİ mesajları için
 
 2. CHAT KALİTE DENETİMİ:
 - Soruya gerçek cevap verildi mi? (0-100 puan): Müşteri sorusunun doğrudan cevaplanıp cevaplanmadığı
