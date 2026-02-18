@@ -145,10 +145,15 @@ Yazım kuralları:
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Claude API error:", error);
+      const errorText = await response.text();
+      console.error("Claude API error:", errorText);
+      let errorMessage = `Claude API hatası (${response.status})`;
+      try {
+        const errJson = JSON.parse(errorText);
+        errorMessage = errJson.error?.message || errorMessage;
+      } catch {}
       return new Response(
-        JSON.stringify({ error: "Failed to get coaching suggestions from Claude API" }),
+        JSON.stringify({ error: errorMessage }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -157,6 +162,16 @@ Yazım kuralları:
     }
 
     const data = await response.json();
+    if (!data.content || data.content.length === 0) {
+      console.error("Claude API returned empty content:", data);
+      return new Response(
+        JSON.stringify({ error: "Claude API boş yanıt döndürdü" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
     const suggestion = data.content[0].text;
 
     // Save coaching suggestion to database (using service_role for UPDATE permission)
