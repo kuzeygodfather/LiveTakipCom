@@ -153,6 +153,14 @@ export default function ChatAnalysisList() {
     return typeof score === 'string' ? parseInt(score) : score;
   };
 
+  const formatResponseTime = (seconds: number | null | undefined): string => {
+    if (!seconds && seconds !== 0) return '-';
+    if (seconds < 60) return `${seconds} Sn`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins} Dk ${secs} Sn` : `${mins} Dk`;
+  };
+
   const getScoreStyle = (score: number | string) => {
     const n = parseScore(score);
     if (n >= 80) return 'text-emerald-400 bg-emerald-400/10 border border-emerald-400/30';
@@ -453,7 +461,7 @@ export default function ChatAnalysisList() {
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-500 mb-1.5">
                       <span>{new Date(chat.created_at).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })}</span>
                       <span>{chat.message_count} mesaj</span>
-                      {chat.first_response_time && <span>İlk yanıt: {chat.first_response_time}s</span>}
+                      {chat.first_response_time && <span>İlk yanıt: {formatResponseTime(chat.first_response_time)}</span>}
                       <span className={`px-2 py-0.5 rounded text-xs ${
                         chat.analyzed
                           ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
@@ -553,7 +561,7 @@ export default function ChatAnalysisList() {
                     {[
                       { label: 'Genel Skor', value: `${parseScore(selectedChat.analysis.overall_score)}/100` },
                       { label: 'Duygu', value: `${getSentimentIcon(selectedChat.analysis.sentiment)} ${selectedChat.analysis.sentiment}` },
-                      { label: 'İlk Yanıt', value: selectedChat.first_response_time ? `${selectedChat.first_response_time}s` : '-' },
+                      { label: 'İlk Yanıt', value: formatResponseTime(selectedChat.first_response_time) },
                     ].map(({ label, value }) => (
                       <div key={label} className="bg-white/3 border border-white/8 rounded-xl p-3 sm:p-4">
                         <div className="text-xs text-slate-500 mb-1">{label}</div>
@@ -742,7 +750,7 @@ export default function ChatAnalysisList() {
                   <div className="grid grid-cols-3 gap-3 mb-6">
                     {[
                       { label: 'Mesaj', value: selectedChat.message_count },
-                      { label: 'İlk Yanıt', value: selectedChat.first_response_time ? `${selectedChat.first_response_time}s` : '-' },
+                      { label: 'İlk Yanıt', value: formatResponseTime(selectedChat.first_response_time) },
                       { label: 'Durum', value: selectedChat.status },
                     ].map(({ label, value }) => (
                       <div key={label} className="bg-white/3 border border-white/8 rounded-xl p-3 sm:p-4">
