@@ -361,8 +361,8 @@ JSON formatı (sadece bu alanları döndür):
         })
         .eq("id", chat.id);
 
-      if (analysisResult.overall_score < 60 || analysisResult.sentiment === "negative") {
-        const severity = analysisResult.overall_score < 30 ? "critical" : analysisResult.overall_score < 40 ? "high" : "medium";
+      if (calculatedScore < 60 || analysisResult.sentiment === "negative") {
+        const severity = calculatedScore < 30 ? "critical" : calculatedScore < 40 ? "high" : "medium";
 
         const chatDate = new Date(chat.created_at).toLocaleString('tr-TR', {
           year: 'numeric',
@@ -378,7 +378,7 @@ Chat ID: ${chat.id}
 Tarih: ${chatDate}
 Temsilci: ${chat.agent_name}
 Müşteri: ${chat.customer_name}
-Genel Puan: ${analysisResult.overall_score}/100
+Genel Puan: ${calculatedScore}/100
 Durum: ${analysisResult.sentiment === "negative" ? "Olumsuz" : analysisResult.sentiment === "positive" ? "Olumlu" : "Nötr"}
 
 📊 Özet:
@@ -407,7 +407,7 @@ ${analysisResult.recommendations}`;
         await supabase.rpc("upsert_daily_stats", {
           p_personnel_name: chat.agent_name,
           p_date: today,
-          p_score: analysisResult.overall_score,
+          p_score: calculatedScore,
           p_response_time: chat.first_response_time || 0,
         });
 
