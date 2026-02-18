@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName, SCORE_TIERS, ScoreTierKey } from '../lib/utils';
-import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle } from 'lucide-react';
+import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones } from 'lucide-react';
 import type { Chat, ChatAnalysis, ChatMessage } from '../types';
 
 interface ChatWithAnalysis extends Chat {
@@ -23,6 +23,7 @@ export default function ChatAnalysisList() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeStatus, setAnalyzeStatus] = useState<string>('');
   const [matchingChatIds, setMatchingChatIds] = useState<string[]>([]);
+  const [loadingCoaching, setLoadingCoaching] = useState(false);
 
   const getIstanbulDateBoundaries = (dateStr: string): { start: Date, end: Date } => {
     const istanbulDate = new Date(dateStr + 'T00:00:00+03:00');
@@ -190,6 +191,71 @@ export default function ChatAnalysisList() {
       setSelectedChat({ ...chat, messages: messages || [] });
     } catch {
       setSelectedChat(chat);
+    }
+  };
+
+  const parseDialogue = (suggestion: string): Array<{ speaker: 'agent' | 'customer'; text: string }> => {
+    const match = suggestion.match(/DIYALOG_BASLANGIC([\s\S]*?)DIYALOG_BITIS/);
+    if (!match) return [];
+    return match[1]
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.startsWith('Üye:') || line.startsWith('Temsilci:'))
+      .map(line => {
+        if (line.startsWith('Temsilci:')) return { speaker: 'agent' as const, text: line.replace('Temsilci:', '').trim() };
+        return { speaker: 'customer' as const, text: line.replace('Üye:', '').trim() };
+      });
+  };
+
+  const fetchCoaching = async () => {
+    if (!selectedChat || !selectedChat.analysis) return;
+    setLoadingCoaching(true);
+    try {
+      const messages = (selectedChat.messages || []).map(m => ({
+        author: { name: m.author_name || (m.author_type === 'agent' ? 'Temsilci' : 'Üye') },
+        text: m.text,
+      }));
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || supabaseKey;
+
+      const res = await fetch(`${supabaseUrl}/functions/v1/get-coaching`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          chatId: selectedChat.id,
+          chatAnalysisId: selectedChat.analysis.id,
+          messages,
+          analysis: {
+            sentiment: selectedChat.analysis.sentiment,
+            score: selectedChat.analysis.overall_score,
+            issues: [
+              ...(selectedChat.analysis.issues_detected?.critical_errors || []),
+              ...(selectedChat.analysis.issues_detected?.improvement_areas || []),
+            ],
+          },
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setSelectedChat(prev => prev ? {
+          ...prev,
+          analysis: prev.analysis ? { ...prev.analysis, coaching_suggestion: result.suggestion } : prev.analysis,
+        } : prev);
+        setChats(prev => prev.map(c =>
+          c.id === selectedChat.id && c.analysis
+            ? { ...c, analysis: { ...c.analysis, coaching_suggestion: result.suggestion } }
+            : c
+        ));
+      }
+    } catch (err) {
+      console.error('Coaching fetch error:', err);
+    } finally {
+      setLoadingCoaching(false);
     }
   };
 
@@ -700,9 +766,111 @@ export default function ChatAnalysisList() {
                     </div>
                   )}
 
-                  <div>
-                    <h3 className="font-semibold text-white text-sm mb-2">Öneriler</h3>
+                  {/* Öneriler */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-white text-sm">Öneriler</h3>
                     <p className="text-slate-300 text-sm leading-relaxed">{selectedChat.analysis.recommendations}</p>
+                  </div>
+
+                  {/* AI Koçluk & Örnek Diyalog */}
+                  <div className="border border-blue-500/20 rounded-xl overflow-hidden">
+                    <div className="bg-blue-500/10 px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-semibold text-blue-300">AI Koçluk & Örnek Konuşma</span>
+                      </div>
+                      {!selectedChat.analysis.coaching_suggestion && (
+                        <button
+                          onClick={fetchCoaching}
+                          disabled={loadingCoaching}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          {loadingCoaching ? (
+                            <span className="w-3.5 h-3.5 border-2 border-blue-400/40 border-t-blue-400 rounded-full animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5" />
+                          )}
+                          {loadingCoaching ? 'Oluşturuluyor...' : 'Oluştur'}
+                        </button>
+                      )}
+                    </div>
+
+                    {selectedChat.analysis.coaching_suggestion ? (() => {
+                      const suggestion = selectedChat.analysis.coaching_suggestion;
+                      const dialogue = parseDialogue(suggestion);
+
+                      const anaSorunMatch = suggestion.match(/(?:\*\*)?Ana Sorun(?:\*\*)?\s*:?\s*([\s\S]*?)(?=(?:\d+\.\s*)?(?:\*\*)?Yapılması|$)/i);
+                      const anaSorun = anaSorunMatch ? anaSorunMatch[1].replace(/\*\*/g, '').replace(/\s+/g, ' ').trim() : '';
+
+                      const yapMatch = suggestion.match(/(?:\*\*)?Yapılması Gerekenler?(?:\*\*)?\s*:?\s*([\s\S]*?)(?=(?:\d+\.\s*)?(?:\*\*)?Örnek|$)/i);
+                      const bullets = yapMatch
+                        ? yapMatch[1].split(/\n|-(?=\s)/).map(s => s.replace(/\*\*/g, '').trim()).filter(s => s.length > 5)
+                        : [];
+
+                      return (
+                        <div className="p-4 space-y-4">
+                          {anaSorun && (
+                            <div>
+                              <p className="text-xs font-semibold text-rose-400 uppercase tracking-wide mb-1.5">Ana Sorun</p>
+                              <p className="text-sm text-slate-300 leading-relaxed">{anaSorun}</p>
+                            </div>
+                          )}
+
+                          {bullets.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wide mb-2">Yapılması Gerekenler</p>
+                              <ul className="space-y-1.5">
+                                {bullets.map((b, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+                                    {b}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {dialogue.length > 0 && (
+                            <div>
+                              <p className="text-xs font-semibold text-cyan-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                Doğru Konuşma Örneği
+                              </p>
+                              <div className="bg-slate-900/60 rounded-xl p-3 space-y-2.5 border border-white/5">
+                                {dialogue.map((line, i) => (
+                                  <div key={i} className={`flex items-end gap-2 ${line.speaker === 'agent' ? 'justify-end' : 'justify-start'}`}>
+                                    {line.speaker === 'customer' && (
+                                      <div className="w-7 h-7 rounded-full bg-slate-600/70 border border-white/10 flex items-center justify-center flex-shrink-0">
+                                        <User className="w-3.5 h-3.5 text-slate-300" />
+                                      </div>
+                                    )}
+                                    <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                                      line.speaker === 'agent'
+                                        ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-br-sm'
+                                        : 'bg-slate-700/70 border border-white/8 text-slate-200 rounded-bl-sm'
+                                    }`}>
+                                      {line.text}
+                                    </div>
+                                    {line.speaker === 'agent' && (
+                                      <div className="w-7 h-7 rounded-full bg-blue-600/50 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                                        <Headphones className="w-3.5 h-3.5 text-blue-300" />
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              <p className="text-xs text-slate-500 mt-2 text-center">Bu örnek, tespit edilen sorunlara göre AI tarafından oluşturulmuştur.</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : (
+                      <div className="p-6 text-center text-slate-500 text-sm">
+                        {loadingCoaching
+                          ? 'AI koçluk önerisi ve örnek konuşma oluşturuluyor...'
+                          : 'Koçluk önerisi ve örnek konuşma oluşturmak için butona tıklayın.'}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (

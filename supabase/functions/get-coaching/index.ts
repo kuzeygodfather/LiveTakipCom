@@ -106,12 +106,21 @@ Lütfen aşağıdaki formatta yaz:
 1. **Ana Sorun**: Görüşmedeki temel sorunu açık ve net bir şekilde ifade et.
 2. **Yapılması Gerekenler**: Personelin geliştirebileceği 3-4 somut öneriyi madde madde sırala.
 3. **Örnek Cevap**: Bu durumda kullanılabilecek, doğal ve samimi bir örnek yanıt yaz (2-3 cümle).
+4. **Örnek Diyalog**: Bu konuşmanın nasıl yapılması gerektiğini gösteren kısa bir örnek diyalog yaz. Üye'nin asıl şikayetine veya sorusuna odaklan ve doğru yaklaşımı göster. Tam olarak aşağıdaki formatı kullan (her satır yeni satırda, başka hiçbir şey ekleme):
+
+DIYALOG_BASLANGIC
+Üye: [müşterinin gerçek sorusuna/şikayetine uygun, doğal bir mesaj]
+Temsilci: [empati kuran, çözüm odaklı, profesyonel yanıt]
+Üye: [müşteri devam mesajı]
+Temsilci: [sorunu çözen veya bir sonraki adımı anlatan yanıt]
+DIYALOG_BITIS
 
 Yazım kuralları:
 - Cümleleri özne-yüklem sırasına göre kur; devrik cümle kullanma.
 - Doğal, akıcı ve anlaşılır Türkçe kullan.
 - Yargı bildiren cümleleri "-dır/-dir" yerine "-yor", "-meli" veya "-acak" ile bitir.
-- Resmi ama samimi bir ton benimse.`;
+- Resmi ama samimi bir ton benimse.
+- Diyalogda temsilci "Sayın Üye" veya "Merhaba" ile başlasın.`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
