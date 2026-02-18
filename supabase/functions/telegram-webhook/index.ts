@@ -254,14 +254,15 @@ Deno.serve(async (req: Request) => {
     if (chatCmdMatch) {
       const targetChatId = chatCmdMatch[1].trim().toUpperCase();
 
-      console.log("Searching for chat:", targetChatId);
+      console.log("Searching for chat:", JSON.stringify(targetChatId), "length:", targetChatId.length);
 
       let chatInfo: any = null;
+      let searchError: string | null = null;
 
       const byId = await supabase
         .from("chats")
         .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-        .ilike("id", targetChatId)
+        .eq("id", targetChatId)
         .maybeSingle();
 
       console.log("byId result:", JSON.stringify({ data: byId.data, error: byId.error }));
@@ -269,24 +270,29 @@ Deno.serve(async (req: Request) => {
       if (byId.data) {
         chatInfo = byId.data;
       } else {
+        if (byId.error) searchError = byId.error.message;
+
         const byChatId = await supabase
           .from("chats")
           .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .ilike("chat_id", targetChatId)
+          .eq("chat_id", targetChatId)
           .maybeSingle();
 
         console.log("byChatId result:", JSON.stringify({ data: byChatId.data, error: byChatId.error }));
 
         if (byChatId.data) {
           chatInfo = byChatId.data;
+        } else if (byChatId.error) {
+          searchError = byChatId.error.message;
         }
       }
 
       if (!chatInfo) {
+        const errDetail = searchError ? `\nHata: <code>${escapeHtml(searchError)}</code>` : "";
         await sendTelegramMessage(
           settings.telegram_bot_token,
           chatId,
-          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>`
+          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>${errDetail}\n\nAranan ID uzunlugu: ${targetChatId.length}`
         );
         return new Response(JSON.stringify({ ok: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
