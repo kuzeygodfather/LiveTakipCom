@@ -327,8 +327,8 @@ function buildDetailedScript(
 }
 
 function determineUrgency(data: { avgScore: number; requiresAttentionCount: number; criticalCount: number }): 'high' | 'medium' | 'low' {
-  if (data.avgScore < 70 || data.requiresAttentionCount >= 3 || data.criticalCount >= 2) return 'high';
-  if (data.avgScore < 82 || data.requiresAttentionCount >= 1 || data.criticalCount >= 1) return 'medium';
+  if (data.avgScore < 70 || data.requiresAttentionCount >= 5 || data.criticalCount >= 3) return 'high';
+  if (data.avgScore < 82 || data.requiresAttentionCount >= 2 || data.criticalCount >= 1) return 'medium';
   return 'low';
 }
 
