@@ -562,6 +562,127 @@ export default function ChatAnalysisList() {
                     ))}
                   </div>
 
+                  {/* Category Breakdown */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-white text-sm">Kategori Kırılımı</h3>
+
+                    {/* DİL & ÜSLUP */}
+                    {selectedChat.analysis.language_compliance && (
+                      <div className="bg-white/3 border border-white/8 rounded-xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Dil & Üslup</span>
+                          <div className="flex gap-1.5">
+                            {selectedChat.analysis.language_compliance.copy_paste_detected && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-400">Kopyala-Yapıştır</span>
+                            )}
+                            {selectedChat.analysis.language_compliance.forbidden_words?.length > 0 && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-red-500/15 border border-red-500/30 text-red-400">
+                                Yasaklı: {selectedChat.analysis.language_compliance.forbidden_words.join(', ')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-2.5">
+                          {[
+                            { label: 'Profesyonel Dil', value: selectedChat.analysis.language_compliance.professional_language },
+                            { label: 'Kibar Üslup', value: selectedChat.analysis.language_compliance.polite_tone },
+                          ].map(({ label, value }) => {
+                            const v = typeof value === 'number' ? value : 0;
+                            const color = v >= 80 ? 'bg-emerald-500' : v >= 50 ? 'bg-amber-500' : 'bg-red-500';
+                            const textColor = v >= 80 ? 'text-emerald-400' : v >= 50 ? 'text-amber-400' : 'text-red-400';
+                            return (
+                              <div key={label}>
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs text-slate-400">{label}</span>
+                                  <span className={`text-xs font-semibold ${textColor}`}>{v}</span>
+                                </div>
+                                <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                                  <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${v}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* KALİTE */}
+                    {selectedChat.analysis.quality_metrics && (
+                      <div className="bg-white/3 border border-white/8 rounded-xl p-4">
+                        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-3">Kalite</span>
+                        <div className="space-y-3">
+                          {(() => {
+                            const qm = selectedChat.analysis.quality_metrics;
+                            const ar = typeof qm.answer_relevance === 'number' ? qm.answer_relevance : 0;
+                            const arColor = ar >= 80 ? 'bg-emerald-500' : ar >= 50 ? 'bg-amber-500' : 'bg-red-500';
+                            const arText = ar >= 80 ? 'text-emerald-400' : ar >= 50 ? 'text-amber-400' : 'text-red-400';
+                            const satColor = qm.customer_satisfaction === 'positive' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                              : qm.customer_satisfaction === 'negative' ? 'bg-red-500/15 border-red-500/30 text-red-400'
+                              : 'bg-slate-500/15 border-slate-500/30 text-slate-400';
+                            const satLabel = qm.customer_satisfaction === 'positive' ? 'Olumlu'
+                              : qm.customer_satisfaction === 'negative' ? 'Olumsuz' : 'Nötr';
+                            return (
+                              <>
+                                <div>
+                                  <div className="flex justify-between items-center mb-1">
+                                    <span className="text-xs text-slate-400">Cevap Kalitesi</span>
+                                    <span className={`text-xs font-semibold ${arText}`}>{ar}</span>
+                                  </div>
+                                  <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all ${arColor}`} style={{ width: `${ar}%` }} />
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${qm.stalling_detected ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'}`}>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                    Oyalama: {qm.stalling_detected ? 'Var' : 'Yok'}
+                                  </div>
+                                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${qm.unnecessary_length ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'}`}>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                    Uzatma: {qm.unnecessary_length ? 'Var' : 'Yok'}
+                                  </div>
+                                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs ${satColor}`}>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                                    Memnuniyet: {satLabel}
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* PERFORMANS */}
+                    {selectedChat.analysis.performance_metrics && (
+                      <div className="bg-white/3 border border-white/8 rounded-xl p-4">
+                        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-3">Performans</span>
+                        <div className="space-y-2.5">
+                          {[
+                            { label: 'İlk Yanıt Kalitesi', value: selectedChat.analysis.performance_metrics.first_response_quality },
+                            { label: 'Çözüm Odaklılık', value: selectedChat.analysis.performance_metrics.solution_focused },
+                            { label: 'İletişim Etkinliği', value: selectedChat.analysis.performance_metrics.communication_effectiveness },
+                          ].map(({ label, value }) => {
+                            const v = typeof value === 'number' ? value : 0;
+                            const color = v >= 80 ? 'bg-emerald-500' : v >= 50 ? 'bg-amber-500' : 'bg-red-500';
+                            const textColor = v >= 80 ? 'text-emerald-400' : v >= 50 ? 'text-amber-400' : 'text-red-400';
+                            return (
+                              <div key={label}>
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs text-slate-400">{label}</span>
+                                  <span className={`text-xs font-semibold ${textColor}`}>{v}</span>
+                                </div>
+                                <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                                  <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${v}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <h3 className="font-semibold text-white text-sm mb-2">AI Özeti</h3>
                     <p className="text-slate-300 text-sm leading-relaxed">{selectedChat.analysis.ai_summary}</p>
