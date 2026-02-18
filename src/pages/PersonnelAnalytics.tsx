@@ -138,9 +138,8 @@ export default function PersonnelAnalytics() {
               .in('chat_id', batchIds);
 
             if (batch) {
-              // Filter for negative chats only (overall_score < 50)
               const negativeChats = batch.filter(
-                item => item.overall_score < 60
+                item => item.overall_score < 40
               );
               allWarningAnalyses = [...allWarningAnalyses, ...negativeChats];
             }
@@ -420,13 +419,13 @@ export default function PersonnelAnalytics() {
                           {person.recurring_issues_count} tekrar
                         </span>
                       )}
-                      {person.warning_count > 0 && (
+                      {ratings.warning_chats.length > 0 && (
                         <button
                           onClick={(e) => { e.stopPropagation(); openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`); }}
                           className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <AlertTriangle className="w-3 h-3" />
-                          {person.warning_count}
+                          {ratings.warning_chats.length}
                         </button>
                       )}
                     </div>
@@ -534,8 +533,8 @@ export default function PersonnelAnalytics() {
                       <AlertTriangle className="w-3 h-3" />
                       Uyari Sayisi
                     </div>
-                    <div className={`text-2xl font-bold ${selectedPersonnel.warning_count > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                      {selectedPersonnel.warning_count}
+                    <div className={`text-2xl font-bold ${(ratingInfo[selectedPersonnel.name]?.warning_chats.length ?? 0) > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                      {ratingInfo[selectedPersonnel.name]?.warning_chats.length ?? 0}
                     </div>
                   </button>
                   <div className={`bg-white/5 p-4 rounded-lg border ${(selectedPersonnel.recurring_issues_count ?? 0) > 0 ? 'border-orange-500/25 bg-orange-500/5' : 'border-white/10'}`}>
