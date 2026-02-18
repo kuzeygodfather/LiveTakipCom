@@ -277,20 +277,20 @@ export default function ChatAnalysisList() {
     const chatId = selectedChat.id;
     try {
       await callResetFunction(chatId);
-      setSelectedChat(null);
       setChats(prev => prev.map(c =>
         c.id === chatId ? { ...c, analyzed: false, analysis: undefined } : c
       ));
-      setAnalyzeStatus('Chat sıfırlandı, analiz başlatılıyor...');
+      setSelectedChat(prev => prev ? { ...prev, analyzed: false, analysis: undefined } : null);
+      setAnalyzeStatus('Chat sıfırlandı, analiz kuyruğa alındı. Birkaç dakika içinde güncellenir.');
       const analyzeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
       await fetch(analyzeUrl, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       });
-      setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 6000);
+      setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 8000);
     } catch (err) {
       console.error('Reanalyze error:', err);
-      setAnalyzeStatus('Hata oluştu, tekrar deneyin.');
+      setAnalyzeStatus('Hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'));
     } finally {
       setReanalyzing(false);
     }
@@ -615,7 +615,8 @@ export default function ChatAnalysisList() {
             className="bg-[#0f1623] border border-white/10 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 sm:p-6 border-b border-white/10 flex items-start justify-between gap-3 sticky top-0 bg-[#0f1623] z-10">
+            <div className="sticky top-0 bg-[#0f1623] z-10">
+              <div className="p-4 sm:p-6 border-b border-white/10 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="text-lg sm:text-xl font-bold text-white">Chat Detayı</h2>
                 <p className="text-sm text-slate-400 mt-0.5">
@@ -640,6 +641,15 @@ export default function ChatAnalysisList() {
               >
                 <X className="w-5 h-5" />
               </button>
+              </div>
+              {analyzeStatus && (
+                <div className="px-4 sm:px-6 pb-3">
+                  <div className={`p-3 border rounded-lg text-sm flex items-center gap-2 ${analyzeStatus.startsWith('Hata') ? 'bg-rose-500/10 border-rose-500/20 text-rose-300' : 'bg-blue-500/10 border-blue-500/20 text-blue-300'}`}>
+                    <RefreshCw className={`w-3.5 h-3.5 flex-shrink-0 ${reanalyzing ? 'animate-spin' : ''}`} />
+                    {analyzeStatus}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-4 sm:p-6 space-y-6">
