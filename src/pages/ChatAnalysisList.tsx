@@ -305,17 +305,51 @@ export default function ChatAnalysisList() {
         c.id === chatId ? { ...c, analyzed: false, analysis: undefined } : c
       ));
       setSelectedChat(prev => prev ? { ...prev, analyzed: false, analysis: undefined } : null);
-      setAnalyzeStatus('Chat sıfırlandı, analiz kuyruğa alındı. Birkaç dakika içinde güncellenir.');
+      setAnalyzeStatus('Chat sıfırlandı, analiz başlatılıyor...');
+
       const analyzeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
-      await fetch(analyzeUrl, {
+      fetch(analyzeUrl, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       });
-      setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 8000);
+
+      const maxWait = 60000;
+      const pollInterval = 3000;
+      const startTime = Date.now();
+
+      const poll = async () => {
+        const { data: analysis } = await supabase
+          .from('chat_analysis')
+          .select('*')
+          .eq('chat_id', chatId)
+          .maybeSingle();
+
+        if (analysis) {
+          setChats(prev => prev.map(c =>
+            c.id === chatId ? { ...c, analyzed: true, analysis } : c
+          ));
+          setSelectedChat(prev => prev ? { ...prev, analyzed: true, analysis } : null);
+          setAnalyzeStatus('Analiz tamamlandı!');
+          setReanalyzing(false);
+          setTimeout(() => setAnalyzeStatus(''), 3000);
+          return;
+        }
+
+        if (Date.now() - startTime < maxWait) {
+          const elapsed = Math.round((Date.now() - startTime) / 1000);
+          setAnalyzeStatus(`Analiz ediliyor... (${elapsed}s)`);
+          setTimeout(poll, pollInterval);
+        } else {
+          setAnalyzeStatus('Analiz tamamlanamadı. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+          setReanalyzing(false);
+          loadChats();
+        }
+      };
+
+      setTimeout(poll, pollInterval);
     } catch (err) {
       console.error('Reanalyze error:', err);
       setAnalyzeStatus('Hata oluştu: ' + (err instanceof Error ? err.message : 'Bilinmeyen hata'));
-    } finally {
       setReanalyzing(false);
     }
   };
