@@ -692,6 +692,8 @@ export default function Dashboard() {
           return {
             name: agentName,
             score: Math.round(avgScore),
+            chatCount: allAgentChats.length,
+            avgSatisfaction: parseFloat(avgSatisfaction.toFixed(1)),
             details: `${allAgentChats.length} chat, ⭐${avgSatisfaction.toFixed(1)}`,
           };
         })
@@ -949,6 +951,7 @@ export default function Dashboard() {
             data={topPerformers}
             title="🏆 Ayın En İyi Performansları"
             type="top"
+            teamTopScore={topPerformers[0]?.score ?? 0}
           />
         </div>
 
@@ -957,6 +960,7 @@ export default function Dashboard() {
             data={bottomPerformers}
             title="⚠️ Gelişim Gereken Personel"
             type="bottom"
+            teamTopScore={topPerformers[0]?.score ?? 0}
           />
         </div>
       </div>
