@@ -396,10 +396,10 @@ export default function PersonnelAnalytics() {
                 total_chats_with_data: 0
               };
               return (
-                <button
+                <div
                   key={person.id}
                   onClick={() => setSelectedPersonnel(person)}
-                  className={`w-full text-left p-4 rounded-lg border transition-all ${
+                  className={`w-full text-left p-4 rounded-lg border transition-all cursor-pointer ${
                     selectedPersonnel?.id === person.id
                       ? 'border-blue-500 bg-blue-500/15'
                       : 'border-white/10 hover:border-white/25 hover:bg-white/5'
@@ -422,7 +422,7 @@ export default function PersonnelAnalytics() {
                       )}
                       {person.warning_count > 0 && (
                         <button
-                          onClick={() => openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`)}
+                          onClick={(e) => { e.stopPropagation(); openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`); }}
                           className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <AlertTriangle className="w-3 h-3" />
@@ -449,7 +449,7 @@ export default function PersonnelAnalytics() {
                     <div className="flex items-center gap-3">
                       {ratings.like_count > 0 && (
                         <button
-                          onClick={() => openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`)}
+                          onClick={(e) => { e.stopPropagation(); openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`); }}
                           className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <ThumbsUp className="w-3 h-3" />
@@ -458,7 +458,7 @@ export default function PersonnelAnalytics() {
                       )}
                       {ratings.dislike_count > 0 && (
                         <button
-                          onClick={() => openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`)}
+                          onClick={(e) => { e.stopPropagation(); openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`); }}
                           className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
                         >
                           <ThumbsDown className="w-3 h-3" />
@@ -473,7 +473,7 @@ export default function PersonnelAnalytics() {
                       </div>
                     )}
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
