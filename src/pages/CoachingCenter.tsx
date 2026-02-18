@@ -390,7 +390,7 @@ export default function CoachingCenter() {
   const [expandedIssues, setExpandedIssues] = useState<Set<string>>(new Set());
   const [copiedAgent, setCopiedAgent] = useState<string | null>(null);
   const [sendingFeedback, setSendingFeedback] = useState<string | null>(null);
-  const [sentToday, setSentToday] = useState<Set<string>>(new Set());
+  const [coachingHistory, setCoachingHistory] = useState<Map<string, string>>(new Map());
   const [filterUrgency, setFilterUrgency] = useState<'all' | 'high' | 'medium' | 'low' | 'excellent'>('all');
   const [activeTab, setActiveTab] = useState<Record<string, 'issues' | 'script' | 'actions'>>({});
 
@@ -400,14 +400,17 @@ export default function CoachingCenter() {
   }, [dateRange]);
 
   const loadSentFeedbacks = async () => {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
     const { data } = await supabase
       .from('coaching_feedbacks')
       .select('agent_name, sent_at, coaching_suggestion')
-      .gte('sent_at', todayStart.toISOString())
       .order('sent_at', { ascending: false });
-    if (data) setSentToday(new Set(data.map((f: SentFeedback) => f.agent_name)));
+    if (data) {
+      const map = new Map<string, string>();
+      data.forEach((f: SentFeedback) => {
+        if (!map.has(f.agent_name)) map.set(f.agent_name, f.sent_at);
+      });
+      setCoachingHistory(map);
+    }
   };
 
   const loadCoachingData = async () => {
@@ -459,7 +462,7 @@ export default function CoachingCenter() {
         sentiments: string[];
         attentionCount: number;
         scoreBreakdown: ScoreBreakdown;
-        issueEvidenceMap: Map<string, { type: 'critical' | 'improvement'; evidences: ChatEvidence[] }>;
+        issueEvidenceMap: Map<string, { type: 'critical' | 'improvement'; evidences: ChatEvidence[]; totalCount: number }>;
         lastDate: string;
       }>();
 
@@ -504,9 +507,10 @@ export default function CoachingCenter() {
           const key = err.trim().toLowerCase();
           if (!key || key.length < 5) return;
           if (!agent.issueEvidenceMap.has(key)) {
-            agent.issueEvidenceMap.set(key, { type: 'critical', evidences: [] });
+            agent.issueEvidenceMap.set(key, { type: 'critical', evidences: [], totalCount: 0 });
           }
           const entry = agent.issueEvidenceMap.get(key)!;
+          entry.totalCount++;
           if (entry.evidences.length < 5) entry.evidences.push(evidence);
         });
 
@@ -514,9 +518,10 @@ export default function CoachingCenter() {
           const key = area.trim().toLowerCase();
           if (!key || key.length < 5) return;
           if (!agent.issueEvidenceMap.has(key)) {
-            agent.issueEvidenceMap.set(key, { type: 'improvement', evidences: [] });
+            agent.issueEvidenceMap.set(key, { type: 'improvement', evidences: [], totalCount: 0 });
           }
           const entry = agent.issueEvidenceMap.get(key)!;
+          entry.totalCount++;
           if (entry.evidences.length < 5) entry.evidences.push(evidence);
         });
       });
@@ -534,7 +539,7 @@ export default function CoachingCenter() {
           .map(([text, data]) => ({
             text: text.charAt(0).toUpperCase() + text.slice(1),
             type: data.type,
-            count: data.evidences.length,
+            count: data.totalCount,
             evidences: data.evidences.sort((a, b) => a.score - b.score),
             correctApproach: deriveCorrectApproach(text),
           }))
@@ -649,7 +654,7 @@ export default function CoachingCenter() {
         sent_at: new Date().toISOString(),
       });
       if (!error) {
-        setSentToday(prev => new Set([...prev, agent.agentName]));
+        setCoachingHistory(prev => new Map([...prev, [agent.agentName, new Date().toISOString()]]));
       }
     } catch (err) {
       console.error('Error marking feedback:', err);
@@ -663,14 +668,25 @@ export default function CoachingCenter() {
     return coachingData.filter(d => d.urgency === filterUrgency);
   }, [coachingData, filterUrgency]);
 
-  const summaryStats = useMemo(() => ({
-    high: coachingData.filter(d => d.urgency === 'high').length,
-    medium: coachingData.filter(d => d.urgency === 'medium').length,
-    low: coachingData.filter(d => d.urgency === 'low').length,
-    excellent: coachingData.filter(d => d.urgency === 'excellent').length,
-    sentTodayCount: sentToday.size,
-    totalAgents: coachingData.length,
-  }), [coachingData, sentToday]);
+  const todayStr = new Date().toDateString();
+  const summaryStats = useMemo(() => {
+    const today = new Date().toDateString();
+    return {
+      high: coachingData.filter(d => d.urgency === 'high').length,
+      medium: coachingData.filter(d => d.urgency === 'medium').length,
+      low: coachingData.filter(d => d.urgency === 'low').length,
+      excellent: coachingData.filter(d => d.urgency === 'excellent').length,
+      sentTodayCount: [...coachingHistory.values()].filter(d => new Date(d).toDateString() === today).length,
+      totalAgents: coachingData.length,
+    };
+  }, [coachingData, coachingHistory]);
+
+  const formatDaysAgo = (dateStr: string) => {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+    if (diff === 0) return 'bugün';
+    if (diff === 1) return 'dün';
+    return `${diff} gün önce`;
+  };
 
   const TrendIcon = ({ trend }: { trend: 'up' | 'down' | 'stable' }) => {
     if (trend === 'up') return <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />;
@@ -798,7 +814,9 @@ export default function CoachingCenter() {
         <div className="space-y-4">
           {filteredData.map(agent => {
             const isExpanded = expandedAgents.has(agent.agentName);
-            const isSentToday = sentToday.has(agent.agentName);
+            const lastCoachingDate = coachingHistory.get(agent.agentName);
+            const isSentToday = lastCoachingDate ? new Date(lastCoachingDate).toDateString() === todayStr : false;
+            const wasCoachedBefore = !!lastCoachingDate && !isSentToday;
             const initials = agent.agentName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
             const tab = getTab(agent.agentName);
             const breakdownEntries = (Object.entries(agent.scoreBreakdown) as [keyof ScoreBreakdown, number][]).filter(([, count]) => count > 0);
@@ -833,7 +851,13 @@ export default function CoachingCenter() {
                         {isSentToday && (
                           <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
                             <CheckCircle className="w-3 h-3" />
-                            Görüsüldü
+                            Bugün görüşüldü
+                          </span>
+                        )}
+                        {wasCoachedBefore && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400 border border-slate-600/30 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Son görüşme: {formatDaysAgo(lastCoachingDate!)}
                           </span>
                         )}
                       </div>
@@ -900,6 +924,19 @@ export default function CoachingCenter() {
                     <div className="p-5">
                       {tab === 'issues' && (
                         <div className="space-y-4">
+                          {(wasCoachedBefore || isSentToday) && agent.evidencedIssues.length > 0 && (
+                            <div className="bg-amber-950/20 rounded-lg border border-amber-500/20 p-3 flex items-start gap-3">
+                              <Repeat className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-xs font-semibold text-amber-300">Tekrarlayan Sorun Uyarısı</p>
+                                <p className="text-xs text-slate-400 mt-0.5">
+                                  Bu personelle son görüşme <span className="text-amber-400">{formatDaysAgo(lastCoachingDate!)}</span> yapıldı
+                                  ancak aynı dönemde sorunlar tespit edilmeye devam ediyor.
+                                  Görüşme yaklaşımını değiştirmeyi veya daha sık takip yapmayı düşünün.
+                                </p>
+                              </div>
+                            </div>
+                          )}
                           {agent.evidencedIssues.length === 0 ? (
                             <div className="bg-emerald-950/20 rounded-lg border border-emerald-500/20 p-5 flex items-center gap-3">
                               <Star className="w-6 h-6 text-emerald-400 flex-shrink-0" />
@@ -933,7 +970,10 @@ export default function CoachingCenter() {
                                               </div>
                                               <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-rose-200">{issue.text}</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">{issue.count} chatta kanıtlandı</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">
+                  {issue.count} chatta tespit edildi
+                  {issue.count > issue.evidences.length && ` (${issue.evidences.length} kanıt gösteriliyor)`}
+                </p>
                                               </div>
                                               <div className="flex items-center gap-2 flex-shrink-0">
                                                 <span className="text-xs text-slate-500">{issue.evidences.length} kanıt</span>
@@ -1011,7 +1051,10 @@ export default function CoachingCenter() {
                                               </div>
                                               <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-amber-200">{issue.text}</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">{issue.count} chatta goruldu</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                  {issue.count} chatta tespit edildi
+                                                  {issue.count > issue.evidences.length && ` (${issue.evidences.length} kanıt gösteriliyor)`}
+                                                </p>
                                               </div>
                                               <div className="flex items-center gap-2 flex-shrink-0">
                                                 <span className="text-xs text-slate-500">{issue.evidences.length} kanit</span>
@@ -1143,17 +1186,25 @@ export default function CoachingCenter() {
                               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 isSentToday
                                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 cursor-default'
-                                  : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30'
+                                  : wasCoachedBefore
+                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30'
+                                    : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30'
                               }`}
                             >
                               {sendingFeedback === agent.agentName ? (
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                               ) : isSentToday ? (
                                 <CheckCircle className="w-4 h-4" />
+                              ) : wasCoachedBefore ? (
+                                <Repeat className="w-4 h-4" />
                               ) : (
                                 <Send className="w-4 h-4" />
                               )}
-                              {isSentToday ? 'Görüsme Yapildi Olarak Kaydedildi' : 'Görüsme Yapildi Olarak Kaydet'}
+                              {isSentToday
+                                ? 'Bugün Görüşme Kaydedildi'
+                                : wasCoachedBefore
+                                  ? `Tekrar Görüşme Yap (son: ${formatDaysAgo(lastCoachingDate!)})`
+                                  : 'Görüşme Yapıldı Olarak Kaydet'}
                             </button>
                           </div>
                         </div>
