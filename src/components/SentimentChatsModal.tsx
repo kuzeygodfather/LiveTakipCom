@@ -237,8 +237,11 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
                         </div>
                         {chat.overall_score !== null && (
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                            chat.overall_score >= 7 ? 'bg-emerald-500/20 text-emerald-300' :
+                            chat.overall_score >= 9 ? 'bg-emerald-500/20 text-emerald-300' :
+                            chat.overall_score >= 7 ? 'bg-cyan-500/20 text-cyan-300' :
+                            chat.overall_score >= 6 ? 'bg-blue-500/20 text-blue-300' :
                             chat.overall_score >= 4 ? 'bg-amber-500/20 text-amber-300' :
+                            chat.overall_score >= 3 ? 'bg-orange-500/20 text-orange-300' :
                             'bg-rose-500/20 text-rose-300'
                           }`}>
                             {chat.overall_score}/10

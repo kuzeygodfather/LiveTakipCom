@@ -212,7 +212,7 @@ export default function Reports() {
             chat_data
           )
         `)
-        .or('sentiment.eq.negative,overall_score.lt.50')
+        .or('sentiment.eq.negative,overall_score.lt.60')
         .gte('analysis_date', thirtyDaysAgoUTC)
         .order('analysis_date', { ascending: false })
         .limit(5000);

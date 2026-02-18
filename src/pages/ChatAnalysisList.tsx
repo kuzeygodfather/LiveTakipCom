@@ -599,8 +599,8 @@ export default function ChatAnalysisList() {
                             { label: 'Kibar Üslup', value: selectedChat.analysis.language_compliance.polite_tone },
                           ].map(({ label, value }) => {
                             const v = typeof value === 'number' ? value : 0;
-                            const color = v >= 80 ? 'bg-emerald-500' : v >= 50 ? 'bg-amber-500' : 'bg-red-500';
-                            const textColor = v >= 80 ? 'text-emerald-400' : v >= 50 ? 'text-amber-400' : 'text-red-400';
+                            const color = v >= 90 ? 'bg-emerald-500' : v >= 70 ? 'bg-cyan-500' : v >= 60 ? 'bg-blue-500' : v >= 40 ? 'bg-amber-500' : v >= 30 ? 'bg-orange-500' : 'bg-rose-500';
+                            const textColor = v >= 90 ? 'text-emerald-400' : v >= 70 ? 'text-cyan-400' : v >= 60 ? 'text-blue-400' : v >= 40 ? 'text-amber-400' : v >= 30 ? 'text-orange-400' : 'text-rose-400';
                             return (
                               <div key={label}>
                                 <div className="flex justify-between items-center mb-1">
@@ -625,8 +625,8 @@ export default function ChatAnalysisList() {
                           {(() => {
                             const qm = selectedChat.analysis.quality_metrics;
                             const ar = typeof qm.answer_relevance === 'number' ? qm.answer_relevance : 0;
-                            const arColor = ar >= 80 ? 'bg-emerald-500' : ar >= 50 ? 'bg-amber-500' : 'bg-red-500';
-                            const arText = ar >= 80 ? 'text-emerald-400' : ar >= 50 ? 'text-amber-400' : 'text-red-400';
+                            const arColor = ar >= 90 ? 'bg-emerald-500' : ar >= 70 ? 'bg-cyan-500' : ar >= 60 ? 'bg-blue-500' : ar >= 40 ? 'bg-amber-500' : ar >= 30 ? 'bg-orange-500' : 'bg-rose-500';
+                            const arText = ar >= 90 ? 'text-emerald-400' : ar >= 70 ? 'text-cyan-400' : ar >= 60 ? 'text-blue-400' : ar >= 40 ? 'text-amber-400' : ar >= 30 ? 'text-orange-400' : 'text-rose-400';
                             const satColor = qm.customer_satisfaction === 'positive' ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                               : qm.customer_satisfaction === 'negative' ? 'bg-red-500/15 border-red-500/30 text-red-400'
                               : 'bg-slate-500/15 border-slate-500/30 text-slate-400';
@@ -675,8 +675,8 @@ export default function ChatAnalysisList() {
                             { label: 'İletişim Etkinliği', value: selectedChat.analysis.performance_metrics.communication_effectiveness },
                           ].map(({ label, value }) => {
                             const v = typeof value === 'number' ? value : 0;
-                            const color = v >= 80 ? 'bg-emerald-500' : v >= 50 ? 'bg-amber-500' : 'bg-red-500';
-                            const textColor = v >= 80 ? 'text-emerald-400' : v >= 50 ? 'text-amber-400' : 'text-red-400';
+                            const color = v >= 90 ? 'bg-emerald-500' : v >= 70 ? 'bg-cyan-500' : v >= 60 ? 'bg-blue-500' : v >= 40 ? 'bg-amber-500' : v >= 30 ? 'bg-orange-500' : 'bg-rose-500';
+                            const textColor = v >= 90 ? 'text-emerald-400' : v >= 70 ? 'text-cyan-400' : v >= 60 ? 'text-blue-400' : v >= 40 ? 'text-amber-400' : v >= 30 ? 'text-orange-400' : 'text-rose-400';
                             return (
                               <div key={label}>
                                 <div className="flex justify-between items-center mb-1">

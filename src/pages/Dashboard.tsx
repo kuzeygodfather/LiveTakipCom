@@ -800,7 +800,7 @@ export default function Dashboard() {
         .sort((a, b) => a.score - b.score);
 
       const lowScoringNew = newAgents
-        .filter(r => r.score < 75)
+        .filter(r => r.score < 70)
         .sort((a, b) => a.score - b.score);
 
       const bottomCandidates = [...decliners, ...stableByScore, ...lowScoringNew];
@@ -835,9 +835,9 @@ export default function Dashboard() {
       const sentiments = { positive: 0, neutral: 0, negative: 0 };
       allAnalysis.forEach(item => {
         const score = typeof item.overall_score === 'string' ? parseInt(item.overall_score) : item.overall_score;
-        if (score >= 80) {
+        if (score >= 70) {
           sentiments.positive++;
-        } else if (score >= 50) {
+        } else if (score >= 60) {
           sentiments.neutral++;
         } else {
           sentiments.negative++;
@@ -900,7 +900,7 @@ export default function Dashboard() {
       value: `${stats.averageScore}/100`,
       icon: TrendingUp,
       color: 'bg-emerald-500',
-      change: stats.averageScore >= 80 ? 'Olumlu' : stats.averageScore >= 50 ? 'Notr' : 'Olumsuz',
+      change: stats.averageScore >= 70 ? 'Olumlu' : stats.averageScore >= 60 ? 'Notr' : 'Olumsuz',
       tooltip: 'AI tarafından hesaplanan ortalama kalite skoru',
     },
     {

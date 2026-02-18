@@ -334,9 +334,12 @@ export default function PersonnelAnalytics() {
 
   const getPerformanceLevel = (score: number | string) => {
     const numScore = parseScore(score);
-    if (numScore >= 80) return { label: 'Olumlu', color: 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/20' };
-    if (numScore >= 50) return { label: 'Notr', color: 'text-slate-300 bg-white/10 border border-white/15' };
-    return { label: 'Olumsuz', color: 'text-red-400 bg-red-500/15 border border-red-500/20' };
+    if (numScore >= 90) return { label: 'Mükemmel', color: 'text-emerald-400 bg-emerald-500/15 border border-emerald-500/20' };
+    if (numScore >= 70) return { label: 'İyi', color: 'text-cyan-400 bg-cyan-500/15 border border-cyan-500/20' };
+    if (numScore >= 60) return { label: 'Orta', color: 'text-blue-400 bg-blue-500/15 border border-blue-500/20' };
+    if (numScore >= 40) return { label: 'Olumsuz', color: 'text-amber-400 bg-amber-500/15 border border-amber-500/20' };
+    if (numScore >= 30) return { label: 'Dikkat', color: 'text-orange-400 bg-orange-500/15 border border-orange-500/20' };
+    return { label: 'Kritik', color: 'text-rose-400 bg-rose-500/15 border border-rose-500/20' };
   };
 
   const getTierLabel = (tier: string) => {
