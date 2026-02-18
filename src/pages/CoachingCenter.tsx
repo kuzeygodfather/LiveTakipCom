@@ -768,9 +768,7 @@ export default function CoachingCenter() {
         ? agent.evidencedIssues.slice(0, 3).map(i => i.text).join('; ')
         : 'Genel performans degerlendirmesi';
       const { error } = await supabase.from('coaching_feedbacks').insert({
-        chat_id: `manual_${Date.now()}`,
         agent_name: agent.agentName,
-        agent_email: agent.agentName.toLowerCase().replace(' ', '.') + '@company.com',
         coaching_suggestion: summary,
         sent_by: session.user.id,
         sent_at: new Date().toISOString(),

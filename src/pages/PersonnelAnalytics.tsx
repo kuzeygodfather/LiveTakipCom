@@ -414,6 +414,12 @@ export default function PersonnelAnalytics() {
                       <span className="text-xs text-slate-100 font-medium">
                         {getTierLabel(person.reliability_tier)}
                       </span>
+                      {(person.recurring_issues_count ?? 0) > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2 py-0.5 rounded-full" title={`${person.recurring_issues_count} tekrarlayan kritik hata — skora yansıtıldı`}>
+                          <AlertTriangle className="w-3 h-3" />
+                          {person.recurring_issues_count} tekrar
+                        </span>
+                      )}
                       {person.warning_count > 0 && (
                         <button
                           onClick={() => openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`)}
@@ -532,6 +538,20 @@ export default function PersonnelAnalytics() {
                       {selectedPersonnel.warning_count}
                     </div>
                   </button>
+                  <div className={`bg-white/5 p-4 rounded-lg border ${(selectedPersonnel.recurring_issues_count ?? 0) > 0 ? 'border-orange-500/25 bg-orange-500/5' : 'border-white/10'}`}>
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 text-orange-400" />
+                      Tekrarlayan Hata
+                    </div>
+                    <div className={`text-2xl font-bold ${(selectedPersonnel.recurring_issues_count ?? 0) > 0 ? 'text-orange-400' : 'text-emerald-400'}`}>
+                      {selectedPersonnel.recurring_issues_count ?? 0}
+                    </div>
+                    {(selectedPersonnel.recurring_issues_count ?? 0) > 0 && (
+                      <div className="text-xs text-orange-400/70 mt-1">
+                        -{Math.min(15, (selectedPersonnel.recurring_issues_count ?? 0) * 3)} puan uygulandı
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={() => {
                       const ratings = ratingInfo[selectedPersonnel.name];

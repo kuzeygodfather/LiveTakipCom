@@ -16,6 +16,7 @@ export interface Personnel {
   total_chats: number;
   average_score: number | string;
   warning_count: number;
+  recurring_issues_count: number;
   strong_topics: any[];
   weak_topics: any[];
   created_at: string;
