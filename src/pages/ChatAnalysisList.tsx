@@ -229,7 +229,11 @@ export default function ChatAnalysisList() {
 
       const res = await fetch(`${supabaseUrl}/functions/v1/get-coaching`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': supabaseKey,
+        },
         body: JSON.stringify({
           chatId: selectedChat.id,
           chatAnalysisId: selectedChat.analysis.id,
@@ -281,6 +285,7 @@ export default function ChatAnalysisList() {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
       },
       body: JSON.stringify(chatId ? { chatId } : {}),
     });
