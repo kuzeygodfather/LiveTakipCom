@@ -96,12 +96,22 @@ function shortChatId(id: string) {
   return id.length > 12 ? id.slice(0, 8) + '...' : id;
 }
 
+function normalizeText(text: string): string {
+  return text
+    .replace(/[şŞ]/g, 's')
+    .replace(/[ıİ]/g, 'i')
+    .replace(/[ğĞ]/g, 'g')
+    .replace(/[üÜ]/g, 'u')
+    .replace(/[öÖ]/g, 'o')
+    .replace(/[çÇ]/g, 'c');
+}
+
 function deriveCorrectApproach(issueText: string): string {
-  const lower = issueText.toLowerCase();
+  const lower = normalizeText(issueText.toLowerCase());
   if (lower.includes('gecikme') || lower.includes('yavas') || lower.includes('yanit sures')) {
     return 'Musteri mesajlarina en gec 60 saniye icinde ilk yaniti ver. Uzun islemler icin "Simdi kontrol ediyorum, bir dakika" gibi ara yanit gonder.';
   }
-  if (lower.includes('empa') || lower.includes('ilgisiz') || lower.includes('sogukkanlı')) {
+  if (lower.includes('empa') || lower.includes('ilgisiz') || lower.includes('sogukkanli')) {
     return 'Musterinin durumunu oncelikle kabul et. "Anliyorum, bu durum gercekten sinir bozucu olabilir" gibi ifadeler kullan. Cozum sunmadan once duyuldigini hissettir.';
   }
   if (lower.includes('bilgi') || lower.includes('yanlis') || lower.includes('yanlış') || lower.includes('hatali')) {
@@ -128,10 +138,33 @@ function buildActionItems(issues: EvidencedIssue[], avgScore: number): string[] 
   const improvements = issues.filter(i => i.type === 'improvement').slice(0, 2);
 
   criticals.forEach(issue => {
-    items.push(`"${issue.text.slice(0, 60)}${issue.text.length > 60 ? '...' : ''}" sorununu bu hafta sonuna kadar coz`);
+    const n = normalizeText(issue.text.toLowerCase());
+    if (n.includes('gecikme') || n.includes('yavas') || n.includes('yanit')) {
+      items.push('Yanit surelerini gunluk takip et — hedef: 60 saniye icinde ilk yanit');
+    } else if (n.includes('empa') || n.includes('ilgisiz') || n.includes('soguk')) {
+      items.push('Her chatin basindan musterinin durumunu kabul eden bir cumle yaz; empati kurmadan cozume gecme');
+    } else if (n.includes('bilgi') || n.includes('yanlis') || n.includes('hatali')) {
+      items.push('Emin olunmayan sorularda once dogrula, sonra yanit ver — tahminle devam etme');
+    } else if (n.includes('kapatma') || n.includes('sonlandirma') || n.includes('cozum')) {
+      items.push('Chati kapatmadan once "Baska bir konuda yardimci olabilir miyim?" kontrolunu rutin hale getir');
+    } else if (n.includes('kopya') || n.includes('sablon') || n.includes('standart')) {
+      items.push('Hazir metinlere musteri adi ve ozel durum ekleyerek kisisellestirilmis yanitlar olustur');
+    } else {
+      items.push(`"${issue.text.slice(0, 55)}${issue.text.length > 55 ? '...' : ''}" hatasini tekrarlamamak icin somut onlem belirle, 3 gun sonra kontrol et`);
+    }
   });
+
   improvements.forEach(issue => {
-    items.push(`${issue.text.slice(0, 50)}${issue.text.length > 50 ? '...' : ''} konusunda 2 gunluk pratik yap`);
+    const n = normalizeText(issue.text.toLowerCase());
+    if (n.includes('uzun') || n.includes('gereksiz') || n.includes('savurgan')) {
+      items.push('Yanit uzunlugunu izle — musterinin sorusunu 2-3 cumlede dogrudan cevapla');
+    } else if (n.includes('profesyonel') || n.includes('dil') || n.includes('kibarca')) {
+      items.push('Resmi ve samimi dili dengeli kullan; "Sayin Musterimiz" gibi hitaplarla "Elbet" gibi yakin ifadeleri karistic');
+    } else if (n.includes('kopya') || n.includes('sablon')) {
+      items.push('Hazir metin kullanirken mutlaka musteri adini ve ozel durumunu ekle');
+    } else {
+      items.push(`${issue.text.slice(0, 55)}${issue.text.length > 55 ? '...' : ''} konusunda ornek chatler incele ve 2 gunluk odakli pratik yap`);
+    }
   });
 
   if (avgScore < 75) {
@@ -373,7 +406,7 @@ export default function CoachingCenter() {
       }
 
       const agentMap = new Map<string, {
-        scores: { score: number; date: string }[];
+        scores: { score: number; date: string; chatId: string }[];
         sentiments: string[];
         attentionCount: number;
         issueEvidenceMap: Map<string, { type: 'critical' | 'improvement'; evidences: ChatEvidence[] }>;
@@ -397,7 +430,7 @@ export default function CoachingCenter() {
 
         const agent = agentMap.get(agentName)!;
         const score = parseFloat(String(analysis.overall_score)) || 0;
-        agent.scores.push({ score, date: chat.created_at });
+        agent.scores.push({ score, date: chat.created_at, chatId: chat.id });
         agent.sentiments.push(analysis.sentiment || '');
         if (analysis.requires_attention) agent.attentionCount++;
         if (chat.created_at > agent.lastDate) agent.lastDate = chat.created_at;
@@ -464,10 +497,10 @@ export default function CoachingCenter() {
 
         const sortedByScore = [...agent.scores].sort((a, b) => a.score - b.score);
         const lowestScoringChats: ChatEvidence[] = sortedByScore.slice(0, 3).map(s => {
-          const chat = chatMap.get(allAnalyses.find(a => a.chat_id && chatMap.get(a.chat_id)?.agent_name === agentName && parseFloat(String(a.overall_score)) === s.score)?.chat_id || '');
-          const analysis = allAnalyses.find(a => parseFloat(String(a.overall_score)) === s.score && chatMap.get(a.chat_id)?.agent_name === agentName);
+          const chat = chatMap.get(s.chatId);
+          const analysis = allAnalyses.find(a => a.chat_id === s.chatId);
           return {
-            chatId: chat?.id || '',
+            chatId: s.chatId,
             customerName: chat?.customer_name || 'Belirtilmemis',
             date: s.date,
             score: s.score,
@@ -476,9 +509,12 @@ export default function CoachingCenter() {
           };
         }).filter(c => c.chatId);
 
-        const midIdx = Math.floor(scoreValues.length / 2);
-        const firstHalfAvg = scoreValues.slice(0, midIdx).reduce((a, b) => a + b, 0) / (midIdx || 1);
-        const secondHalfAvg = scoreValues.slice(midIdx).reduce((a, b) => a + b, 0) / (scoreValues.slice(midIdx).length || 1);
+        const chronoScores = [...agent.scores]
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+          .map(s => s.score);
+        const midIdx = Math.floor(chronoScores.length / 2);
+        const firstHalfAvg = chronoScores.slice(0, midIdx).reduce((a, b) => a + b, 0) / (midIdx || 1);
+        const secondHalfAvg = chronoScores.slice(midIdx).reduce((a, b) => a + b, 0) / (chronoScores.slice(midIdx).length || 1);
         const trend: 'up' | 'down' | 'stable' =
           secondHalfAvg - firstHalfAvg > 3 ? 'up' :
           firstHalfAvg - secondHalfAvg > 3 ? 'down' : 'stable';
