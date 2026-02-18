@@ -55,6 +55,7 @@ export default function Reports() {
   const [selectedIssue, setSelectedIssue] = useState<string>('all');
   const [selectedCoachingStatus, setSelectedCoachingStatus] = useState<string>('all');
   const [selectedFeedbackStatus, setSelectedFeedbackStatus] = useState<string>('all');
+  const [selectedScoreRange, setSelectedScoreRange] = useState<string>('all');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
 
@@ -811,9 +812,19 @@ export default function Reports() {
         if (selectedFeedbackStatus === 'not_sent' && chat.sent_feedback) return false;
       }
 
+      if (selectedScoreRange !== 'all') {
+        const s = chat.overall_score;
+        if (selectedScoreRange === '0-29' && (s < 0 || s > 29)) return false;
+        if (selectedScoreRange === '30-39' && (s < 30 || s > 39)) return false;
+        if (selectedScoreRange === '40-59' && (s < 40 || s > 59)) return false;
+        if (selectedScoreRange === '60-69' && (s < 60 || s > 69)) return false;
+        if (selectedScoreRange === '70-89' && (s < 70 || s > 89)) return false;
+        if (selectedScoreRange === '90-100' && s < 90) return false;
+      }
+
       return true;
     });
-  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue, selectedCoachingStatus, selectedFeedbackStatus, customStartDate, customEndDate]);
+  }, [negativeChats, selectedAgent, selectedDateRange, selectedIssue, selectedCoachingStatus, selectedFeedbackStatus, selectedScoreRange, customStartDate, customEndDate]);
 
   const trendData = useMemo(() => {
     const data = getTrendData();
@@ -1082,7 +1093,7 @@ export default function Reports() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-200 mb-2">Koçluk Önerisi Durumu</label>
                     <select
@@ -1106,6 +1117,23 @@ export default function Reports() {
                       <option value="all">Tümü</option>
                       <option value="sent">İletilmiş ({negativeChats.filter(c => c.sent_feedback).length})</option>
                       <option value="not_sent">İletilmemiş ({negativeChats.filter(c => !c.sent_feedback).length})</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-200 mb-2">Puan Aralığı</label>
+                    <select
+                      value={selectedScoreRange}
+                      onChange={(e) => setSelectedScoreRange(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-slate-800 border border-slate-600 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
+                    >
+                      <option value="all">Tüm Puanlar</option>
+                      <option value="0-29">Kritik — 0-29</option>
+                      <option value="30-39">Dikkat — 30-39</option>
+                      <option value="40-59">Olumsuz — 40-59</option>
+                      <option value="60-69">Orta — 60-69</option>
+                      <option value="70-89">İyi — 70-89</option>
+                      <option value="90-100">Mükemmel — 90-100</option>
                     </select>
                   </div>
                 </div>
@@ -1133,7 +1161,7 @@ export default function Reports() {
                   </div>
                 )}
 
-                {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all' || selectedCoachingStatus !== 'all' || selectedFeedbackStatus !== 'all') && (
+                {(selectedAgent !== 'all' || selectedDateRange !== 'all' || selectedIssue !== 'all' || selectedCoachingStatus !== 'all' || selectedFeedbackStatus !== 'all' || selectedScoreRange !== 'all') && (
                   <div className="mt-4 flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
                     <span className="text-sm font-medium text-slate-300">
                       {filteredChats.length} sonuç gösteriliyor
@@ -1145,6 +1173,7 @@ export default function Reports() {
                         setSelectedIssue('all');
                         setSelectedCoachingStatus('all');
                         setSelectedFeedbackStatus('all');
+                        setSelectedScoreRange('all');
                         setCustomStartDate('');
                         setCustomEndDate('');
                       }}
