@@ -47,7 +47,7 @@ interface AgentCoachingData {
   coachingScript: string;
   lastActivityDate: string;
   trend: 'up' | 'down' | 'stable';
-  urgency: 'high' | 'medium' | 'low';
+  urgency: 'high' | 'medium' | 'low' | 'excellent';
   lowestScoringChats: ChatEvidence[];
   actionItems: string[];
 }
@@ -61,13 +61,15 @@ interface SentFeedback {
 const URGENCY_LABELS: Record<string, string> = {
   high: 'Acil',
   medium: 'Orta',
-  low: 'Iyi',
+  low: 'İyi',
+  excellent: 'Mükemmel',
 };
 
 const URGENCY_COLORS: Record<string, string> = {
   high: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
   medium: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
-  low: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+  low: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
+  excellent: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
 };
 
 function getScoreCategory(score: number): keyof ScoreBreakdown {
@@ -247,9 +249,12 @@ function buildDetailedScript(
 
   s += `Y: "${firstName}, bugün seninle ${dateRange} günlük performans değerlendirmesi yapmak istiyorum.\n`;
   s += `   Seninle birlikte geçtiğimiz dönemde yaptığın ${totalChats} chati inceledim.\n`;
-  if (avgScore >= 88) {
+  if (avgScore >= 90) {
+    s += `   Genel ortalaman ${avgScore}/100 — bu mükemmel bir sonuç, tebrik ederim!\n`;
+    s += `   Bu başarını nasıl sürdürdüğünü ve diğer arkadaşlarına nasıl örnek olabileceğini konuşalım."\n\n`;
+  } else if (avgScore >= 70) {
     s += `   Genel ortalaman ${avgScore}/100 — bu iyi bir sonuç. Bazı ince noktaları birlikte konuşalım."\n\n`;
-  } else if (avgScore >= 72) {
+  } else if (avgScore >= 60) {
     s += `   Genel ortalaman ${avgScore}/100 çıktı. Bazı konularda potansiyelinin altında kalıyorsun,\n`;
     s += `   bunları somut örneklerle göstereceğim."\n\n`;
   } else {
@@ -369,10 +374,11 @@ function buildDetailedScript(
   return s;
 }
 
-function determineUrgency(avgScore: number): 'high' | 'medium' | 'low' {
-  if (avgScore < 60) return 'high';
-  if (avgScore < 70) return 'medium';
-  return 'low';
+function determineUrgency(avgScore: number): 'high' | 'medium' | 'low' | 'excellent' {
+  if (avgScore >= 90) return 'excellent';
+  if (avgScore >= 70) return 'low';
+  if (avgScore >= 60) return 'medium';
+  return 'high';
 }
 
 export default function CoachingCenter() {
@@ -385,7 +391,7 @@ export default function CoachingCenter() {
   const [copiedAgent, setCopiedAgent] = useState<string | null>(null);
   const [sendingFeedback, setSendingFeedback] = useState<string | null>(null);
   const [sentToday, setSentToday] = useState<Set<string>>(new Set());
-  const [filterUrgency, setFilterUrgency] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [filterUrgency, setFilterUrgency] = useState<'all' | 'high' | 'medium' | 'low' | 'excellent'>('all');
   const [activeTab, setActiveTab] = useState<Record<string, 'issues' | 'script' | 'actions'>>({});
 
   useEffect(() => {
@@ -585,7 +591,7 @@ export default function CoachingCenter() {
       });
 
       results.sort((a, b) => {
-        const urgencyOrder = { high: 0, medium: 1, low: 2 };
+        const urgencyOrder = { high: 0, medium: 1, low: 2, excellent: 3 };
         if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
         return a.avgScore - b.avgScore;
       });
@@ -661,6 +667,7 @@ export default function CoachingCenter() {
     high: coachingData.filter(d => d.urgency === 'high').length,
     medium: coachingData.filter(d => d.urgency === 'medium').length,
     low: coachingData.filter(d => d.urgency === 'low').length,
+    excellent: coachingData.filter(d => d.urgency === 'excellent').length,
     sentTodayCount: sentToday.size,
     totalAgents: coachingData.length,
   }), [coachingData, sentToday]);
@@ -712,10 +719,10 @@ export default function CoachingCenter() {
         <div className="glass-effect rounded-xl p-4 border border-rose-500/20">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4 text-rose-400" />
-            <span className="text-xs text-slate-400">Acil Görüsme</span>
+            <span className="text-xs text-slate-400">Acil Görüşme</span>
           </div>
           <div className="text-2xl font-bold text-rose-400">{summaryStats.high}</div>
-          <div className="text-xs text-slate-500 mt-1">personel bekliyor</div>
+          <div className="text-xs text-slate-500 mt-1">personel (ort. &lt;60)</div>
         </div>
         <div className="glass-effect rounded-xl p-4 border border-amber-500/20">
           <div className="flex items-center gap-2 mb-2">
@@ -723,29 +730,40 @@ export default function CoachingCenter() {
             <span className="text-xs text-slate-400">Orta Öncelik</span>
           </div>
           <div className="text-2xl font-bold text-amber-400">{summaryStats.medium}</div>
-          <div className="text-xs text-slate-500 mt-1">personel</div>
-        </div>
-        <div className="glass-effect rounded-xl p-4 border border-emerald-500/20">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs text-slate-400">Geri Bildirim Verildi</span>
-          </div>
-          <div className="text-2xl font-bold text-emerald-400">{summaryStats.sentTodayCount}</div>
-          <div className="text-xs text-slate-500 mt-1">bugün</div>
+          <div className="text-xs text-slate-500 mt-1">personel (ort. 60–70)</div>
         </div>
         <div className="glass-effect rounded-xl p-4 border border-cyan-500/20">
           <div className="flex items-center gap-2 mb-2">
-            <Users className="w-4 h-4 text-cyan-400" />
-            <span className="text-xs text-slate-400">Toplam Personel</span>
+            <TrendingUp className="w-4 h-4 text-cyan-400" />
+            <span className="text-xs text-slate-400">İyi Performans</span>
           </div>
-          <div className="text-2xl font-bold text-cyan-400">{summaryStats.totalAgents}</div>
-          <div className="text-xs text-slate-500 mt-1">analiz edildi</div>
+          <div className="text-2xl font-bold text-cyan-400">{summaryStats.low}</div>
+          <div className="text-xs text-slate-500 mt-1">personel (ort. 70–89)</div>
+        </div>
+        <div className="glass-effect rounded-xl p-4 border border-emerald-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <Star className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs text-slate-400">Mükemmel</span>
+          </div>
+          <div className="text-2xl font-bold text-emerald-400">{summaryStats.excellent}</div>
+          <div className="text-xs text-slate-500 mt-1">personel (ort. 90+)</div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/40">
+          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Bugün geri bildirim verildi:</span>
+          <span className="font-semibold text-emerald-400">{summaryStats.sentTodayCount}</span>
+        </div>
+        <div className="text-xs text-slate-500">
+          Toplam <span className="text-white font-medium">{summaryStats.totalAgents}</span> personel
         </div>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-sm text-slate-400">Öncelik:</span>
-        {(['all', 'high', 'medium', 'low'] as const).map(f => (
+        <span className="text-sm text-slate-400">Filtre:</span>
+        {(['all', 'high', 'medium', 'low', 'excellent'] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilterUrgency(f)}
@@ -754,6 +772,7 @@ export default function CoachingCenter() {
                 ? f === 'all' ? 'bg-slate-600 text-white border-slate-500'
                   : f === 'high' ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
                   : f === 'medium' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
+                  : f === 'low' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
                   : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
                 : 'text-slate-400 border-slate-700/50 hover:border-slate-600'
             }`}
@@ -790,6 +809,7 @@ export default function CoachingCenter() {
                 className={`glass-effect rounded-xl border transition-all duration-300 ${
                   agent.urgency === 'high' ? 'border-rose-500/30 shadow-lg shadow-rose-500/5' :
                   agent.urgency === 'medium' ? 'border-amber-500/20' :
+                  agent.urgency === 'excellent' ? 'border-emerald-500/30 shadow-lg shadow-emerald-500/5' :
                   'border-slate-700/50'
                 }`}
               >
@@ -798,6 +818,7 @@ export default function CoachingCenter() {
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
                       agent.urgency === 'high' ? 'bg-rose-500/20 text-rose-300 border-2 border-rose-500/40' :
                       agent.urgency === 'medium' ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-500/40' :
+                      agent.urgency === 'excellent' ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/40' :
                       'bg-cyan-500/20 text-cyan-300 border-2 border-cyan-500/30'
                     }`}>
                       {initials}
