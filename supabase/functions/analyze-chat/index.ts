@@ -206,21 +206,21 @@ Ortalama Yanıt Süresi: ${avgResponseTime !== null ? `${avgResponseTime} saniye
 Aşağıdaki kriterlere göre analiz yap:
 
 1. DİL VE ÜSLUP UYUM DENETİMİ:
-- Profesyonel dil kullanımı (0-100 puan)
-- Saygılı ve kibar üslup (0-100 puan)
+- Profesyonel dil kullanımı (0-100 puan): Temsilcinin resmi, uygun dil kullanıp kullanmadığı
+- Saygılı ve kibar üslup (0-100 puan): Müşteriye saygılı davranılıp davranılmadığı
 - Yasaklı veya uygunsuz kelime kullanımı (varsa listele)
 - Kopyala-yapıştır / ezber mesaj tespiti (var/yok)
 
 2. CHAT KALİTE DENETİMİ:
-- Soruya gerçek cevap verildi mi? (0-100 puan)
+- Soruya gerçek cevap verildi mi? (0-100 puan): Müşteri sorusunun doğrudan cevaplanıp cevaplanmadığı
 - Oyalama, geçiştirme tespit edildi mi? (var/yok)
 - Gereksiz uzatma veya kısa kesme (var/yok)
 - Müşteri memnuniyetine etkisi (pozitif/nötr/negatif)
 
 3. PERFORMANS METRİKLERİ:
-- İlk yanıt kalitesi (0-100 puan)
-- Çözüm odaklılık (0-100 puan)
-- İletişim etkinliği (0-100 puan)
+- İlk yanıt kalitesi (0-100 puan): İlk yanıtın müşteriyi karşılama ve yönlendirme kalitesi
+- Çözüm odaklılık (0-100 puan): Sorunun çözümüne ne kadar odaklanıldığı
+- İletişim etkinliği (0-100 puan): Genel iletişim kalitesi ve akışı
 
 4. TESPIT EDİLEN SORUNLAR:
 - Kritik hatalar (varsa)
@@ -231,9 +231,10 @@ Aşağıdaki kriterlere göre analiz yap:
 - İyi yapılan şeyler
 - Güçlü yönler
 
-JSON formatı:
+ÖNEMLİ: "overall_score" alanını JSON'a ekleme. Genel puan sistem tarafından alt metriklerden otomatik hesaplanacak.
+
+JSON formatı (sadece bu alanları döndür):
 {
-  "overall_score": 0-100,
   "language_compliance": {
     "professional_language": 0-100,
     "polite_tone": 0-100,
@@ -307,11 +308,33 @@ JSON formatı:
       }
       const analysisResult = JSON.parse(jsonMatch[0]);
 
+      const lc = analysisResult.language_compliance;
+      const qm = analysisResult.quality_metrics;
+      const pm = analysisResult.performance_metrics;
+
+      const baseScore =
+        (lc.professional_language * 0.15) +
+        (lc.polite_tone         * 0.15) +
+        (qm.answer_relevance    * 0.20) +
+        (pm.first_response_quality    * 0.10) +
+        (pm.solution_focused          * 0.20) +
+        (pm.communication_effectiveness * 0.20);
+
+      let penalty = 0;
+      if (lc.copy_paste_detected)              penalty += 5;
+      if (qm.stalling_detected)                penalty += 5;
+      if (qm.unnecessary_length)               penalty += 3;
+      if (qm.customer_satisfaction === "negative") penalty += 5;
+
+      const calculatedScore = Math.max(0, Math.min(100, Math.round(baseScore - penalty)));
+
+      console.log(`Calculated score: ${calculatedScore} (base: ${baseScore.toFixed(1)}, penalty: ${penalty})`);
+
       const { data: analysisRecord, error: analysisError } = await supabase
         .from("chat_analysis")
         .insert({
           chat_id: chat.id,
-          overall_score: analysisResult.overall_score,
+          overall_score: calculatedScore,
           language_compliance: analysisResult.language_compliance,
           quality_metrics: analysisResult.quality_metrics,
           performance_metrics: analysisResult.performance_metrics,
