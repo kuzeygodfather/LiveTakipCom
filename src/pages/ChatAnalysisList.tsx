@@ -138,9 +138,9 @@ export default function ChatAnalysisList() {
       filtered = filtered.filter(chat => {
         if (!chat.analysis) return false;
         const score = parseScore(chat.analysis.overall_score);
-        if (filterSentiment === 'positive') return score >= 80;
-        if (filterSentiment === 'neutral') return score >= 50 && score < 80;
-        if (filterSentiment === 'negative') return score < 50;
+        if (filterSentiment === 'positive') return score >= 70;
+        if (filterSentiment === 'neutral') return score >= 60 && score < 70;
+        if (filterSentiment === 'negative') return score < 60;
         return true;
       });
     }
@@ -163,9 +163,12 @@ export default function ChatAnalysisList() {
 
   const getScoreStyle = (score: number | string) => {
     const n = parseScore(score);
-    if (n >= 80) return 'text-emerald-400 bg-emerald-400/10 border border-emerald-400/30';
-    if (n >= 50) return 'text-amber-400 bg-amber-400/10 border border-amber-400/30';
-    return 'text-red-400 bg-red-400/10 border border-red-400/30';
+    if (n >= 90) return 'text-emerald-400 bg-emerald-400/10 border border-emerald-400/30';
+    if (n >= 70) return 'text-cyan-400 bg-cyan-400/10 border border-cyan-400/30';
+    if (n >= 60) return 'text-blue-400 bg-blue-400/10 border border-blue-400/30';
+    if (n >= 40) return 'text-amber-400 bg-amber-400/10 border border-amber-400/30';
+    if (n >= 30) return 'text-orange-400 bg-orange-400/10 border border-orange-400/30';
+    return 'text-rose-400 bg-rose-400/10 border border-rose-400/30';
   };
 
   const getSentimentIcon = (sentiment?: string) => {
@@ -218,9 +221,9 @@ export default function ChatAnalysisList() {
 
   const summaryStats = useMemo(() => {
     const analyzed = filteredChats.filter(c => c.analysis);
-    const positive = analyzed.filter(c => parseScore(c.analysis?.overall_score) >= 80);
-    const neutral = analyzed.filter(c => { const s = parseScore(c.analysis?.overall_score); return s >= 50 && s < 80; });
-    const negative = analyzed.filter(c => parseScore(c.analysis?.overall_score) < 50);
+    const positive = analyzed.filter(c => parseScore(c.analysis?.overall_score) >= 70);
+    const neutral = analyzed.filter(c => { const s = parseScore(c.analysis?.overall_score); return s >= 60 && s < 70; });
+    const negative = analyzed.filter(c => parseScore(c.analysis?.overall_score) < 60);
     const avgScore = analyzed.length > 0
       ? Math.round(analyzed.reduce((sum, c) => sum + parseScore(c.analysis?.overall_score), 0) / analyzed.length)
       : 0;
@@ -481,8 +484,8 @@ export default function ChatAnalysisList() {
                         {parseScore(chat.analysis.overall_score)}/100
                       </div>
                     )}
-                    {chat.analysis && parseScore(chat.analysis.overall_score) < 50 && (
-                      <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                    {chat.analysis && parseScore(chat.analysis.overall_score) < 60 && (
+                      <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
                     )}
                     <Eye className="w-4 h-4 text-slate-600 flex-shrink-0 hidden sm:block" />
                   </div>

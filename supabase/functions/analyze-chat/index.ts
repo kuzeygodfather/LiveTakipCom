@@ -338,9 +338,8 @@ JSON formatı:
         })
         .eq("id", chat.id);
 
-      // Create alert for low scores OR negative sentiment
-      if (analysisResult.overall_score < 50 || analysisResult.sentiment === "negative") {
-        const severity = analysisResult.overall_score < 30 ? "critical" : "high";
+      if (analysisResult.overall_score < 60 || analysisResult.sentiment === "negative") {
+        const severity = analysisResult.overall_score < 30 ? "critical" : analysisResult.overall_score < 40 ? "high" : "medium";
 
         const chatDate = new Date(chat.created_at).toLocaleString('tr-TR', {
           year: 'numeric',

@@ -716,9 +716,12 @@ export default function Reports() {
   };
 
   const getSentimentColor = (sentiment: string, score: number) => {
-    if (sentiment === 'negative' || score < 40) return 'text-red-400 bg-red-500/15 border-red-500/30';
-    if (score < 60) return 'text-orange-400 bg-orange-500/15 border-orange-500/30';
-    return 'text-yellow-400 bg-yellow-500/15 border-yellow-500/30';
+    if (sentiment === 'negative' || score < 30) return 'text-rose-400 bg-rose-500/15 border-rose-500/30';
+    if (score < 40) return 'text-orange-400 bg-orange-500/15 border-orange-500/30';
+    if (score < 60) return 'text-amber-400 bg-amber-500/15 border-amber-500/30';
+    if (score < 70) return 'text-blue-400 bg-blue-500/15 border-blue-500/30';
+    if (score < 90) return 'text-cyan-400 bg-cyan-500/15 border-cyan-500/30';
+    return 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
   };
 
   const getSentimentLabel = (sentiment: string) => {
@@ -728,9 +731,12 @@ export default function Reports() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400 bg-emerald-500/15';
-    if (score >= 50) return 'text-blue-400 bg-blue-500/15';
-    return 'text-red-400 bg-red-500/15';
+    if (score >= 90) return 'text-emerald-400 bg-emerald-500/15';
+    if (score >= 70) return 'text-cyan-400 bg-cyan-500/15';
+    if (score >= 60) return 'text-blue-400 bg-blue-500/15';
+    if (score >= 40) return 'text-amber-400 bg-amber-500/15';
+    if (score >= 30) return 'text-orange-400 bg-orange-500/15';
+    return 'text-rose-400 bg-rose-500/15';
   };
 
   const getIssues = (chat: NegativeChat): string[] => {

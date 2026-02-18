@@ -27,12 +27,22 @@ interface EvidencedIssue {
   correctApproach: string;
 }
 
+interface ScoreBreakdown {
+  kritik: number;
+  dikkat: number;
+  olumsuz: number;
+  orta: number;
+  iyi: number;
+  mukemmel: number;
+}
+
 interface AgentCoachingData {
   agentName: string;
   avgScore: number;
   totalChats: number;
   negativeSentimentCount: number;
   requiresAttentionCount: number;
+  scoreBreakdown: ScoreBreakdown;
   evidencedIssues: EvidencedIssue[];
   coachingScript: string;
   lastActivityDate: string;
@@ -60,15 +70,48 @@ const URGENCY_COLORS: Record<string, string> = {
   low: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
 };
 
+function getScoreCategory(score: number): keyof ScoreBreakdown {
+  if (score < 30) return 'kritik';
+  if (score < 40) return 'dikkat';
+  if (score < 60) return 'olumsuz';
+  if (score < 70) return 'orta';
+  if (score < 90) return 'iyi';
+  return 'mukemmel';
+}
+
+const SCORE_CATEGORY_LABELS: Record<keyof ScoreBreakdown, string> = {
+  kritik: 'Kritik',
+  dikkat: 'Dikkat',
+  olumsuz: 'Olumsuz',
+  orta: 'Orta',
+  iyi: 'İyi',
+  mukemmel: 'Mükemmel',
+};
+
+const SCORE_CATEGORY_COLORS: Record<keyof ScoreBreakdown, string> = {
+  kritik: 'text-rose-400',
+  dikkat: 'text-orange-400',
+  olumsuz: 'text-amber-400',
+  orta: 'text-blue-400',
+  iyi: 'text-cyan-400',
+  mukemmel: 'text-emerald-400',
+};
+
 const SCORE_COLOR = (score: number) => {
-  if (score >= 85) return 'text-emerald-400';
-  if (score >= 70) return 'text-amber-400';
+  if (score >= 90) return 'text-emerald-400';
+  if (score >= 70) return 'text-cyan-400';
+  if (score >= 60) return 'text-blue-400';
+  if (score >= 40) return 'text-amber-400';
+  if (score >= 30) return 'text-orange-400';
   return 'text-rose-400';
 };
 
 const SCORE_BG = (score: number) => {
-  if (score >= 85) return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
-  if (score >= 70) return 'bg-amber-500/10 border-amber-500/20 text-amber-400';
+  if (score >= 90) return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
+  if (score >= 70) return 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400';
+  if (score >= 60) return 'bg-blue-500/10 border-blue-500/20 text-blue-400';
+  if (score >= 40) return 'bg-amber-500/10 border-amber-500/20 text-amber-400';
+  if (score >= 30) return 'bg-orange-500/10 border-orange-500/20 text-orange-400';
   return 'bg-rose-500/10 border-rose-500/20 text-rose-400';
 };
 
@@ -326,9 +369,9 @@ function buildDetailedScript(
   return s;
 }
 
-function determineUrgency(data: { avgScore: number; requiresAttentionCount: number; criticalCount: number }): 'high' | 'medium' | 'low' {
-  if (data.avgScore < 70 || data.requiresAttentionCount >= 5 || data.criticalCount >= 3) return 'high';
-  if (data.avgScore < 82 || data.requiresAttentionCount >= 2 || data.criticalCount >= 1) return 'medium';
+function determineUrgency(avgScore: number): 'high' | 'medium' | 'low' {
+  if (avgScore < 60) return 'high';
+  if (avgScore < 70) return 'medium';
   return 'low';
 }
 
@@ -409,6 +452,7 @@ export default function CoachingCenter() {
         scores: { score: number; date: string; chatId: string }[];
         sentiments: string[];
         attentionCount: number;
+        scoreBreakdown: ScoreBreakdown;
         issueEvidenceMap: Map<string, { type: 'critical' | 'improvement'; evidences: ChatEvidence[] }>;
         lastDate: string;
       }>();
@@ -423,6 +467,7 @@ export default function CoachingCenter() {
             scores: [],
             sentiments: [],
             attentionCount: 0,
+            scoreBreakdown: { kritik: 0, dikkat: 0, olumsuz: 0, orta: 0, iyi: 0, mukemmel: 0 },
             issueEvidenceMap: new Map(),
             lastDate: chat.created_at,
           });
@@ -433,6 +478,7 @@ export default function CoachingCenter() {
         agent.scores.push({ score, date: chat.created_at, chatId: chat.id });
         agent.sentiments.push(analysis.sentiment || '');
         if (analysis.requires_attention) agent.attentionCount++;
+        agent.scoreBreakdown[getScoreCategory(score)]++;
         if (chat.created_at > agent.lastDate) agent.lastDate = chat.created_at;
 
         const evidence: ChatEvidence = {
@@ -492,8 +538,7 @@ export default function CoachingCenter() {
           })
           .slice(0, 10);
 
-        const criticalCount = evidencedIssues.filter(i => i.type === 'critical').length;
-        const urgency = determineUrgency({ avgScore, requiresAttentionCount: agent.attentionCount, criticalCount });
+        const urgency = determineUrgency(avgScore);
 
         const sortedByScore = [...agent.scores].sort((a, b) => a.score - b.score);
         const lowestScoringChats: ChatEvidence[] = sortedByScore.slice(0, 3).map(s => {
@@ -528,6 +573,7 @@ export default function CoachingCenter() {
           totalChats: agent.scores.length,
           negativeSentimentCount,
           requiresAttentionCount: agent.attentionCount,
+          scoreBreakdown: agent.scoreBreakdown,
           evidencedIssues,
           coachingScript,
           lastActivityDate: agent.lastDate,
@@ -735,8 +781,8 @@ export default function CoachingCenter() {
             const isExpanded = expandedAgents.has(agent.agentName);
             const isSentToday = sentToday.has(agent.agentName);
             const initials = agent.agentName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
-            const criticalCount = agent.evidencedIssues.filter(i => i.type === 'critical').length;
             const tab = getTab(agent.agentName);
+            const breakdownEntries = (Object.entries(agent.scoreBreakdown) as [keyof ScoreBreakdown, number][]).filter(([, count]) => count > 0);
 
             return (
               <div
@@ -778,21 +824,11 @@ export default function CoachingCenter() {
                         <span className="text-slate-600">|</span>
                         <span>{agent.totalChats} chat</span>
                         <TrendIcon trend={agent.trend} />
-                        {criticalCount > 0 && (
-                          <span className="text-rose-400 flex items-center gap-1">
-                            <AlertTriangle className="w-3 h-3" />
-                            {criticalCount} kritik hata
+                        {breakdownEntries.map(([cat, count]) => (
+                          <span key={cat} className={`flex items-center gap-1 ${SCORE_CATEGORY_COLORS[cat]}`}>
+                            {count} {SCORE_CATEGORY_LABELS[cat].toLowerCase()}
                           </span>
-                        )}
-                        {agent.requiresAttentionCount > 0 && (
-                          <span className="text-amber-400 flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            {agent.requiresAttentionCount} dikkat
-                          </span>
-                        )}
-                        {agent.negativeSentimentCount > 0 && (
-                          <span className="text-slate-400">{agent.negativeSentimentCount} olumsuz</span>
-                        )}
+                        ))}
                       </div>
                     </div>
 

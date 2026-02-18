@@ -140,7 +140,7 @@ export default function PersonnelAnalytics() {
             if (batch) {
               // Filter for negative chats only (overall_score < 50)
               const negativeChats = batch.filter(
-                item => item.overall_score < 50
+                item => item.overall_score < 60
               );
               allWarningAnalyses = [...allWarningAnalyses, ...negativeChats];
             }
@@ -701,9 +701,12 @@ export default function PersonnelAnalytics() {
                         </div>
                         {chatModal.type === 'warning' && chat.overall_score && (
                           <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            chat.overall_score < 40 ? 'bg-red-500/15 text-red-400 border border-red-500/20' :
-                            chat.overall_score < 60 ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20' :
-                            'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20'
+                            chat.overall_score < 30 ? 'bg-rose-500/15 text-rose-400 border border-rose-500/20' :
+                            chat.overall_score < 40 ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20' :
+                            chat.overall_score < 60 ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' :
+                            chat.overall_score < 70 ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20' :
+                            chat.overall_score < 90 ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/20' :
+                            'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
                           }`}>
                             {Math.round(chat.overall_score)}/100
                           </span>

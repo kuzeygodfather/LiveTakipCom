@@ -220,7 +220,7 @@ Deno.serve(async (req: Request) => {
       } else {
         const scores = todayAnalysis.map(a => a.overall_score);
         const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-        const below50 = scores.filter(s => s < 50).length;
+        const below50 = scores.filter(s => s < 60).length;
         const negativeCount = todayAnalysis.filter(a => a.sentiment === "negative").length;
         const positiveCount = todayAnalysis.filter(a => a.sentiment === "positive").length;
 
@@ -231,7 +231,7 @@ Deno.serve(async (req: Request) => {
           `\u{1F4AC} Toplam Sohbet: <b>${totalChats || 0}</b>\n` +
           `\u{2705} Analiz Edilen: <b>${todayAnalysis.length}</b>\n` +
           `\u{1F4AF} Ortalama Puan: <b>${avg}/100</b>\n` +
-          `\u{1F534} 50 Alti: <b>${below50}</b>\n` +
+          `\u{1F534} 60 Alti: <b>${below50}</b>\n` +
           `\u{1F7E2} Pozitif: <b>${positiveCount}</b>\n` +
           `\u{1F534} Negatif: <b>${negativeCount}</b>`
         );
@@ -369,8 +369,8 @@ Deno.serve(async (req: Request) => {
     const avgScore = allScores.length > 0
       ? Math.round(allScores.reduce((a: number, b: number) => a + b, 0) / allScores.length)
       : 0;
-    const below50 = allScores.filter((s: number) => s < 50).length;
-    const failedAnalyses = dateAnalysis.filter(a => a.overall_score !== null && a.overall_score < 50);
+    const below50 = allScores.filter((s: number) => s < 60).length;
+    const failedAnalyses = dateAnalysis.filter(a => a.overall_score !== null && a.overall_score < 60);
 
     if (failedAnalyses.length === 0) {
       await sendTelegramMessage(
@@ -379,7 +379,7 @@ Deno.serve(async (req: Request) => {
         `\u{1F4C5} <b>${dateRange.label} - Rapor</b>\n\n` +
         `\u{1F4CA} Toplam Analiz: <b>${allScores.length}</b>\n` +
         `\u{1F4AF} Ort. Puan: <b>${avgScore}/100</b>\n` +
-        `\u{2705} 50 alti uyari yok!`
+        `\u{2705} 60 alti uyari yok!`
       );
       return new Response(JSON.stringify({ ok: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -390,8 +390,8 @@ Deno.serve(async (req: Request) => {
       `\u{1F4C5} <b>${dateRange.label} - Uyari Raporu</b>\n\n` +
       `\u{1F4CA} Toplam Analiz: <b>${allScores.length}</b>\n` +
       `\u{1F4AF} Ort. Puan: <b>${avgScore}/100</b>\n` +
-      `\u{1F534} 50 Alti: <b>${below50}</b>\n\n` +
-      `<b>--- Kabul Edilemez Chatler (50 Alti) ---</b>\n`;
+      `\u{1F534} 60 Alti: <b>${below50}</b>\n\n` +
+      `<b>--- Olumsuz Chatler (60 Alti) ---</b>\n`;
 
     const alertLines = failedAnalyses.map((analysis: any, i: number) => {
       const score = analysis.overall_score ?? "?";
@@ -402,7 +402,7 @@ Deno.serve(async (req: Request) => {
         hour: "2-digit",
         minute: "2-digit",
       });
-      const sevIcon = score < 30 ? "\u{1F534}" : "\u{1F7E0}";
+      const sevIcon = score < 30 ? "\u{1F534}" : score < 40 ? "\u{1F7E0}" : "\u{1F7E1}";
 
       return (
         `${sevIcon} <b>#${i + 1}</b> [${time}] Puan: <b>${score}/100</b>\n` +

@@ -76,10 +76,10 @@ function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: n
     }
 
     if (isNewAgent) {
-      motivationMessage = `İlk ay her zaman en zor olandır. ${score >= 75 ? `${score} puanla gerçekten iyi bir başlangıç yaptın — bu tempoyu koru.` : 'Şu an öğrenme sürecinin en yoğun dönemdesin. Zorlu chatler seni hızla geliştirecek.'} Bir ay sonra tam bir trend karşılaştırmasıyla nerede olduğunu net göreceksin.`;
-    } else if (score >= 85) {
+      motivationMessage = `İlk ay her zaman en zor olandır. ${score >= 70 ? `${score} puanla gerçekten iyi bir başlangıç yaptın — bu tempoyu koru.` : 'Şu an öğrenme sürecinin en yoğun dönemdesin. Zorlu chatler seni hızla geliştirecek.'} Bir ay sonra tam bir trend karşılaştırmasıyla nerede olduğunu net göreceksin.`;
+    } else if (score >= 90) {
       motivationMessage = `Performansın gerçekten güçlü! ${trendDiff < 0 ? `Geçen aya göre ${Math.abs(trendDiff)} puanlık düşüş geçici olabilir — nedenini analiz edelim.` : 'Bu listede görünmen, takımın ne kadar yüksek bir çıtaya sahip olduğunu gösteriyor.'} Birkaç küçük adımla liderlik tablosuna geçebilirsin.`;
-    } else if (score >= 80) {
+    } else if (score >= 70) {
       motivationMessage = `Sağlam bir performans sergiliyorsun. ${trendDiff < -3 ? 'Düşüş trendi dikkat gerektiriyor ama bu çevrilebilir bir süreç.' : 'Odaklanman gereken birkaç alan var ama potansiyelinin farkındayız.'} Tutarlı bir çalışmayla önümüzdeki ay büyük fark yaratabilirsin.`;
     } else {
       motivationMessage = `Her uzmanlık bir süreç gerektirir. Şu an gelişim eğrisinin tam ortasındasın — doğru odaklanmayla hızla yükseleceksin. Takım sana inanıyor.`;
@@ -118,8 +118,8 @@ function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: n
 
     if (score >= 90) {
       motivationMessage = `Olağanüstü bir performans! ${score} puanla takımın zirvesinde parlıyorsun. Bu seviyeyi korumak, ulaşmak kadar değerli — tebrikler!`;
-    } else if (score >= 85) {
-      motivationMessage = `Güçlü ve tutarlı bir performans sergiliyorsun. Takımın gurur kaynağısın. Şimdi hedef: ${score >= 88 ? '90+' : '88+'} puana ulaşmak!`;
+    } else if (score >= 70) {
+      motivationMessage = `Güçlü ve tutarlı bir performans sergiliyorsun. Takımın gurur kaynağısın. Şimdi hedef: ${score >= 80 ? '90+' : '80+'} puana ulaşmak!`;
     } else {
       motivationMessage = `Top 5'e girdin — bu takdir edilesi bir başarı. Momentum'unu kaybetme ve bir sonraki seviyeye tırman!`;
     }
