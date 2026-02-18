@@ -337,7 +337,7 @@ export default function ChatAnalysisList() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="flex-1 min-w-[140px] px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
+              className="flex-1 min-w-[140px] px-3 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
             >
               <option value="all">Tüm Durumlar</option>
               <option value="analyzed">Analiz Edildi</option>
@@ -347,7 +347,7 @@ export default function ChatAnalysisList() {
             <select
               value={filterSentiment}
               onChange={(e) => setFilterSentiment(e.target.value as any)}
-              className="flex-1 min-w-[140px] px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
+              className="flex-1 min-w-[140px] px-3 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
             >
               <option value="all">Tüm Kategoriler</option>
               {SCORE_TIERS.map(tier => (
