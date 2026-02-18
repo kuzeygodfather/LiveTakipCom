@@ -261,25 +261,37 @@ export default function ChatAnalysisList() {
     }
   };
 
+  const callResetFunction = async (chatId?: string) => {
+    const resetUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-analyses`;
+    const res = await fetch(resetUrl, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(chatId ? { chatId } : {}),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Reset failed');
+  };
+
   const reanalyzeSingleChat = async () => {
     if (!selectedChat) return;
     setReanalyzing(true);
+    const chatId = selectedChat.id;
     try {
-      await supabase.from('chat_analysis').delete().eq('chat_id', selectedChat.id);
-      await supabase.from('chats').update({ analyzed: false }).eq('id', selectedChat.id);
+      await callResetFunction(chatId);
       setSelectedChat(null);
       setChats(prev => prev.map(c =>
-        c.id === selectedChat.id ? { ...c, analyzed: false, analysis: undefined } : c
+        c.id === chatId ? { ...c, analyzed: false, analysis: undefined } : c
       ));
       setAnalyzeStatus('Chat sıfırlandı, analiz başlatılıyor...');
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
-      await fetch(apiUrl, {
+      const analyzeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
+      await fetch(analyzeUrl, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       });
       setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 6000);
     } catch (err) {
       console.error('Reanalyze error:', err);
+      setAnalyzeStatus('Hata oluştu, tekrar deneyin.');
     } finally {
       setReanalyzing(false);
     }
@@ -290,19 +302,18 @@ export default function ChatAnalysisList() {
     setReanalyzing(true);
     setAnalyzeStatus('Tüm analizler sıfırlanıyor...');
     try {
-      await supabase.from('chat_analysis').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('chats').update({ analyzed: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+      await callResetFunction();
       setChats(prev => prev.map(c => ({ ...c, analyzed: false, analysis: undefined })));
       setAnalyzeStatus('Tüm analizler sıfırlandı. Analiz başlatılıyor... (Her çalışmada 10 chat işlenir)');
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
-      await fetch(apiUrl, {
+      const analyzeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-chat`;
+      await fetch(analyzeUrl, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
       });
       setTimeout(() => { loadChats(); setAnalyzeStatus(''); }, 8000);
     } catch (err) {
       console.error('Reanalyze all error:', err);
-      setAnalyzeStatus('Hata oluştu.');
+      setAnalyzeStatus('Hata oluştu, tekrar deneyin.');
     } finally {
       setReanalyzing(false);
     }
