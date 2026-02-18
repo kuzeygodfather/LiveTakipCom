@@ -5,8 +5,9 @@ import {
   Users, AlertTriangle, CheckCircle, MessageSquare, ChevronDown, ChevronUp,
   RefreshCw, Send, Clock, TrendingDown, TrendingUp, Minus, Copy, Check,
   BookOpen, Target, Repeat, Star, FileText, Hash, ExternalLink, Shield,
-  ArrowRight, ListChecks, BarChart2, Lightbulb
+  ArrowRight, ListChecks, BarChart2, Lightbulb, FileBarChart
 } from 'lucide-react';
+import CoachingReport from '../components/CoachingReport';
 
 type DateRange = '1' | '7' | '30';
 
@@ -513,6 +514,7 @@ export default function CoachingCenter() {
   const [coachingHistory, setCoachingHistory] = useState<Map<string, string>>(new Map());
   const [filterUrgency, setFilterUrgency] = useState<'all' | 'high' | 'medium' | 'low' | 'excellent'>('all');
   const [activeTab, setActiveTab] = useState<Record<string, 'issues' | 'script' | 'actions'>>({});
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     loadCoachingData();
@@ -842,6 +844,14 @@ export default function CoachingCenter() {
               </button>
             ))}
           </div>
+          <button
+            onClick={() => setShowReport(true)}
+            disabled={coachingData.length === 0}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 hover:border-cyan-400/50 text-sm font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <FileBarChart className="w-4 h-4" />
+            Rapor
+          </button>
           <button
             onClick={loadCoachingData}
             className="p-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all duration-200"
@@ -1355,6 +1365,15 @@ export default function CoachingCenter() {
             );
           })}
         </div>
+      )}
+
+      {showReport && (
+        <CoachingReport
+          coachingData={coachingData}
+          coachingHistory={coachingHistory}
+          dateRange={dateRange}
+          onClose={() => setShowReport(false)}
+        />
       )}
     </div>
   );
