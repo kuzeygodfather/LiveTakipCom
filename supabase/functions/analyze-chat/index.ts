@@ -269,34 +269,44 @@ JSON formatı (sadece bu alanları döndür):
   "ai_summary": "Kısa özet"
 }`;
 
-      const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": settings.claude_api_key,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-3-haiku-20240307",
-          max_tokens: 4096,
-          temperature: 0.3,
-          system: "Sen müşteri hizmetleri kalite kontrol uzmanısın. Sohbetleri detaylı analiz eder ve JSON formatında rapor verirsin. Sadece geçerli JSON döndür, başka bir şey yazma.",
-          messages: [
-            {
-              role: "user",
-              content: analysisPrompt,
-            },
-          ],
-        }),
+      const claudeRequestBody = JSON.stringify({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 4096,
+        temperature: 0.3,
+        system: "Sen müşteri hizmetleri kalite kontrol uzmanısın. Sohbetleri detaylı analiz eder ve JSON formatında rapor verirsin. Sadece geçerli JSON döndür, başka bir şey yazma.",
+        messages: [{ role: "user", content: analysisPrompt }],
       });
 
-      if (!claudeResponse.ok) {
-        const claudeError = await claudeResponse.text();
-        console.error("Claude API error:", claudeError);
+      let claudeResponse: Response | null = null;
+      let claudeError = "";
+      const maxRetries = 3;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        if (attempt > 0) {
+          const delay = attempt * 5000;
+          console.log(`Claude overloaded, retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+        claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": settings.claude_api_key,
+            "anthropic-version": "2023-06-01",
+          },
+          body: claudeRequestBody,
+        });
+        if (claudeResponse.ok || claudeResponse.status !== 529) break;
+        claudeError = await claudeResponse.text();
+        console.error(`Claude attempt ${attempt + 1} failed with 529:`, claudeError.substring(0, 200));
+      }
+
+      if (!claudeResponse || !claudeResponse.ok) {
+        if (!claudeError) claudeError = await claudeResponse!.text();
+        console.error("Claude API error after retries:", claudeError);
         await supabase.from("system_config").update({
-          last_analyze_error: `Chat ${chat.id} | HTTP ${claudeResponse.status} | ${claudeError.substring(0, 500)}`
+          last_analyze_error: `Chat ${chat.id} | HTTP ${claudeResponse?.status} | ${claudeError.substring(0, 500)}`
         }).eq("id", 1);
-        errors.push(`${chat.id}: Claude HTTP ${claudeResponse.status}`);
+        errors.push(`${chat.id}: Claude HTTP ${claudeResponse?.status}`);
         continue;
       }
 
