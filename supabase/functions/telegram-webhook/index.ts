@@ -18,6 +18,14 @@ function sanitizeText(raw: string): string {
     .toLowerCase();
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function stripBotMention(text: string): string {
   return text.replace(/@\S+/g, "").trim();
 }
@@ -317,12 +325,13 @@ Deno.serve(async (req: Request) => {
           hour: "2-digit",
           minute: "2-digit",
         });
+        const safeText = escapeHtml((msg.text || "").trim());
         if (msg.is_system) {
-          return `\u{2699}\u{FE0F} [${time}] <i>${(msg.text || "").substring(0, 200)}</i>`;
+          return `\u{2699}\u{FE0F} [${time}] <i>${safeText.substring(0, 200)}</i>`;
         }
         const role = msg.author_type === "agent" ? "\u{1F464}" : "\u{1F9D1}";
         const label = msg.author_type === "agent" ? "Temsilci" : "Musteri";
-        return `${role} [${time}] <b>${label}:</b> ${(msg.text || "").substring(0, 300)}`;
+        return `${role} [${time}] <b>${label}:</b> ${safeText.substring(0, 300)}`;
       });
 
       await sendSplitMessages(settings.telegram_bot_token, chatId, header, msgLines);
