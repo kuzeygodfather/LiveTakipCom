@@ -252,30 +252,41 @@ Deno.serve(async (req: Request) => {
 
     const chatCmdMatch = withoutSlash.match(/^chat\s+(.+)/i);
     if (chatCmdMatch) {
-      const targetChatId = chatCmdMatch[1].trim();
+      const targetChatId = chatCmdMatch[1].trim().toUpperCase();
 
-      // Try to find by chat_id first (the ID shown in alerts)
-      let { data: chatInfo } = await supabase
+      console.log("Searching for chat:", targetChatId);
+
+      let chatInfo: any = null;
+
+      const byId = await supabase
         .from("chats")
         .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-        .eq("chat_id", targetChatId)
+        .ilike("id", targetChatId)
         .maybeSingle();
 
-      // If not found, try by thread ID (id)
-      if (!chatInfo) {
-        const result = await supabase
+      console.log("byId result:", JSON.stringify({ data: byId.data, error: byId.error }));
+
+      if (byId.data) {
+        chatInfo = byId.data;
+      } else {
+        const byChatId = await supabase
           .from("chats")
           .select("id, chat_id, agent_name, customer_name, created_at, status, message_count")
-          .eq("id", targetChatId)
+          .ilike("chat_id", targetChatId)
           .maybeSingle();
-        chatInfo = result.data;
+
+        console.log("byChatId result:", JSON.stringify({ data: byChatId.data, error: byChatId.error }));
+
+        if (byChatId.data) {
+          chatInfo = byChatId.data;
+        }
       }
 
       if (!chatInfo) {
         await sendTelegramMessage(
           settings.telegram_bot_token,
           chatId,
-          `Chat bulunamadi: <code>${targetChatId}</code>`
+          `Chat bulunamadi: <code>${escapeHtml(targetChatId)}</code>`
         );
         return new Response(JSON.stringify({ ok: true }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
