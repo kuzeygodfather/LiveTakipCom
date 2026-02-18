@@ -72,7 +72,8 @@ Deno.serve(async (req: Request) => {
       .from("chats")
       .select("*")
       .eq("analyzed", false)
-      .limit(50);
+      .order("created_at", { ascending: true })
+      .limit(10);
 
     console.log("Unanalyzed chats found with query:", unanalyzedChats?.length || 0);
     if (chatsError) {
