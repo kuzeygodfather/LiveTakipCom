@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, MessageSquare, User, Calendar, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { maskName } from '../lib/utils';
+import { maskName, SCORE_TIERS, ScoreTierKey } from '../lib/utils';
 
 interface ChatItem {
   id: string;
@@ -21,13 +21,15 @@ interface ChatMessage {
   is_system: boolean;
 }
 
+export type ModalSentimentType = 'negative' | 'neutral' | 'positive' | ScoreTierKey;
+
 interface SentimentChatsModalProps {
-  sentiment: 'negative' | 'neutral' | 'positive' | null;
+  sentiment: ModalSentimentType | null;
   date?: string | null;
   onClose: () => void;
 }
 
-const SENTIMENT_CONFIG = {
+const LEGACY_SENTIMENT_CONFIG = {
   negative: {
     label: 'Negatif',
     borderColor: 'border-rose-500',
@@ -50,6 +52,28 @@ const SENTIMENT_CONFIG = {
     dot: 'bg-emerald-500',
   },
 };
+
+function getModalConfig(sentiment: ModalSentimentType) {
+  if (sentiment in LEGACY_SENTIMENT_CONFIG) {
+    const cfg = LEGACY_SENTIMENT_CONFIG[sentiment as keyof typeof LEGACY_SENTIMENT_CONFIG];
+    return { label: cfg.label, borderColor: cfg.borderColor, headerBg: cfg.headerBg, badgeBg: cfg.badgeBg, dot: cfg.dot };
+  }
+  const tier = SCORE_TIERS.find(t => t.key === sentiment);
+  if (tier) {
+    return {
+      label: tier.label,
+      borderColor: tier.borderColor,
+      headerBg: `from-slate-900/80 to-slate-800/60`,
+      badgeBg: tier.badgeClass,
+      dot: `bg-[${tier.color}]`,
+    };
+  }
+  return LEGACY_SENTIMENT_CONFIG.neutral;
+}
+
+function isLegacySentiment(s: ModalSentimentType): s is 'negative' | 'neutral' | 'positive' {
+  return s === 'negative' || s === 'neutral' || s === 'positive';
+}
 
 export default function SentimentChatsModal({ sentiment, date, onClose }: SentimentChatsModalProps) {
   const [chats, setChats] = useState<ChatItem[]>([]);
@@ -88,27 +112,41 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
         }
       }
 
-      let analysisQuery = supabase
-        .from('chat_analysis')
-        .select('chat_id, overall_score')
-        .eq('sentiment', sentiment)
-        .order('overall_score', { ascending: true });
+      let analysisData: { chat_id: string; overall_score: number }[] = [];
 
-      if (chatIdsForDate) {
-        analysisQuery = analysisQuery.in('chat_id', chatIdsForDate);
+      if (isLegacySentiment(sentiment)) {
+        let q = supabase
+          .from('chat_analysis')
+          .select('chat_id, overall_score')
+          .eq('sentiment', sentiment)
+          .order('overall_score', { ascending: true });
+        if (chatIdsForDate) q = q.in('chat_id', chatIdsForDate);
+        const { data, error } = await q;
+        if (error) throw error;
+        analysisData = data || [];
+      } else {
+        const tier = SCORE_TIERS.find(t => t.key === sentiment);
+        if (!tier) { setChats([]); return; }
+        let q = supabase
+          .from('chat_analysis')
+          .select('chat_id, overall_score')
+          .gte('overall_score', tier.min)
+          .lte('overall_score', tier.max)
+          .order('overall_score', { ascending: true });
+        if (chatIdsForDate) q = q.in('chat_id', chatIdsForDate);
+        const { data, error } = await q;
+        if (error) throw error;
+        analysisData = data || [];
       }
 
-      const { data, error } = await analysisQuery;
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
+      if (!analysisData || analysisData.length === 0) {
         setChats([]);
         return;
       }
 
-      const chatIds = data.map(d => d.chat_id);
+      const chatIds = analysisData.map(d => d.chat_id);
       const scoreMap: Record<string, number> = {};
-      data.forEach(d => { scoreMap[d.chat_id] = d.overall_score; });
+      analysisData.forEach(d => { scoreMap[d.chat_id] = d.overall_score; });
 
       const { data: chatData, error: chatError } = await supabase
         .from('chats')
@@ -156,7 +194,8 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
 
   if (!sentiment) return null;
 
-  const config = SENTIMENT_CONFIG[sentiment];
+  const config = getModalConfig(sentiment);
+  const tier = !isLegacySentiment(sentiment) ? SCORE_TIERS.find(t => t.key === sentiment) : null;
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleString('tr-TR', {
@@ -168,6 +207,12 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
       minute: '2-digit',
     });
 
+  const getScoreBadge = (score: number | null) => {
+    if (score === null) return null;
+    const t = SCORE_TIERS.find(ti => score >= ti.min && score <= ti.max) || SCORE_TIERS[SCORE_TIERS.length - 1];
+    return { label: `${score}/100`, badgeClass: `bg-[${t.color}]/20 text-white border-[${t.color}]/40`, color: t.color };
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -175,7 +220,6 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
         className={`relative bg-slate-900 border ${config.borderColor} rounded-2xl shadow-2xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden`}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className={`flex items-center justify-between px-6 py-4 bg-gradient-to-r ${config.headerBg} border-b border-slate-700/60`}>
           <div className="flex items-center gap-3">
             {selectedChat ? (
@@ -188,9 +232,10 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
               </button>
             ) : (
               <>
-                <div className={`w-3 h-3 rounded-full ${config.dot}`} />
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tier?.color || '#6b7280' }} />
                 <h2 className="text-lg font-bold text-white">
                   {config.label} Chatler
+                  {tier && <span className="ml-2 text-sm font-normal text-slate-400">({tier.min}–{tier.max} puan)</span>}
                   {date && (
                     <span className="ml-2 text-sm font-normal text-slate-300">
                       — {new Date(date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -208,7 +253,6 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
           </button>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-hidden flex">
           {!selectedChat ? (
             <div className="flex-1 overflow-y-auto p-4">
@@ -218,54 +262,53 @@ export default function SentimentChatsModal({ sentiment, date, onClose }: Sentim
                 </div>
               ) : chats.length === 0 ? (
                 <div className="flex items-center justify-center h-48 text-slate-400">
-                  Bu tarihte chat bulunamadı
+                  Bu kategoride chat bulunamadı
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {chats.map(chat => (
-                    <button
-                      key={chat.id}
-                      onClick={() => handleChatClick(chat)}
-                      className="text-left p-4 rounded-xl border border-slate-700 hover:border-slate-500 hover:bg-slate-800/60 transition-all group"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition-colors" />
-                          <span className="text-xs font-mono text-slate-400 group-hover:text-slate-200 transition-colors">
-                            #{chat.id.slice(0, 10)}
-                          </span>
+                  {chats.map(chat => {
+                    const scoreBadge = getScoreBadge(chat.overall_score);
+                    return (
+                      <button
+                        key={chat.id}
+                        onClick={() => handleChatClick(chat)}
+                        className="text-left p-4 rounded-xl border border-slate-700 hover:border-slate-500 hover:bg-slate-800/60 transition-all group"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition-colors" />
+                            <span className="text-xs font-mono text-slate-400 group-hover:text-slate-200 transition-colors">
+                              #{chat.id.slice(0, 10)}
+                            </span>
+                          </div>
+                          {scoreBadge && (
+                            <span
+                              className="text-xs font-bold px-2 py-0.5 rounded-full border"
+                              style={{ backgroundColor: `${scoreBadge.color}22`, color: scoreBadge.color, borderColor: `${scoreBadge.color}44` }}
+                            >
+                              {scoreBadge.label}
+                            </span>
+                          )}
                         </div>
-                        {chat.overall_score !== null && (
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                            chat.overall_score >= 9 ? 'bg-emerald-500/20 text-emerald-300' :
-                            chat.overall_score >= 7 ? 'bg-cyan-500/20 text-cyan-300' :
-                            chat.overall_score >= 6 ? 'bg-blue-500/20 text-blue-300' :
-                            chat.overall_score >= 4 ? 'bg-amber-500/20 text-amber-300' :
-                            chat.overall_score >= 3 ? 'bg-orange-500/20 text-orange-300' :
-                            'bg-rose-500/20 text-rose-300'
-                          }`}>
-                            {chat.overall_score}/10
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm mb-1">
-                        <User className="w-3.5 h-3.5 text-slate-500" />
-                        <span className="text-white font-medium">{maskName(chat.customer_name)}</span>
-                        <span className="text-slate-500">→</span>
-                        <span className="text-slate-300">{chat.agent_name}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(chat.created_at)}
+                        <div className="flex items-center gap-2 text-sm mb-1">
+                          <User className="w-3.5 h-3.5 text-slate-500" />
+                          <span className="text-white font-medium">{maskName(chat.customer_name)}</span>
+                          <span className="text-slate-500">→</span>
+                          <span className="text-slate-300">{chat.agent_name}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" />
-                          {chat.message_count} mesaj
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(chat.created_at)}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3" />
+                            {chat.message_count} mesaj
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>

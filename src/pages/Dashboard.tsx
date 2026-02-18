@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { MessageSquare, Users, AlertTriangle, TrendingUp, Clock, CheckCircle, ThumbsUp, ThumbsDown, PhoneOff, UserCircle, Frown, Meh, Smile, Filter, ChevronDown } from 'lucide-react';
+import { MessageSquare, Users, AlertTriangle, TrendingUp, Clock, CheckCircle, ThumbsUp, ThumbsDown, PhoneOff, UserCircle, Filter, ChevronDown } from 'lucide-react';
 import TrendChart from '../components/TrendChart';
 import BarChart from '../components/BarChart';
 import DonutChart from '../components/DonutChart';
 import HeatMap from '../components/HeatMap';
 import Leaderboard from '../components/Leaderboard';
 import { Tooltip } from '../components/Tooltip';
-import SentimentChatsModal from '../components/SentimentChatsModal';
+import SentimentChatsModal, { ModalSentimentType } from '../components/SentimentChatsModal';
 import { extractComplaintTopics } from '../lib/complaintCategories';
-import { getIstanbulDateStartUTC, convertIstanbulDateToUTC } from '../lib/utils';
+import { getIstanbulDateStartUTC, convertIstanbulDateToUTC, SCORE_TIERS } from '../lib/utils';
 
 interface DashboardStats {
   totalChats: number;
@@ -68,7 +68,7 @@ export default function Dashboard() {
   const [bottomPerformers, setBottomPerformers] = useState<any[]>([]);
   const [sentimentDistribution, setSentimentDistribution] = useState<{ label: string; value: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sentimentModal, setSentimentModal] = useState<{ type: 'negative' | 'neutral' | 'positive'; date?: string } | null>(null);
+  const [sentimentModal, setSentimentModal] = useState<{ type: ModalSentimentType; date?: string } | null>(null);
   const [trendModal, setTrendModal] = useState<PersonnelTrend | null>(null);
 
   const [complaintTrendDays, setComplaintTrendDays] = useState(30);
@@ -832,23 +832,17 @@ export default function Dashboard() {
         from += batchSize;
       }
 
-      const sentiments = { positive: 0, neutral: 0, negative: 0 };
+      const tierCounts: Record<string, number> = {};
+      SCORE_TIERS.forEach(t => { tierCounts[t.key] = 0; });
       allAnalysis.forEach(item => {
-        const score = typeof item.overall_score === 'string' ? parseInt(item.overall_score) : item.overall_score;
-        if (score >= 70) {
-          sentiments.positive++;
-        } else if (score >= 60) {
-          sentiments.neutral++;
-        } else {
-          sentiments.negative++;
-        }
+        const score = typeof item.overall_score === 'string' ? parseInt(item.overall_score) : (item.overall_score || 0);
+        const tier = SCORE_TIERS.find(t => score >= t.min) || SCORE_TIERS[SCORE_TIERS.length - 1];
+        tierCounts[tier.key]++;
       });
 
-      setSentimentDistribution([
-        { label: 'Pozitif', value: sentiments.positive, color: '#10b981' },
-        { label: 'Nötr', value: sentiments.neutral, color: '#f59e0b' },
-        { label: 'Negatif', value: sentiments.negative, color: '#ef4444' },
-      ]);
+      setSentimentDistribution(
+        SCORE_TIERS.map(t => ({ label: t.label, value: tierCounts[t.key], color: t.color }))
+      );
     } catch (error) {
       console.error('Error loading sentiment distribution:', error);
     }
@@ -1010,37 +1004,28 @@ export default function Dashboard() {
         </div>
 
         <div className="glass-effect rounded-xl shadow-lg p-6">
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => setSentimentModal({ type: 'positive' })}
-              className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-emerald-500/30 to-green-500/30 rounded-xl border-2 border-emerald-400/50 shadow-lg shadow-emerald-500/30 hover:scale-105 hover:border-emerald-300 transition-all cursor-pointer text-left w-full"
-            >
-              <Smile className="w-5 h-5 text-emerald-300" />
-              <div>
-                <div className="text-xs text-emerald-200 font-medium">Pozitif</div>
-                <div className="text-lg font-bold text-white">{sentimentDistribution[0]?.value || 0}</div>
-              </div>
-            </button>
-            <button
-              onClick={() => setSentimentModal({ type: 'neutral' })}
-              className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl border-2 border-amber-400/50 shadow-lg shadow-amber-500/30 hover:scale-105 hover:border-amber-300 transition-all cursor-pointer text-left w-full"
-            >
-              <Meh className="w-5 h-5 text-amber-300" />
-              <div>
-                <div className="text-xs text-amber-200 font-medium">Nötr</div>
-                <div className="text-lg font-bold text-white">{sentimentDistribution[1]?.value || 0}</div>
-              </div>
-            </button>
-            <button
-              onClick={() => setSentimentModal({ type: 'negative' })}
-              className="flex items-center gap-2 flex-1 p-3 bg-gradient-to-br from-rose-500/30 to-red-500/30 rounded-xl border-2 border-rose-400/50 shadow-lg shadow-rose-500/30 hover:scale-105 hover:border-rose-300 transition-all cursor-pointer text-left w-full"
-            >
-              <Frown className="w-5 h-5 text-rose-300" />
-              <div>
-                <div className="text-xs text-rose-200 font-medium">Negatif</div>
-                <div className="text-lg font-bold text-white">{sentimentDistribution[2]?.value || 0}</div>
-              </div>
-            </button>
+          <h3 className="text-sm font-semibold text-slate-300 mb-3">Kategoriye Göre</h3>
+          <div className="flex flex-col gap-2">
+            {SCORE_TIERS.map((tier, i) => {
+              const count = sentimentDistribution[i]?.value || 0;
+              return (
+                <button
+                  key={tier.key}
+                  onClick={() => setSentimentModal({ type: tier.key })}
+                  className="flex items-center justify-between p-2.5 rounded-lg border hover:scale-[1.02] transition-all cursor-pointer text-left w-full"
+                  style={{ borderColor: `${tier.color}44`, backgroundColor: `${tier.color}11` }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: tier.color }} />
+                    <div>
+                      <div className="text-xs font-medium" style={{ color: tier.color }}>{tier.label}</div>
+                      <div className="text-xs text-slate-500">{tier.min}–{tier.max} puan</div>
+                    </div>
+                  </div>
+                  <div className="text-base font-bold text-white">{count}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

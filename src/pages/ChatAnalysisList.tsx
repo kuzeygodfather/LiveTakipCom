@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { maskName } from '../lib/utils';
-import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, ThumbsUp, ThumbsDown, Minus, X, RefreshCw, PlayCircle } from 'lucide-react';
+import { maskName, SCORE_TIERS, ScoreTierKey } from '../lib/utils';
+import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle } from 'lucide-react';
 import type { Chat, ChatAnalysis, ChatMessage } from '../types';
 
 interface ChatWithAnalysis extends Chat {
@@ -15,7 +15,7 @@ export default function ChatAnalysisList() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'analyzed' | 'pending'>('all');
-  const [filterSentiment, setFilterSentiment] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
+  const [filterSentiment, setFilterSentiment] = useState<'all' | ScoreTierKey>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedChat, setSelectedChat] = useState<ChatWithAnalysis | null>(null);
@@ -135,14 +135,14 @@ export default function ChatAnalysisList() {
     }
 
     if (filterSentiment !== 'all') {
-      filtered = filtered.filter(chat => {
-        if (!chat.analysis) return false;
-        const score = parseScore(chat.analysis.overall_score);
-        if (filterSentiment === 'positive') return score >= 70;
-        if (filterSentiment === 'neutral') return score >= 60 && score < 70;
-        if (filterSentiment === 'negative') return score < 60;
-        return true;
-      });
+      const tier = SCORE_TIERS.find(t => t.key === filterSentiment);
+      if (tier) {
+        filtered = filtered.filter(chat => {
+          if (!chat.analysis) return false;
+          const score = parseScore(chat.analysis.overall_score);
+          return score >= tier.min && score <= tier.max;
+        });
+      }
     }
 
     setFilteredChats(filtered);
@@ -221,13 +221,16 @@ export default function ChatAnalysisList() {
 
   const summaryStats = useMemo(() => {
     const analyzed = filteredChats.filter(c => c.analysis);
-    const positive = analyzed.filter(c => parseScore(c.analysis?.overall_score) >= 70);
-    const neutral = analyzed.filter(c => { const s = parseScore(c.analysis?.overall_score); return s >= 60 && s < 70; });
-    const negative = analyzed.filter(c => parseScore(c.analysis?.overall_score) < 60);
+    const tierCounts: Record<ScoreTierKey, number> = { mukemmel: 0, iyi: 0, orta: 0, olumsuz: 0, dikkat: 0, kritik: 0 };
+    analyzed.forEach(c => {
+      const score = parseScore(c.analysis?.overall_score);
+      const tier = SCORE_TIERS.find(t => score >= t.min) || SCORE_TIERS[SCORE_TIERS.length - 1];
+      tierCounts[tier.key as ScoreTierKey]++;
+    });
     const avgScore = analyzed.length > 0
       ? Math.round(analyzed.reduce((sum, c) => sum + parseScore(c.analysis?.overall_score), 0) / analyzed.length)
       : 0;
-    return { total: analyzed.length, positive: positive.length, neutral: neutral.length, negative: negative.length, avgScore };
+    return { total: analyzed.length, tierCounts, avgScore };
   }, [filteredChats]);
 
   if (loading) {
@@ -246,94 +249,48 @@ export default function ChatAnalysisList() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
         <button
           onClick={() => setFilterSentiment('all')}
-          className={`glass-effect rounded-xl p-4 sm:p-5 text-left transition-all border ${
+          className={`glass-effect rounded-xl p-3 sm:p-4 text-left transition-all border ${
             filterSentiment === 'all'
               ? 'border-blue-500 ring-1 ring-blue-500/50'
               : 'border-white/10 hover:border-white/20'
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-              <BarChart3 className="w-5 h-5 text-blue-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Toplam Chat</p>
-              <p className="text-xl sm:text-2xl font-bold text-white">{totalChatsCount}</p>
-            </div>
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-slate-400">Toplam</p>
+            <p className="text-xl font-bold text-white">{totalChatsCount}</p>
+            <div className="w-6 h-1 rounded bg-blue-500/50" />
           </div>
         </button>
 
-        <button
-          onClick={() => setFilterSentiment('positive')}
-          className={`glass-effect rounded-xl p-4 sm:p-5 text-left transition-all border ${
-            filterSentiment === 'positive'
-              ? 'border-emerald-500 ring-1 ring-emerald-500/50'
-              : 'border-white/10 hover:border-white/20'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
-              <ThumbsUp className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Olumlu</p>
-              <p className="text-xl sm:text-2xl font-bold text-emerald-400">{summaryStats.positive}</p>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => setFilterSentiment('neutral')}
-          className={`glass-effect rounded-xl p-4 sm:p-5 text-left transition-all border ${
-            filterSentiment === 'neutral'
-              ? 'border-amber-500 ring-1 ring-amber-500/50'
-              : 'border-white/10 hover:border-white/20'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-              <Minus className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Nötr</p>
-              <p className="text-xl sm:text-2xl font-bold text-amber-400">{summaryStats.neutral}</p>
-            </div>
-          </div>
-        </button>
-
-        <button
-          onClick={() => setFilterSentiment('negative')}
-          className={`glass-effect rounded-xl p-4 sm:p-5 text-left transition-all border ${
-            filterSentiment === 'negative'
-              ? 'border-red-500 ring-1 ring-red-500/50'
-              : 'border-white/10 hover:border-white/20'
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-red-500/15 flex items-center justify-center flex-shrink-0">
-              <ThumbsDown className="w-5 h-5 text-red-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Olumsuz</p>
-              <p className="text-xl sm:text-2xl font-bold text-red-400">{summaryStats.negative}</p>
-            </div>
-          </div>
-        </button>
-
-        <div className="col-span-2 lg:col-span-1 glass-effect rounded-xl p-4 sm:p-5 border border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
-              <BarChart3 className="w-5 h-5 text-cyan-400" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Ort. Puan</p>
-              <p className="text-xl sm:text-2xl font-bold text-white">
-                {summaryStats.avgScore}<span className="text-sm font-normal text-slate-400">/100</span>
+        {SCORE_TIERS.map(tier => (
+          <button
+            key={tier.key}
+            onClick={() => setFilterSentiment(tier.key)}
+            className={`glass-effect rounded-xl p-3 sm:p-4 text-left transition-all border ${
+              filterSentiment === tier.key ? `${tier.ringColor} ring-1` : 'border-white/10 hover:border-white/20'
+            }`}
+            style={filterSentiment === tier.key ? { borderColor: tier.color } : undefined}
+          >
+            <div className="flex flex-col gap-1">
+              <p className="text-xs" style={{ color: tier.color }}>{tier.label}</p>
+              <p className="text-xl font-bold" style={{ color: tier.color }}>
+                {summaryStats.tierCounts[tier.key as ScoreTierKey] ?? 0}
               </p>
+              <div className="text-xs text-slate-600">{tier.min}–{tier.max}</div>
             </div>
+          </button>
+        ))}
+
+        <div className="glass-effect rounded-xl p-3 sm:p-4 border border-white/10">
+          <div className="flex flex-col gap-1">
+            <p className="text-xs text-slate-400">Ort. Puan</p>
+            <p className="text-xl font-bold text-white">
+              {summaryStats.avgScore}<span className="text-xs font-normal text-slate-400">/100</span>
+            </p>
+            <div className="w-6 h-1 rounded bg-cyan-500/50" />
           </div>
         </div>
       </div>
@@ -392,10 +349,10 @@ export default function ChatAnalysisList() {
               onChange={(e) => setFilterSentiment(e.target.value as any)}
               className="flex-1 min-w-[140px] px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
             >
-              <option value="all">Tüm Duygular</option>
-              <option value="positive">Olumlu</option>
-              <option value="neutral">Nötr</option>
-              <option value="negative">Olumsuz</option>
+              <option value="all">Tüm Kategoriler</option>
+              {SCORE_TIERS.map(tier => (
+                <option key={tier.key} value={tier.key}>{tier.label} ({tier.min}–{tier.max})</option>
+              ))}
             </select>
 
             <button
