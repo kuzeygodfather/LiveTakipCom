@@ -522,27 +522,37 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
               <Award className="w-4 h-4 text-cyan-400" />
               Son Koçluk Aktiviteleri
             </h2>
-            <div className="overflow-x-auto rounded-xl border border-slate-700/40 print:border-slate-200">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-slate-800/80 print:bg-slate-100 text-slate-400 print:text-slate-600">
-                    <th className="text-left px-4 py-3 font-medium">Personel</th>
-                    <th className="text-left px-3 py-3 font-medium">Tarih</th>
-                    <th className="text-left px-4 py-3 font-medium">Konu</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {feedbackRecords.slice(0, 15).map((fb, i) => (
-                    <tr key={i} className={`border-t border-slate-700/30 print:border-slate-100 ${i % 2 === 0 ? 'bg-slate-800/20 print:bg-white' : 'bg-slate-800/40 print:bg-slate-50'}`}>
-                      <td className="px-4 py-2.5 font-medium text-white print:text-slate-900">{fb.agent_name}</td>
-                      <td className="px-3 py-2.5 text-slate-400 print:text-slate-500 whitespace-nowrap">
-                        {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      </td>
-                      <td className="px-4 py-2.5 text-xs text-slate-300 print:text-slate-600 max-w-xs truncate">{fb.coaching_suggestion}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {feedbackRecords.slice(0, 12).map((fb, i) => {
+                const topics = fb.coaching_suggestion
+                  ? fb.coaching_suggestion.split(/;|\.(?=\s)/).map(s => s.trim()).filter(s => s.length > 4).slice(0, 3)
+                  : [];
+                return (
+                  <div key={i} className="bg-slate-800/30 print:bg-slate-50 rounded-xl px-4 py-3 border border-slate-700/30 print:border-slate-200 flex flex-col sm:flex-row sm:items-start gap-3">
+                    <div className="flex-shrink-0 flex items-center gap-3 sm:w-48">
+                      <div className="w-7 h-7 rounded-full bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[10px] font-bold text-cyan-400">{fb.agent_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-white print:text-slate-900 leading-tight">{fb.agent_name}</div>
+                        <div className="text-xs text-slate-500 print:text-slate-400 mt-0.5">
+                          {new Date(fb.sent_at).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1 flex flex-wrap gap-1.5">
+                      {topics.length > 0 ? topics.map((topic, ti) => (
+                        <span key={ti} className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-slate-700/60 print:bg-slate-100 text-slate-300 print:text-slate-700 border border-slate-600/40 print:border-slate-200 leading-tight">
+                          <span className="w-1 h-1 rounded-full bg-cyan-400 flex-shrink-0" />
+                          {topic.length > 80 ? topic.slice(0, 80) + '…' : topic}
+                        </span>
+                      )) : (
+                        <span className="text-xs text-slate-400 italic">Genel performans değerlendirmesi</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
@@ -550,45 +560,225 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
         <section>
           <h2 className="text-base font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2 print:text-slate-700">
             <Star className="w-4 h-4 text-emerald-400" />
-            Yönetici Değerlendirmesi & Öneriler
+            Yönetici Değerlendirmesi & Stratejik Öneriler
           </h2>
-          <div className="bg-slate-800/40 print:bg-slate-50 rounded-xl p-5 border border-slate-700/40 print:border-slate-200 space-y-4">
-            <div>
-              <div className="text-sm font-semibold text-white print:text-slate-900 mb-1">Genel Durum</div>
-              <p className="text-sm text-slate-300 print:text-slate-600">
-                {dateRangeLabel} itibarıyla {coachingData.length} personelin ekip ortalama puanı <strong className="text-white print:text-slate-900">{avgScore}</strong> olarak hesaplanmıştır.
-                {avgScore >= 80 ? ' Ekip genel olarak hedef üzerinde performans göstermektedir.' :
-                  avgScore >= 70 ? ' Ekip hedef seviyesindedir ancak iyileşme için alan mevcuttur.' :
-                  ' Ekip performansı hedeflerin altında olup acil aksiyonlar gerekmektedir.'}
-              </p>
+
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-600/40 overflow-hidden print:border-slate-200">
+              <div className="bg-slate-700/40 print:bg-slate-100 px-5 py-3 flex items-center gap-2 border-b border-slate-600/30 print:border-slate-200">
+                <BarChart2 className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-bold text-white print:text-slate-900">1. Dönem Performans Durumu</span>
+              </div>
+              <div className="bg-slate-800/30 print:bg-white px-5 py-4">
+                <p className="text-sm text-slate-300 print:text-slate-700 leading-relaxed">
+                  <strong className="text-white print:text-slate-900">{dateRangeLabel}</strong> döneminde{' '}
+                  <strong className="text-white print:text-slate-900">{coachingData.length} personelin</strong> toplam{' '}
+                  <strong className="text-white print:text-slate-900">{totalChats} müşteri görüşmesi</strong> yapay zeka ile analiz edilmiş olup ekip geneli ortalama puan{' '}
+                  <strong style={{ color: SCORE_COLOR(avgScore) }}>{avgScore}/100</strong> olarak hesaplanmıştır.
+                  {avgScore >= 85
+                    ? ` Bu sonuç sektör standartlarının belirgin biçimde üzerinde olup ekibin yüksek performans kültürünü başarıyla benimsediğini göstermektedir. Mevcut motivasyonun korunması ve sürdürülmesi öncelikli hedef olmalıdır.`
+                    : avgScore >= 70
+                    ? ` Bu sonuç kabul edilebilir sınırlar dahilinde olmakla birlikte, ekibin 80+ bandına taşınması için yapılandırılmış ve ölçülebilir iyileştirme adımları atılması gerekmektedir. Mevcut koçluk süreçleri tutarlı biçimde uygulandığında bu hedefe ulaşılması mümkündür.`
+                    : ` Bu sonuç hedefin belirgin biçimde altında olup müşteri memnuniyetini, marka algısını ve uzun vadeli müşteri sadakatini olumsuz etkileme potansiyeli taşımaktadır. Acil ve sistematik müdahale planı devreye alınmalıdır.`}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    { label: 'Acil', val: urgentCount, color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+                    { label: 'Orta Öncelik', val: coachingData.filter(a => a.urgency === 'medium').length, color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+                    { label: 'İyi', val: coachingData.filter(a => a.urgency === 'low').length, color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30' },
+                    { label: 'Mükemmel', val: excellentCount, color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+                  ].map((b, i) => (
+                    <span key={i} className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border ${b.color}`}>
+                      {b.val} personel — {b.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
+
             {urgentCount > 0 && (
-              <div>
-                <div className="text-sm font-semibold text-rose-400 mb-1">Kritik Aksiyonlar</div>
-                <p className="text-sm text-slate-300 print:text-slate-600">
-                  {urgentCount} personel acil görüşme gerektirmektedir. Bu personellerle bireysel bire bir görüşme planlanması önerilmektedir.
-                  {coachingRepeatAgents.length > 0 && ` ${coachingRepeatAgents.length} personelde önceki görüşmelere rağmen sorunlar devam etmektedir — daha yapılandırılmış bir koçluk planı değerlendirilebilir.`}
-                </p>
+              <div className="rounded-xl border border-rose-500/25 overflow-hidden print:border-red-200">
+                <div className="bg-rose-950/30 print:bg-red-50 px-5 py-3 flex items-center gap-2 border-b border-rose-500/20 print:border-red-200">
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                  <span className="text-sm font-bold text-rose-300 print:text-red-700">2. Risk & Kritik Personel Profili</span>
+                </div>
+                <div className="bg-rose-950/10 print:bg-white px-5 py-4 space-y-3">
+                  <p className="text-sm text-slate-300 print:text-slate-700 leading-relaxed">
+                    <strong className="text-rose-400">{urgentCount} personel</strong> 60 puan altında seyretmektedir.
+                    Bu eşiğin altındaki görüşmeler müşteri nezdinde ciddi memnuniyetsizlik riski taşımakta; uzun vadede müşteri kaybına, şikâyet artışına ve marka itibarına zarar verme olasılığına yol açmaktadır.
+                    {coachingRepeatAgents.length > 0 && (
+                      <> <strong className="text-amber-400">{coachingRepeatAgents.length} personelde</strong> ise önceki koçluk görüşmelerine karşın sorunların devam ettiği gözlemlenmektedir. Bu durum mevcut koçluk yönteminin bu personeller için yeterli olmadığına işaret etmekte olup daha yoğun, yapılandırılmış ve takip mekanizması güçlü bir plan uygulamaya konulmalıdır.</>
+                    )}
+                  </p>
+                  {attentionAgents.slice(0, 3).map(agent => (
+                    <div key={agent.agentName} className="bg-slate-800/40 print:bg-slate-50 rounded-lg px-4 py-3 border border-slate-700/30 print:border-slate-200">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm font-semibold text-white print:text-slate-900">{agent.agentName}</span>
+                        <span className="text-xs font-bold text-rose-400">{agent.avgScore} puan · {agent.totalChats} görüşme</span>
+                      </div>
+                      <p className="text-xs text-slate-400 print:text-slate-600 leading-relaxed">
+                        {agent.negativeSentimentCount > 0 && <><strong className="text-rose-400">{agent.negativeSentimentCount}</strong> negatif müşteri etkileşimi tespit edilmiştir. </>}
+                        {agent.evidencedIssues.length > 0 && <>Başlıca sorunlar: <em>{agent.evidencedIssues.slice(0, 2).map(i => i.text).join(', ')}</em>.</>}
+                        {agent.actionItems.length > 0 && <> Önerilen aksiyon: {agent.actionItems[0]}</>}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
+
             {topIssues.length > 0 && (
-              <div>
-                <div className="text-sm font-semibold text-amber-400 mb-1">Sistemik Sorunlar</div>
-                <p className="text-sm text-slate-300 print:text-slate-600">
-                  En sık görülen sorun "<strong className="text-white print:text-slate-900">{topIssues[0][0]}</strong>" ({topIssues[0][1]} görünüm) olup bu durum bireysel bir sorun değil, ekip genelinde yapısal bir eğitim ihtiyacına işaret etmektedir.
-                  Ekip toplantısı veya grup eğitimi organize edilmesi tavsiye edilir.
-                </p>
+              <div className="rounded-xl border border-amber-500/25 overflow-hidden print:border-amber-200">
+                <div className="bg-amber-950/20 print:bg-amber-50 px-5 py-3 flex items-center gap-2 border-b border-amber-500/20 print:border-amber-200">
+                  <MessageSquare className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm font-bold text-amber-300 print:text-amber-700">3. Sistemik Sorunlar & Kök Neden Analizi</span>
+                </div>
+                <div className="bg-amber-950/5 print:bg-white px-5 py-4">
+                  <p className="text-sm text-slate-300 print:text-slate-700 leading-relaxed mb-3">
+                    Analiz edilen görüşmelerde birden fazla personelde tekrar eden örüntüler tespit edilmiştir. Bu sorunlar münferit hatalar olarak değil, <strong className="text-amber-400">ekip genelinde yapısal bir eğitim ve kalibrasyon ihtiyacına</strong> işaret eden sistemik bulgular olarak değerlendirilmelidir.
+                  </p>
+                  <div className="space-y-2">
+                    {topIssues.slice(0, 4).map(([issue, count], i) => {
+                      const affected = coachingData.filter(a => a.evidencedIssues.some(ei => ei.text === issue));
+                      const pct = totalChats > 0 ? Math.round((count / totalChats) * 100) : 0;
+                      return (
+                        <div key={i} className="flex items-start gap-3">
+                          <span className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                          <div className="flex-1">
+                            <div className="text-sm text-slate-200 print:text-slate-800 font-medium">{issue}</div>
+                            <div className="text-xs text-slate-500 print:text-slate-500 mt-0.5">
+                              {count} görünüm · görüşmelerin %{pct}'inde · {affected.length > 1 ? `${affected.length} farklı personelde` : `${affected[0]?.agentName || ''}'de`}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {topIssues.length > 1 && (
+                    <p className="text-xs text-slate-400 print:text-slate-600 mt-3 leading-relaxed border-t border-slate-700/30 print:border-slate-200 pt-3">
+                      Bu bulgular, bireysel koçluk görüşmelerine ek olarak tüm ekibi kapsayan bir <strong className="text-white print:text-slate-800">kalite odaklı grup eğitimi</strong> yapılmasının gerekli olduğuna işaret etmektedir. Eğitim içeriğinin bu sorunlara yönelik pratik senaryo çalışmaları ile desteklenmesi önerilmektedir.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
+
+            <div className="rounded-xl border border-slate-600/40 overflow-hidden print:border-slate-200">
+              <div className="bg-slate-700/40 print:bg-slate-100 px-5 py-3 flex items-center gap-2 border-b border-slate-600/30 print:border-slate-200">
+                <CheckCircle className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-bold text-white print:text-slate-900">4. Koçluk Süreci Değerlendirmesi</span>
+              </div>
+              <div className="bg-slate-800/30 print:bg-white px-5 py-4">
+                <p className="text-sm text-slate-300 print:text-slate-700 leading-relaxed">
+                  {feedbackRecords.length > 0
+                    ? <>Son 30 gün içinde <strong className="text-white print:text-slate-900">{feedbackRecords.length} koçluk görüşmesi</strong> kayıt altına alınmıştır. Bu dönemde{' '}<strong className="text-cyan-400">{new Set(feedbackRecords.map(f => f.agent_name)).size} farklı personele</strong> geri bildirim verilmiştir.</>
+                    : <>Bu dönemde henüz kayıtlı koçluk aktivitesi bulunmamaktadır.</>
+                  }
+                  {' '}{improvingCount > 0 && <><strong className="text-emerald-400">{improvingCount} personel</strong> önceki döneme kıyasla puan artışı kaydetmiş olup bu durum uygulanan koçluk yönteminin belirli personeller üzerinde somut etki yarattığını doğrulamaktadır. </>}
+                  {decliningCount > 0 && <><strong className="text-rose-400">{decliningCount} personelin</strong> puanında gerileme gözlemlenmektedir; bu personeller için koçluk sıklığı ve içeriği gözden geçirilmelidir.</>}
+                  {coachingRepeatAgents.length > 0 && (
+                    <> Tekrarlayan sorunları olan <strong className="text-amber-400">{coachingRepeatAgents.length} personel</strong> için mevcut yöntemin ötesine geçen — rol yapma (role-play) egzersizleri, çağrı dinleme seansları veya birebir mentorluk gibi — alternatif yaklaşımların değerlendirilmesi tavsiye edilmektedir.</>
+                  )}
+                </p>
+              </div>
+            </div>
+
             {excellentCount > 0 && (
-              <div>
-                <div className="text-sm font-semibold text-emerald-400 mb-1">Güçlü Yönler</div>
-                <p className="text-sm text-slate-300 print:text-slate-600">
-                  {excellentCount} personel mükemmel performans sergilemektedir.
-                  {' '}{coachingData.filter(a => a.urgency === 'excellent').map(a => a.agentName).join(', ')} ekip içinde mentor olarak görevlendirilebilir.
-                </p>
+              <div className="rounded-xl border border-emerald-500/25 overflow-hidden print:border-emerald-200">
+                <div className="bg-emerald-950/20 print:bg-emerald-50 px-5 py-3 flex items-center gap-2 border-b border-emerald-500/20 print:border-emerald-200">
+                  <Star className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold text-emerald-300 print:text-emerald-700">5. Güçlü Yönler & Takdir Edilecek Başarılar</span>
+                </div>
+                <div className="bg-emerald-950/5 print:bg-white px-5 py-4">
+                  <p className="text-sm text-slate-300 print:text-slate-700 leading-relaxed">
+                    <strong className="text-emerald-400">{coachingData.filter(a => a.urgency === 'excellent').map(a => a.agentName).join(', ')}</strong>{' '}
+                    {excellentCount > 1 ? 'bu dönemde mükemmel performans sergilemiştir' : 'bu dönemde mükemmel performans sergilemiştir'}; ortalama puanları{' '}
+                    <strong className="text-emerald-400">{Math.round(coachingData.filter(a => a.urgency === 'excellent').reduce((s, a) => s + a.avgScore, 0) / excellentCount)}</strong>'in üzerindedir.
+                    Bu personeller{' '}
+                    <strong className="text-white print:text-slate-900">ekip içi mentor</strong> olarak görevlendirilerek başarı pratiklerini diğer personellerle paylaşabilir; bu yaklaşım hem bilgi transferini hızlandırır hem de yüksek performansı kurumsal bir kültür unsuruna dönüştürür.
+                    {improvingCount > 0 && (
+                      <> Ayrıca bu dönemde <strong className="text-emerald-400">{improvingCount} personel</strong> önceki performansına kıyasla gözle görülür iyileşme kaydetmiştir — bu, koçluk yatırımının karşılık verdiğinin somut kanıtıdır.</>
+                    )}
+                  </p>
+                </div>
               </div>
             )}
+
+            <div className="rounded-xl border border-cyan-500/25 overflow-hidden print:border-cyan-200">
+              <div className="bg-cyan-950/20 print:bg-cyan-50 px-5 py-3 flex items-center gap-2 border-b border-cyan-500/20 print:border-cyan-200">
+                <Target className="w-4 h-4 text-cyan-400" />
+                <span className="text-sm font-bold text-cyan-300 print:text-cyan-700">6. Öncelikli Aksiyon Planı</span>
+              </div>
+              <div className="bg-slate-800/20 print:bg-white px-5 py-4 space-y-3">
+                {[
+                  urgentCount > 0 && {
+                    n: 1, color: 'text-rose-400 bg-rose-500/15 border-rose-500/30',
+                    title: 'Acil Bireysel Görüşmeler',
+                    text: `${attentionAgents.map(a => a.agentName).join(', ')} ile bu hafta içinde birebir görüşme planlanmalıdır. Görüşmede tespit edilen sorunlar somut chat örnekleriyle gösterilmeli, 2 haftalık kısa vadeli iyileşme hedefi belirlenmeli ve takip tarihi netleştirilmelidir.`,
+                  },
+                  topIssues.length > 1 && {
+                    n: 2, color: 'text-amber-400 bg-amber-500/15 border-amber-500/30',
+                    title: 'Ekip Geneli Kalite Eğitimi',
+                    text: `"${topIssues[0][0]}" ve "${topIssues[1]?.[0] || topIssues[0][0]}" sorunları birden fazla personeli etkilemektedir. Bu konulara odaklanan, pratik senaryo çalışmalarını içeren bir grup eğitimi düzenlenmesi aylık bazda kalite puanını 5-10 puan artırabilir.`,
+                  },
+                  excellentCount > 0 && {
+                    n: 3, color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
+                    title: 'Mentorluk Programı Başlatın',
+                    text: `Yüksek performanslı ${coachingData.filter(a => a.urgency === 'excellent').map(a => a.agentName).join(', ')} düşük puanlı personellerle eşleştirilerek haftalık peer-coaching seansları düzenlenebilir. Bu model hem üst performansı ödüllendirmekte hem de bilgi transferini organik biçimde sağlamaktadır.`,
+                  },
+                  coachingRepeatAgents.length > 0 && {
+                    n: 4, color: 'text-orange-400 bg-orange-500/15 border-orange-500/30',
+                    title: 'Tekrarlayan Vakalar için Yöntem Değişikliği',
+                    text: `${coachingRepeatAgents.map(a => a.agentName).join(', ')} standart koçluk yaklaşımına yanıt vermemektedir. Bu personeller için yazılı gelişim planı hazırlanmalı, haftalık kontrol görüşmeleri takvime alınmalı ve 30 günlük ölçülebilir iyileşme kriteri belirlenmelidir.`,
+                  },
+                  {
+                    n: [urgentCount > 0, topIssues.length > 1, excellentCount > 0, coachingRepeatAgents.length > 0].filter(Boolean).length + 1,
+                    color: 'text-slate-300 bg-slate-600/20 border-slate-600/30',
+                    title: 'Haftalık Koçluk Ritmi Oluşturun',
+                    text: `Her hafta belirli bir günde AI analiz sonuçları incelenmeli, öncelikli personeller belirlenmeli ve geri bildirimler kayıt altına alınmalıdır. Bu sistemin tutarlı uygulanması 4-6 hafta içinde ölçülebilir ekip performansı artışı sağlayacaktır.`,
+                  },
+                ].filter(Boolean).map((item: any) => (
+                  <div key={item.n} className="flex items-start gap-3">
+                    <span className={`w-6 h-6 rounded-full border text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5 ${item.color}`}>{item.n}</span>
+                    <div>
+                      <div className="text-sm font-semibold text-white print:text-slate-900 mb-0.5">{item.title}</div>
+                      <p className="text-xs text-slate-400 print:text-slate-600 leading-relaxed">{item.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-600/40 overflow-hidden print:border-slate-200">
+              <div className="bg-slate-700/40 print:bg-slate-100 px-5 py-3 flex items-center gap-2 border-b border-slate-600/30 print:border-slate-200">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm font-bold text-white print:text-slate-900">7. 30 Günlük Hedef Projeksiyonu</span>
+              </div>
+              <div className="bg-slate-800/30 print:bg-white px-5 py-4">
+                <div className="flex items-center gap-6 mb-3">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold" style={{ color: SCORE_COLOR(avgScore) }}>{avgScore}</div>
+                    <div className="text-xs text-slate-500 print:text-slate-400">Mevcut Ort.</div>
+                  </div>
+                  <div className="flex-1 h-1 bg-slate-700 print:bg-slate-200 rounded-full relative">
+                    <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${Math.min(avgScore, 100)}%`, backgroundColor: SCORE_COLOR(avgScore) }} />
+                    <div className="absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-400" style={{ left: `${Math.min(Math.min(avgScore + 10, 100), 100)}%` }} />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-emerald-400">{Math.min(avgScore + 10, 100)}</div>
+                    <div className="text-xs text-slate-500 print:text-slate-400">30G Hedef</div>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-300 print:text-slate-700 leading-relaxed">
+                  Yukarıdaki aksiyon planının düzenli uygulanması durumunda ekip ortalamasının{' '}
+                  <strong className="text-emerald-400">{Math.min(avgScore + 8, 100)}-{Math.min(avgScore + 12, 100)} bant</strong>ına taşınması beklenmektedir.
+                  Bu büyüme; <strong className="text-white print:text-slate-900">{urgentCount} kritik personelin</strong> öncelikli koçluk desteğiyle stabil seviyeye getirilmesine,{' '}
+                  <strong className="text-white print:text-slate-900">ekip geneli grup eğitiminin</strong> sistemik sorunları azaltmasına ve{' '}
+                  {excellentCount > 0 && <><strong className="text-white print:text-slate-900">mentorluk programının</strong> bilgi transferini hızlandırmasına </>}
+                  bağlıdır. Her hafta AI analiz verileri incelenerek sapma görüldüğünde erken müdahale yapılması kritik önem taşımaktadır.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
