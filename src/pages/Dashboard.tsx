@@ -68,6 +68,7 @@ export default function Dashboard() {
   const [bottomPerformers, setBottomPerformers] = useState<any[]>([]);
   const [sentimentDistribution, setSentimentDistribution] = useState<{ label: string; value: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sentimentModal, setSentimentModal] = useState<{ type: ModalSentimentType; date?: string } | null>(null);
   const [trendModal, setTrendModal] = useState<PersonnelTrend | null>(null);
 
@@ -241,6 +242,7 @@ export default function Dashboard() {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
+      setLastUpdated(new Date());
     }
   };
 
@@ -964,12 +966,32 @@ export default function Dashboard() {
           </h1>
           <p className="text-sm sm:text-base text-slate-200 mt-1">LiveChat kalite kontrol ve analiz ozeti</p>
         </div>
-        <button
-          onClick={loadDashboardData}
-          className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white rounded-xl transition-all text-sm font-semibold self-start shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105"
-        >
-          Yenile
-        </button>
+        <div className="flex flex-col items-end gap-1.5">
+          <button
+            onClick={loadDashboardData}
+            className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white rounded-xl transition-all text-sm font-semibold self-start shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105"
+          >
+            Yenile
+          </button>
+          {lastUpdated && (
+            <span className="text-xs text-slate-500">
+              Son guncelleme: {lastUpdated.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex items-start gap-3 p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
+        <div className="flex-shrink-0 w-5 h-5 mt-0.5 rounded-full bg-amber-500/20 flex items-center justify-center">
+          <AlertTriangle className="w-3 h-3 text-amber-400" />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-amber-300">Bu sistem bir yapay zeka rehberidir — kesin karar araci degildir</p>
+          <p className="text-xs text-amber-400/70 mt-0.5">
+            Tum skorlar ve analizler Claude AI tarafindan otomatik olusturulmustur. Personel kararlarinda (prim, uyari, koçluk) bu verileri bir rehber olarak kullanin, son karari insan gozetimi ile verin.
+            Analiz kapsami: {stats.totalChats > 0 ? Math.round((stats.analyzedChats / stats.totalChats) * 100) : 0}% ({stats.analyzedChats} / {stats.totalChats} chat).
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">

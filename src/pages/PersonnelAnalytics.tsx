@@ -494,9 +494,16 @@ export default function PersonnelAnalytics() {
                   </div>
                   <div className="flex items-center justify-between text-sm mb-2">
                     <span className="text-slate-400">{person.total_chats} chat</span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${performance.color}`}>
-                      {Math.round(parseScore(statScore))}/100
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {person.total_chats < 10 && (
+                        <span className="text-xs text-amber-400/80" title="Az sayida chat — skor guvenilirligi dusuk olabilir">
+                          <AlertTriangle className="w-3 h-3 inline" />
+                        </span>
+                      )}
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${performance.color}`}>
+                        {Math.round(parseScore(statScore))}/100
+                      </span>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between text-xs mb-2">
                     <span className="text-slate-100">
@@ -554,9 +561,13 @@ export default function PersonnelAnalytics() {
                       <span className="text-sm text-slate-400">
                         {getTierLabel(selectedPersonnel.reliability_tier)}
                       </span>
-                      <span className="text-sm text-slate-400">
-                        Güvenilirlik: {Math.round(parseScore(selectedPersonnel.confidence_level || 0))}%
+                      <span className="text-sm text-slate-400" title="Daha fazla analiz edilmis chat, daha guvenilir bir skor demektir. Az sayida chat uzerinden hesaplanan skorlar yaniltici olabilir.">
+                        Guvenilirlik: {Math.round(parseScore(selectedPersonnel.confidence_level || 0))}%
                       </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5 text-xs text-amber-400/70">
+                      <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                      <span>AI skoru — rehber amaclidir, nihai karar icin insan gozetimi gerekir</span>
                     </div>
                   </div>
                   <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.average_score).color}`}>
@@ -574,12 +585,14 @@ export default function PersonnelAnalytics() {
                     <div className="text-2xl font-bold text-white">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
+                    <div className="text-xs text-slate-600 mt-1">{selectedPersonnel.total_chats} chat uzerinden</div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-400 mb-1">Ham Skor</div>
                     <div className="text-xl font-bold text-white">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
+                    <div className="text-xs text-slate-600 mt-1">Ceza oncesi</div>
                   </div>
                   <button
                     onClick={() => {

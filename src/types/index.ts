@@ -19,6 +19,8 @@ export interface Personnel {
   recurring_issues_count: number;
   strong_topics: any[];
   weak_topics: any[];
+  reliability_tier?: string;
+  confidence_level?: number | string;
   created_at: string;
   updated_at: string;
 }
@@ -89,6 +91,12 @@ export interface ChatAnalysis {
   sentiment: string;
   requires_attention: boolean;
   ai_summary: string;
+  coaching_suggestion?: string | null;
+  is_flagged?: boolean;
+  flag_reason?: string | null;
+  flag_date?: string | null;
+  flag_resolved?: boolean;
+  flag_resolution_note?: string | null;
 }
 
 export interface Alert {

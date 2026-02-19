@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History, Download, X, FileText } from 'lucide-react';
+import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History, Download, X, FileText, AlertTriangle, Info } from 'lucide-react';
 import { useNotification } from '../lib/notifications';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -348,6 +348,17 @@ export default function BonusReports() {
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Prim Raporlari</h1>
         <p className="text-sm sm:text-base text-slate-200 mt-2">Personel prim hesaplamalarini goruntuleyin ve yeni hesaplamalar yapin</p>
+      </div>
+
+      <div className="flex items-start gap-3 p-4 bg-blue-500/8 border border-blue-500/20 rounded-xl mb-6">
+        <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium text-blue-300">Prim hesaplamalari AI destekli skora dayanmaktadir</p>
+          <p className="text-xs text-blue-400/70 mt-0.5">
+            Skorlar yapay zeka tarafindan otomatik olusturulmustur ve yanlis olabilir. Odeme oncesi sonuclari insan gozetimi ile dogrulayin.
+            Itiraz edilen analizler icin Chat Analiz sayfasindaki "Itiraz Et" ozelligini kullanin.
+          </p>
+        </div>
       </div>
 
       <div className="glass-effect rounded-lg shadow-md p-2 mb-6">

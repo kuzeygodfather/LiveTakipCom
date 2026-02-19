@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName, SCORE_TIERS, ScoreTierKey } from '../lib/utils';
-import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones, RotateCcw, AlertTriangle, Flag, CheckCircle2, Clock } from 'lucide-react';
 import type { Chat, ChatAnalysis, ChatMessage } from '../types';
 
 interface ChatWithAnalysis extends Chat {
@@ -27,6 +27,10 @@ export default function ChatAnalysisList() {
   const [coachingError, setCoachingError] = useState<string>('');
   const [reanalyzing, setReanalyzing] = useState(false);
   const [showReanalyzeConfirm, setShowReanalyzeConfirm] = useState(false);
+  const [flagModal, setFlagModal] = useState<{ open: boolean; mode: 'flag' | 'resolve' }>({ open: false, mode: 'flag' });
+  const [flagReason, setFlagReason] = useState('');
+  const [flagResolutionNote, setFlagResolutionNote] = useState('');
+  const [flagging, setFlagging] = useState(false);
 
   const getIstanbulDateBoundaries = (dateStr: string): { start: Date, end: Date } => {
     const istanbulDate = new Date(dateStr + 'T00:00:00+03:00');
@@ -274,6 +278,65 @@ export default function ChatAnalysisList() {
       setCoachingError(err instanceof Error ? err.message : 'Bağlantı hatası oluştu.');
     } finally {
       setLoadingCoaching(false);
+    }
+  };
+
+  const submitFlag = async () => {
+    if (!selectedChat?.analysis) return;
+    setFlagging(true);
+    try {
+      const { error } = await supabase
+        .from('chat_analysis')
+        .update({
+          is_flagged: true,
+          flag_reason: flagReason,
+          flag_date: new Date().toISOString(),
+          flag_resolved: false,
+        })
+        .eq('id', selectedChat.analysis.id);
+      if (error) throw error;
+      setSelectedChat(prev => prev ? {
+        ...prev,
+        analysis: prev.analysis ? { ...prev.analysis, is_flagged: true, flag_reason: flagReason, flag_date: new Date().toISOString(), flag_resolved: false } : prev.analysis
+      } : null);
+      setChats(prev => prev.map(c => c.id === selectedChat.id && c.analysis ? {
+        ...c, analysis: { ...c.analysis, is_flagged: true, flag_reason: flagReason }
+      } : c));
+      setFlagModal({ open: false, mode: 'flag' });
+      setFlagReason('');
+    } catch (err) {
+      console.error('Flag error:', err);
+    } finally {
+      setFlagging(false);
+    }
+  };
+
+  const resolveFlag = async () => {
+    if (!selectedChat?.analysis) return;
+    setFlagging(true);
+    try {
+      const { error } = await supabase
+        .from('chat_analysis')
+        .update({
+          is_flagged: false,
+          flag_resolved: true,
+          flag_resolution_note: flagResolutionNote,
+        })
+        .eq('id', selectedChat.analysis.id);
+      if (error) throw error;
+      setSelectedChat(prev => prev ? {
+        ...prev,
+        analysis: prev.analysis ? { ...prev.analysis, is_flagged: false, flag_resolved: true, flag_resolution_note: flagResolutionNote } : prev.analysis
+      } : null);
+      setChats(prev => prev.map(c => c.id === selectedChat.id && c.analysis ? {
+        ...c, analysis: { ...c.analysis, is_flagged: false }
+      } : c));
+      setFlagModal({ open: false, mode: 'resolve' });
+      setFlagResolutionNote('');
+    } catch (err) {
+      console.error('Resolve flag error:', err);
+    } finally {
+      setFlagging(false);
     }
   };
 
@@ -655,6 +718,9 @@ export default function ChatAnalysisList() {
                     {chat.analysis && parseScore(chat.analysis.overall_score) < 60 && (
                       <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
                     )}
+                    {chat.analysis?.is_flagged && (
+                      <Flag className="w-3.5 h-3.5 text-rose-400 flex-shrink-0" title="Itiraz Var" />
+                    )}
                     <Eye className="w-4 h-4 text-slate-600 flex-shrink-0 hidden sm:block" />
                   </div>
                 </div>
@@ -684,15 +750,25 @@ export default function ChatAnalysisList() {
                 <p className="text-xs text-slate-600 mt-0.5 font-mono truncate">{selectedChat.id}</p>
               </div>
               {selectedChat?.analysis && (
-                <button
-                  onClick={reanalyzeSingleChat}
-                  disabled={reanalyzing}
-                  title="Bu chati yeniden analiz et"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors disabled:opacity-50 flex-shrink-0"
-                >
-                  <RotateCcw className={`w-3.5 h-3.5 ${reanalyzing ? 'animate-spin' : ''}`} />
-                  Yeniden Analiz Et
-                </button>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setFlagModal({ open: true, mode: selectedChat.analysis?.is_flagged ? 'resolve' : 'flag' })}
+                    title={selectedChat.analysis.is_flagged ? 'Bu analizi isaretini kaldir' : 'Bu analizi yanlis olarak isaretle'}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${selectedChat.analysis.is_flagged ? 'bg-rose-500/20 border-rose-500/40 text-rose-300 hover:bg-rose-500/30' : 'bg-white/5 border-white/15 text-slate-400 hover:text-rose-300 hover:bg-rose-500/10 hover:border-rose-500/30'}`}
+                  >
+                    <Flag className="w-3.5 h-3.5" />
+                    {selectedChat.analysis.is_flagged ? 'Itiraz Var' : 'Itiraz Et'}
+                  </button>
+                  <button
+                    onClick={reanalyzeSingleChat}
+                    disabled={reanalyzing}
+                    title="Bu chati yeniden analiz et"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors disabled:opacity-50"
+                  >
+                    <RotateCcw className={`w-3.5 h-3.5 ${reanalyzing ? 'animate-spin' : ''}`} />
+                    Yeniden Analiz Et
+                  </button>
+                </div>
               )}
               <button
                 onClick={() => setSelectedChat(null)}
@@ -712,6 +788,33 @@ export default function ChatAnalysisList() {
             </div>
 
             <div className="p-4 sm:p-6 space-y-6">
+              {selectedChat.analysis?.is_flagged && (
+                <div className="flex items-start gap-3 p-3 bg-rose-500/10 border border-rose-500/25 rounded-xl">
+                  <Flag className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-rose-300">Bu analiz yanlis olarak isaretlendi</p>
+                    {selectedChat.analysis.flag_reason && (
+                      <p className="text-xs text-rose-400/70 mt-0.5">Gerekce: {selectedChat.analysis.flag_reason}</p>
+                    )}
+                    {selectedChat.analysis.flag_date && (
+                      <p className="text-xs text-rose-400/50 mt-0.5">
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {new Date(selectedChat.analysis.flag_date).toLocaleString('tr-TR')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {selectedChat.analysis?.analysis_date && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>
+                    Analiz tarihi: {new Date(selectedChat.analysis.analysis_date).toLocaleString('tr-TR')} — AI tarafindan otomatik olusturulmustur
+                  </span>
+                </div>
+              )}
+
               {selectedChat.messages && selectedChat.messages.length > 0 && (
                 <div className="bg-white/3 border border-white/8 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -1067,6 +1170,91 @@ export default function ChatAnalysisList() {
                     Bu chat henüz analiz edilmedi
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {flagModal.open && selectedChat?.analysis && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+          onClick={() => setFlagModal({ open: false, mode: 'flag' })}
+        >
+          <div
+            className="bg-[#0f1623] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {flagModal.mode === 'flag' ? (
+                  <Flag className="w-5 h-5 text-rose-400" />
+                ) : (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                )}
+                <h3 className="font-semibold text-white">
+                  {flagModal.mode === 'flag' ? 'Analizi Yanlis Olarak Isaretle' : 'Itiraz Coz / Islemi Tamamla'}
+                </h3>
+              </div>
+              <button onClick={() => setFlagModal({ open: false, mode: 'flag' })} className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-white/10 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              {flagModal.mode === 'flag' ? (
+                <>
+                  <p className="text-sm text-slate-400">
+                    Bu analiz sonucunun yapay zeka tarafindan yanlis degerlendirildigini dusunuyorsaniz gerekce belirterek isaretleyebilirsiniz. Bu bilgi yonetici gozetimi icin saklanir.
+                  </p>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Gerekce (zorunlu)</label>
+                    <textarea
+                      value={flagReason}
+                      onChange={e => setFlagReason(e.target.value)}
+                      placeholder="Ornek: Musteri agresif davranmasina ragmen skor cok dusuk verilmis..."
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-rose-500/50 resize-none"
+                      rows={4}
+                    />
+                  </div>
+                  <button
+                    onClick={submitFlag}
+                    disabled={flagging || !flagReason.trim()}
+                    className="w-full py-2.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {flagging ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Flag className="w-4 h-4" />}
+                    {flagging ? 'Isleniyor...' : 'Yanlis Olarak Isaretle'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-slate-400">
+                    Bu analiz uzerindeki itiraz cozuldu mu? Aciklama ekleyerek itiraz bayragi kaldirabilirsiniz.
+                  </p>
+                  {selectedChat.analysis.flag_reason && (
+                    <div className="p-3 bg-rose-500/8 border border-rose-500/20 rounded-lg">
+                      <p className="text-xs text-rose-400/70 mb-1">Orijinal itiraz gerekce:</p>
+                      <p className="text-sm text-rose-300">{selectedChat.analysis.flag_reason}</p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-xs font-medium text-slate-400 mb-1.5">Cozum Notu (opsiyonel)</label>
+                    <textarea
+                      value={flagResolutionNote}
+                      onChange={e => setFlagResolutionNote(e.target.value)}
+                      placeholder="Ornek: Analiz incelendi, skor dogru bulundu..."
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500/50 resize-none"
+                      rows={3}
+                    />
+                  </div>
+                  <button
+                    onClick={resolveFlag}
+                    disabled={flagging}
+                    className="w-full py-2.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {flagging ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    {flagging ? 'Isleniyor...' : 'Itiraz Bayragi Kaldir'}
+                  </button>
+                </>
               )}
             </div>
           </div>
