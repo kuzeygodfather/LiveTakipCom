@@ -68,6 +68,7 @@ export default function Dashboard() {
   const [bottomPerformers, setBottomPerformers] = useState<any[]>([]);
   const [sentimentDistribution, setSentimentDistribution] = useState<{ label: string; value: number; color: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sentimentModal, setSentimentModal] = useState<{ type: ModalSentimentType; date?: string } | null>(null);
   const [trendModal, setTrendModal] = useState<PersonnelTrend | null>(null);
@@ -242,8 +243,14 @@ export default function Dashboard() {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
       setLastUpdated(new Date());
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadDashboardData();
   };
 
   const loadPersonnelTrends = async () => {
@@ -984,11 +991,12 @@ export default function Dashboard() {
             </span>
           )}
           <button
-            onClick={loadDashboardData}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded-xl transition-all text-sm font-medium"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded-xl transition-all text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Yenile
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Yenileniyor...' : 'Yenile'}
           </button>
         </div>
       </div>
