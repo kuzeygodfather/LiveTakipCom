@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Users, TrendingUp, Settings, Activity, List, DollarSign, FileText, Menu, X, LogOut, RefreshCw, BookOpen, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Users, TrendingUp, Settings, Activity, List, DollarSign, FileText, Menu, X, LogOut, RefreshCw, BookOpen, GraduationCap, ChevronRight } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import ChatAnalysisList from './pages/ChatAnalysisList';
 import ChatList from './pages/ChatList';
@@ -17,6 +17,83 @@ import { useBackgroundSync } from './lib/backgroundSync';
 import { NotificationProvider } from './lib/notifications';
 
 type Page = 'dashboard' | 'chats' | 'all-chats' | 'personnel' | 'reports' | 'monitoring' | 'bonus-settings' | 'bonus-reports' | 'coaching' | 'user-guide' | 'settings';
+
+const navigationGroups = [
+  {
+    label: null,
+    items: [
+      { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, accent: 'cyan' },
+    ],
+  },
+  {
+    label: 'Chat',
+    items: [
+      { id: 'all-chats', name: 'Tum Chatler', icon: List, accent: 'cyan' },
+      { id: 'chats', name: 'Chat Analizleri', icon: MessageSquare, accent: 'cyan' },
+    ],
+  },
+  {
+    label: 'Analitik',
+    items: [
+      { id: 'personnel', name: 'Personel', icon: Users, accent: 'emerald' },
+      { id: 'reports', name: 'Raporlar', icon: TrendingUp, accent: 'emerald' },
+      { id: 'monitoring', name: 'Canli Izleme', icon: Activity, accent: 'emerald' },
+    ],
+  },
+  {
+    label: 'Prim',
+    items: [
+      { id: 'bonus-settings', name: 'Prim Ayarlari', icon: DollarSign, accent: 'amber' },
+      { id: 'bonus-reports', name: 'Prim Raporlari', icon: FileText, accent: 'amber' },
+    ],
+  },
+  {
+    label: 'Diger',
+    items: [
+      { id: 'coaching', name: 'Kocluk Merkezi', icon: GraduationCap, accent: 'sky' },
+      { id: 'user-guide', name: 'Kullanim Kilavuzu', icon: BookOpen, accent: 'sky' },
+      { id: 'settings', name: 'Ayarlar', icon: Settings, accent: 'slate' },
+    ],
+  },
+];
+
+const accentClasses: Record<string, { bg: string; text: string; border: string; glow: string; iconBg: string }> = {
+  cyan: {
+    bg: 'from-cyan-500/15 to-cyan-500/5',
+    text: 'text-cyan-300',
+    border: 'border-cyan-400/60',
+    glow: 'shadow-cyan-500/25',
+    iconBg: 'bg-cyan-500/20 text-cyan-300',
+  },
+  emerald: {
+    bg: 'from-emerald-500/15 to-emerald-500/5',
+    text: 'text-emerald-300',
+    border: 'border-emerald-400/60',
+    glow: 'shadow-emerald-500/25',
+    iconBg: 'bg-emerald-500/20 text-emerald-300',
+  },
+  amber: {
+    bg: 'from-amber-500/15 to-amber-500/5',
+    text: 'text-amber-300',
+    border: 'border-amber-400/60',
+    glow: 'shadow-amber-500/25',
+    iconBg: 'bg-amber-500/20 text-amber-300',
+  },
+  sky: {
+    bg: 'from-sky-500/15 to-sky-500/5',
+    text: 'text-sky-300',
+    border: 'border-sky-400/60',
+    glow: 'shadow-sky-500/25',
+    iconBg: 'bg-sky-500/20 text-sky-300',
+  },
+  slate: {
+    bg: 'from-slate-500/15 to-slate-500/5',
+    text: 'text-slate-300',
+    border: 'border-slate-400/40',
+    glow: 'shadow-slate-500/10',
+    iconBg: 'bg-slate-500/20 text-slate-300',
+  },
+};
 
 function App() {
   const { session, loading, signOut } = useAuth();
@@ -39,19 +116,8 @@ function App() {
     return <LoginPage onLogin={() => {}} />;
   }
 
-  const navigation = [
-    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
-    { id: 'all-chats', name: 'Tum Chatler', icon: List },
-    { id: 'chats', name: 'Chat Analizleri', icon: MessageSquare },
-    { id: 'personnel', name: 'Personel', icon: Users },
-    { id: 'reports', name: 'Raporlar', icon: TrendingUp },
-    { id: 'monitoring', name: 'Canli Izleme', icon: Activity },
-    { id: 'bonus-settings', name: 'Prim Ayarlari', icon: DollarSign },
-    { id: 'bonus-reports', name: 'Prim Raporlari', icon: FileText },
-    { id: 'coaching', name: 'Yönetici Koçluk Merkezi', icon: GraduationCap },
-    { id: 'user-guide', name: 'Kullanim Kilavuzu', icon: BookOpen },
-    { id: 'settings', name: 'Ayarlar', icon: Settings },
-  ];
+  const allNavItems = navigationGroups.flatMap(g => g.items);
+  const currentNav = allNavItems.find(n => n.id === currentPage);
 
   const handleNavClick = (id: Page) => {
     setCurrentPage(id);
@@ -60,140 +126,193 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'all-chats':
-        return <ChatList />;
-      case 'chats':
-        return <ChatAnalysisList />;
-      case 'personnel':
-        return <PersonnelAnalytics />;
-      case 'reports':
-        return <Reports />;
-      case 'monitoring':
-        return <Monitoring />;
-      case 'bonus-settings':
-        return <BonusSettings />;
-      case 'bonus-reports':
-        return <BonusReports />;
-      case 'coaching':
-        return <CoachingCenter />;
-      case 'user-guide':
-        return <UserGuide />;
-      case 'settings':
-        return <SettingsPage />;
-      default:
-        return <Dashboard />;
+      case 'dashboard': return <Dashboard />;
+      case 'all-chats': return <ChatList />;
+      case 'chats': return <ChatAnalysisList />;
+      case 'personnel': return <PersonnelAnalytics />;
+      case 'reports': return <Reports />;
+      case 'monitoring': return <Monitoring />;
+      case 'bonus-settings': return <BonusSettings />;
+      case 'bonus-reports': return <BonusReports />;
+      case 'coaching': return <CoachingCenter />;
+      case 'user-guide': return <UserGuide />;
+      case 'settings': return <SettingsPage />;
+      default: return <Dashboard />;
     }
   };
 
-  const currentNav = navigation.find(n => n.id === currentPage);
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="relative px-5 pt-6 pb-5 border-b border-white/5 flex items-center justify-between overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 via-transparent to-emerald-500/5 pointer-events-none" />
+        <div className="absolute -top-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-emerald-400 rounded-xl blur-sm opacity-40" />
+            <div className="relative w-9 h-9 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-cyan-500/30 flex items-center justify-center overflow-hidden shadow-lg">
+              <img src="/image.png" alt="Logo" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            </div>
+          </div>
+          <div>
+            <h1 className="text-base font-bold bg-gradient-to-r from-cyan-300 via-cyan-200 to-emerald-300 bg-clip-text text-transparent tracking-tight leading-none">
+              LiveChat QA
+            </h1>
+            <p className="text-[10px] text-slate-500 mt-0.5 tracking-wide uppercase font-medium">Kalite Kontrol</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="lg:hidden relative p-1.5 rounded-lg text-slate-500 hover:bg-white/5 hover:text-slate-300 transition-all duration-200"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-3 space-y-0.5 scrollbar-hide">
+        {navigationGroups.map((group, gi) => (
+          <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
+            {group.label && (
+              <div className="px-3 mb-1.5 flex items-center gap-2">
+                <span className="text-[9px] font-bold tracking-widest text-slate-600 uppercase">{group.label}</span>
+                <div className="flex-1 h-px bg-white/5" />
+              </div>
+            )}
+            {group.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentPage === item.id;
+              const accent = accentClasses[item.accent];
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item.id as Page)}
+                  className={`
+                    relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-sm font-medium
+                    transition-all duration-200 group overflow-hidden
+                    ${isActive
+                      ? `bg-gradient-to-r ${accent.bg} ${accent.text} shadow-lg ${accent.glow} border border-white/8`
+                      : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 border border-transparent'
+                    }
+                  `}
+                >
+                  {isActive && (
+                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full ${accent.border.replace('border-', 'bg-')}`} />
+                  )}
+                  <span className={`
+                    relative flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 transition-all duration-200
+                    ${isActive ? accent.iconBg : 'text-slate-500 group-hover:text-slate-300'}
+                  `}>
+                    <Icon className="w-4 h-4" />
+                  </span>
+                  <span className="flex-1 text-left truncate text-[13px]">{item.name}</span>
+                  {isActive && (
+                    <ChevronRight className="w-3.5 h-3.5 opacity-60 flex-shrink-0" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+
+      <div className="px-3 pb-4 pt-2 border-t border-white/5 space-y-2">
+        <div className={`
+          px-3.5 py-2.5 rounded-xl border transition-all duration-300
+          ${syncStatus.syncing || syncStatus.analyzing
+            ? 'bg-cyan-500/8 border-cyan-500/20'
+            : syncStatus.error
+            ? 'bg-rose-500/8 border-rose-500/20'
+            : 'bg-emerald-500/8 border-emerald-500/20'
+          }
+        `}>
+          <div className="flex items-center gap-2.5">
+            {syncStatus.syncing || syncStatus.analyzing ? (
+              <div className="relative flex-shrink-0">
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+              </div>
+            ) : syncStatus.error ? (
+              <div className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0 shadow-lg shadow-rose-500/50" />
+            ) : (
+              <div className="relative flex-shrink-0">
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
+                <div className="absolute inset-0 w-2 h-2 rounded-full bg-emerald-400 animate-ping opacity-60" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className={`text-xs font-medium truncate leading-none ${
+                syncStatus.syncing || syncStatus.analyzing ? 'text-cyan-300' :
+                syncStatus.error ? 'text-rose-300' : 'text-emerald-300'
+              }`}>
+                {syncStatus.syncing ? 'Senkronize ediliyor...' :
+                 syncStatus.analyzing ? 'Analiz ediliyor...' :
+                 syncStatus.error ? 'Baglanti hatasi' :
+                 'Otomatik senk. aktif'}
+              </p>
+              {syncStatus.lastSyncTime && (
+                <p className="text-[10px] text-slate-600 mt-0.5">
+                  Son: {new Date(syncStatus.lastSyncTime).toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={signOut}
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-slate-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all duration-200 border border-transparent hover:border-rose-500/20 group"
+        >
+          <span className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-rose-500/15 transition-all duration-200">
+            <LogOut className="w-4 h-4" />
+          </span>
+          <span className="text-[13px] font-medium">Cikis Yap</span>
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <NotificationProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-cyan-500/20 px-4 py-3 flex items-center justify-between backdrop-blur-xl">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded-lg text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-400 transition-all duration-200"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
-        <div className="flex items-center gap-2">
-          {currentNav && <currentNav.icon className="w-5 h-5 text-cyan-400" />}
-          <span className="font-semibold text-white text-sm">{currentNav?.name || 'Dashboard'}</span>
-        </div>
-        <div className="w-10" />
-      </div>
-
-      {sidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <div className="flex">
-        <aside className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-r border-cyan-500/20
-          transform transition-transform duration-300 ease-in-out backdrop-blur-xl
-          lg:translate-x-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          shadow-2xl shadow-cyan-500/10
-        `}>
-          <div className="p-6 border-b border-cyan-500/20 flex items-center justify-between bg-gradient-to-r from-cyan-950/50 to-transparent">
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-                LiveChat QA
-              </h1>
-              <p className="text-xs text-slate-400 mt-0.5">Kalite Kontrol Sistemi</p>
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 transition-all duration-200"
-            >
-              <X className="w-5 h-5" />
-            </button>
+        <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-950/90 border-b border-white/5 px-4 py-3 flex items-center justify-between backdrop-blur-xl">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg text-slate-400 hover:bg-white/5 hover:text-white transition-all duration-200"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            {currentNav && (
+              <span className={`text-xs font-semibold ${accentClasses[currentNav.accent]?.text || 'text-white'}`}>
+                {currentNav.name}
+              </span>
+            )}
           </div>
-          <nav className="p-3 overflow-y-auto flex flex-col" style={{ height: 'calc(100% - 73px)' }}>
-            <div className="flex-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id as Page)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg mb-0.5 transition-all duration-200 text-sm group ${
-                      currentPage === item.id
-                        ? 'bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 text-cyan-300 font-medium shadow-lg shadow-cyan-500/20 border border-cyan-500/30'
-                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-cyan-300 border border-transparent'
-                    }`}
-                  >
-                    <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${currentPage === item.id ? 'scale-110' : 'group-hover:scale-110'}`} />
-                    <span>{item.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="border-t border-cyan-500/20 pt-3 mt-3 space-y-2">
-              <div className="px-4 py-2 bg-slate-800/30 rounded-lg border border-slate-700/50">
-                <div className="flex items-center gap-2 mb-1.5">
-                  {syncStatus.syncing || syncStatus.analyzing ? (
-                    <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
-                  ) : syncStatus.error ? (
-                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-lg shadow-rose-500/50" />
-                  ) : (
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50" />
-                  )}
-                  <span className="text-xs font-medium text-slate-300">
-                    {syncStatus.syncing ? 'Senkronize ediliyor...' :
-                     syncStatus.analyzing ? 'Analiz ediliyor...' :
-                     syncStatus.error ? 'Baglanti hatasi' :
-                     'Otomatik senk. aktif'}
-                  </span>
-                </div>
-                {syncStatus.lastSyncTime && (
-                  <p className="text-[10px] text-slate-500 pl-[18px]">
-                    Son: {new Date(syncStatus.lastSyncTime).toLocaleTimeString('tr-TR', { timeZone: 'Europe/Istanbul', hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={signOut}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all duration-200 border border-transparent hover:border-rose-500/30 group"
-              >
-                <LogOut className="w-5 h-5 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
-                <span>Cikis Yap</span>
-              </button>
-            </div>
-          </nav>
-        </aside>
+          <div className="w-9" />
+        </div>
 
-        <main className="flex-1 lg:ml-64 pt-16 lg:pt-8 p-4 sm:p-6 lg:p-8 min-w-0">
-          {renderPage()}
-        </main>
+        {sidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        <div className="flex">
+          <aside className={`
+            fixed top-0 left-0 z-50 h-full w-60
+            bg-[#0d1117] border-r border-white/[0.06]
+            transform transition-transform duration-300 ease-in-out
+            lg:translate-x-0
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            shadow-2xl shadow-black/50
+          `}>
+            <SidebarContent />
+          </aside>
+
+          <main className="flex-1 lg:ml-60 pt-14 lg:pt-0 min-w-0">
+            {renderPage()}
+          </main>
+        </div>
       </div>
-    </div>
     </NotificationProvider>
   );
 }
