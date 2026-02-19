@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { MessageSquare, Users, AlertTriangle, TrendingUp, Clock, CheckCircle, ThumbsUp, ThumbsDown, PhoneOff, UserCircle, Filter, ChevronDown } from 'lucide-react';
+import { MessageSquare, Users, AlertTriangle, TrendingUp, Clock, CheckCircle, ThumbsUp, ThumbsDown, PhoneOff, UserCircle, Filter, ChevronDown, LayoutDashboard, RefreshCw, Activity } from 'lucide-react';
 import TrendChart from '../components/TrendChart';
 import BarChart from '../components/BarChart';
 import DonutChart from '../components/DonutChart';
@@ -960,24 +960,36 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-          <p className="text-sm sm:text-base text-slate-200 mt-1">LiveChat kalite kontrol ve analiz ozeti</p>
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 border border-cyan-500/30 flex items-center justify-center flex-shrink-0">
+            <LayoutDashboard className="w-5 h-5 text-cyan-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
+                Genel Bakis
+              </h1>
+              <span className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                <Activity className="w-3 h-3 text-emerald-400" />
+                <span className="text-[10px] font-medium text-emerald-400 uppercase tracking-wider">Canli</span>
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">LiveChat kalite kontrolu ve performans analizi</p>
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-1.5">
-          <button
-            onClick={loadDashboardData}
-            className="px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white rounded-xl transition-all text-sm font-semibold self-start shadow-xl shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105"
-          >
-            Yenile
-          </button>
+        <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-600 hidden sm:block">
               Son guncelleme: {lastUpdated.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
+          <button
+            onClick={loadDashboardData}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded-xl transition-all text-sm font-medium"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Yenile
+          </button>
         </div>
       </div>
 
