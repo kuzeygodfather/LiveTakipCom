@@ -1495,11 +1495,11 @@ export default function Reports() {
                 <select
                   value={selectedImprovementAgent}
                   onChange={(e) => setSelectedImprovementAgent(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-slate-800 border border-white/15 text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent [&>option]:bg-slate-800 [&>option]:text-white"
                 >
-                  <option value="">Bir personel seçin...</option>
+                  <option value="" className="bg-slate-800 text-white">Bir personel seçin...</option>
                   {agentsWithCoaching.map(agent => (
-                    <option key={agent.email} value={agent.email}>
+                    <option key={agent.email} value={agent.email} className="bg-slate-800 text-white">
                       {agent.name}
                     </option>
                   ))}
