@@ -360,7 +360,7 @@ function App() {
             <SidebarContent />
           </aside>
 
-          <main className="flex-1 lg:ml-64 pt-14 lg:pt-0 min-w-0">
+          <main className="flex-1 lg:ml-64 pt-20 lg:pt-8 pb-8 px-4 sm:px-6 lg:px-8 min-w-0">
             {renderPage()}
           </main>
         </div>
