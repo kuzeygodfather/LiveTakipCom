@@ -21,12 +21,16 @@ type Page = 'dashboard' | 'chats' | 'all-chats' | 'personnel' | 'reports' | 'mon
 const navigationGroups = [
   {
     label: null,
+    icon: null,
+    accent: 'cyan',
     items: [
       { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, accent: 'cyan' },
     ],
   },
   {
     label: 'Chat',
+    icon: MessageSquare,
+    accent: 'cyan',
     items: [
       { id: 'all-chats', name: 'Tum Chatler', icon: List, accent: 'cyan' },
       { id: 'chats', name: 'Chat Analizleri', icon: MessageSquare, accent: 'cyan' },
@@ -34,6 +38,8 @@ const navigationGroups = [
   },
   {
     label: 'Analitik',
+    icon: TrendingUp,
+    accent: 'emerald',
     items: [
       { id: 'personnel', name: 'Personel', icon: Users, accent: 'emerald' },
       { id: 'reports', name: 'Raporlar', icon: TrendingUp, accent: 'emerald' },
@@ -42,6 +48,8 @@ const navigationGroups = [
   },
   {
     label: 'Prim',
+    icon: DollarSign,
+    accent: 'amber',
     items: [
       { id: 'bonus-settings', name: 'Prim Ayarlari', icon: DollarSign, accent: 'amber' },
       { id: 'bonus-reports', name: 'Prim Raporlari', icon: FileText, accent: 'amber' },
@@ -49,6 +57,8 @@ const navigationGroups = [
   },
   {
     label: 'Diger',
+    icon: Settings,
+    accent: 'slate',
     items: [
       { id: 'coaching', name: 'Kocluk Merkezi', icon: GraduationCap, accent: 'sky' },
       { id: 'user-guide', name: 'Kullanim Kilavuzu', icon: BookOpen, accent: 'sky' },
@@ -178,61 +188,79 @@ function App() {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-3 space-y-0.5 scrollbar-hide">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-3 scrollbar-hide space-y-1">
         {navigationGroups.map((group, gi) => {
           const isCollapsed = group.label ? collapsedGroups.has(group.label) : false;
           const hasActiveItem = group.items.some(i => i.id === currentPage);
+          const groupAccent = accentClasses[group.accent];
+          const GroupIcon = group.icon;
           return (
-            <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
-              {group.label && (
+            <div key={gi}>
+              {group.label && GroupIcon && (
                 <button
                   onClick={() => toggleGroup(group.label!)}
-                  className="w-full px-3 mb-1.5 flex items-center gap-2 group/header"
+                  className={`
+                    relative w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium mb-0.5
+                    transition-all duration-200 group/header overflow-hidden
+                    ${hasActiveItem && isCollapsed
+                      ? `bg-gradient-to-r ${groupAccent.bg} border border-white/8`
+                      : isCollapsed
+                        ? 'border border-transparent hover:bg-white/5'
+                        : 'border border-transparent hover:bg-white/3'
+                    }
+                  `}
                 >
-                  <span className={`text-[9px] font-bold tracking-widest uppercase transition-colors duration-200 ${hasActiveItem && isCollapsed ? 'text-cyan-500/70' : 'text-slate-600 group-hover/header:text-slate-400'}`}>
+                  <span className={`
+                    relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 transition-all duration-200
+                    ${hasActiveItem && isCollapsed ? groupAccent.iconBg : 'bg-white/5 text-slate-500 group-hover/header:text-slate-300 group-hover/header:bg-white/8'}
+                  `}>
+                    <GroupIcon className="w-5 h-5" />
+                  </span>
+                  <span className={`flex-1 text-left text-sm transition-colors duration-200 ${hasActiveItem && isCollapsed ? groupAccent.text : 'text-slate-500 group-hover/header:text-slate-300'}`}>
                     {group.label}
                   </span>
                   {hasActiveItem && isCollapsed && (
-                    <span className="w-1 h-1 rounded-full bg-cyan-400 flex-shrink-0" />
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${groupAccent.iconBg.includes('cyan') ? 'bg-cyan-400' : groupAccent.iconBg.includes('emerald') ? 'bg-emerald-400' : groupAccent.iconBg.includes('amber') ? 'bg-amber-400' : 'bg-slate-400'}`} />
                   )}
-                  <div className="flex-1 h-px bg-white/5 group-hover/header:bg-white/10 transition-colors duration-200" />
-                  <ChevronRight className={`w-3 h-3 text-slate-600 group-hover/header:text-slate-400 transition-all duration-200 flex-shrink-0 ${isCollapsed ? 'rotate-0' : 'rotate-90'}`} />
+                  <ChevronRight className={`w-4 h-4 text-slate-600 group-hover/header:text-slate-400 transition-all duration-300 flex-shrink-0 ${isCollapsed ? 'rotate-0' : 'rotate-90'}`} />
                 </button>
               )}
-              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-96 opacity-100'}`}>
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = currentPage === item.id;
-                  const accent = accentClasses[item.accent];
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleNavClick(item.id as Page)}
-                      className={`
-                        relative w-full flex items-center gap-3 px-3 py-3 rounded-xl mb-1 font-medium
-                        transition-all duration-200 group overflow-hidden
-                        ${isActive
-                          ? `bg-gradient-to-r ${accent.bg} ${accent.text} shadow-lg ${accent.glow} border border-white/8`
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
-                        }
-                      `}
-                    >
-                      {isActive && (
-                        <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full ${accent.border.replace('border-', 'bg-')}`} />
-                      )}
-                      <span className={`
-                        relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 transition-all duration-200
-                        ${isActive ? accent.iconBg : 'bg-white/5 text-slate-400 group-hover:bg-white/8 group-hover:text-slate-200'}
-                      `}>
-                        <Icon className="w-5 h-5" />
-                      </span>
-                      <span className="flex-1 text-left truncate text-sm">{item.name}</span>
-                      {isActive && (
-                        <ChevronRight className="w-4 h-4 opacity-60 flex-shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[500px] opacity-100'}`}>
+                <div className={group.label ? 'pl-3 border-l border-white/5 ml-4 mb-1' : ''}>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = currentPage === item.id;
+                    const accent = accentClasses[item.accent];
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => handleNavClick(item.id as Page)}
+                        className={`
+                          relative w-full flex items-center gap-3 px-3 py-3 rounded-xl mb-0.5 font-medium
+                          transition-all duration-200 group overflow-hidden
+                          ${isActive
+                            ? `bg-gradient-to-r ${accent.bg} ${accent.text} shadow-lg ${accent.glow} border border-white/8`
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
+                          }
+                        `}
+                      >
+                        {isActive && (
+                          <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full ${accent.border.replace('border-', 'bg-')}`} />
+                        )}
+                        <span className={`
+                          relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 transition-all duration-200
+                          ${isActive ? accent.iconBg : 'bg-white/5 text-slate-400 group-hover:bg-white/8 group-hover:text-slate-200'}
+                        `}>
+                          <Icon className="w-5 h-5" />
+                        </span>
+                        <span className="flex-1 text-left truncate text-sm">{item.name}</span>
+                        {isActive && (
+                          <ChevronRight className="w-4 h-4 opacity-60 flex-shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           );
