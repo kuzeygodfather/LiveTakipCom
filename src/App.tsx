@@ -201,28 +201,27 @@ function App() {
                   onClick={() => toggleGroup(group.label!)}
                   className={`
                     relative w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium mb-0.5
-                    transition-all duration-200 group/header overflow-hidden
-                    ${hasActiveItem && isCollapsed
-                      ? `bg-gradient-to-r ${groupAccent.bg} border border-white/8`
-                      : isCollapsed
-                        ? 'border border-transparent hover:bg-white/5'
-                        : 'border border-transparent hover:bg-white/3'
-                    }
+                    transition-all duration-300 group/header overflow-hidden
+                    bg-gradient-to-r ${groupAccent.bg} border border-white/8
+                    shadow-lg ${groupAccent.glow}
+                    ${hasActiveItem ? 'opacity-100' : 'opacity-70 hover:opacity-100'}
                   `}
                 >
+                  <div className={`absolute -left-4 top-1/2 -translate-y-1/2 w-16 h-16 rounded-full blur-2xl pointer-events-none transition-opacity duration-300 opacity-40 ${groupAccent.iconBg.split(' ')[0].replace('bg-', 'bg-').replace('/20', '/30')}`} />
                   <span className={`
-                    relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 transition-all duration-200
-                    ${hasActiveItem && isCollapsed ? groupAccent.iconBg : 'bg-white/5 text-slate-500 group-hover/header:text-slate-300 group-hover/header:bg-white/8'}
+                    relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 transition-all duration-300
+                    ${groupAccent.iconBg} shadow-md
                   `}>
-                    <GroupIcon className="w-5 h-5" />
+                    <div className={`absolute inset-0 rounded-xl blur-sm opacity-50 ${groupAccent.iconBg.split(' ')[0]}`} />
+                    <GroupIcon className="w-5 h-5 relative z-10" />
                   </span>
-                  <span className={`flex-1 text-left text-sm transition-colors duration-200 ${hasActiveItem && isCollapsed ? groupAccent.text : 'text-slate-500 group-hover/header:text-slate-300'}`}>
+                  <span className={`flex-1 text-left text-sm font-semibold transition-colors duration-200 ${groupAccent.text}`}>
                     {group.label}
                   </span>
                   {hasActiveItem && isCollapsed && (
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${groupAccent.iconBg.includes('cyan') ? 'bg-cyan-400' : groupAccent.iconBg.includes('emerald') ? 'bg-emerald-400' : groupAccent.iconBg.includes('amber') ? 'bg-amber-400' : 'bg-slate-400'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse ${groupAccent.iconBg.includes('cyan') ? 'bg-cyan-400' : groupAccent.iconBg.includes('emerald') ? 'bg-emerald-400' : groupAccent.iconBg.includes('amber') ? 'bg-amber-400' : 'bg-slate-400'}`} />
                   )}
-                  <ChevronRight className={`w-4 h-4 text-slate-600 group-hover/header:text-slate-400 transition-all duration-300 flex-shrink-0 ${isCollapsed ? 'rotate-0' : 'rotate-90'}`} />
+                  <ChevronRight className={`w-4 h-4 ${groupAccent.text} opacity-60 transition-all duration-300 flex-shrink-0 ${isCollapsed ? 'rotate-0' : 'rotate-90'}`} />
                 </button>
               )}
               <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'max-h-0 opacity-0' : 'max-h-[500px] opacity-100'}`}>
