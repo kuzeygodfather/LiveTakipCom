@@ -981,19 +981,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="flex items-start gap-3 p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
-        <div className="flex-shrink-0 w-5 h-5 mt-0.5 rounded-full bg-amber-500/20 flex items-center justify-center">
-          <AlertTriangle className="w-3 h-3 text-amber-400" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-amber-300">Bu sistem bir yapay zeka rehberidir — kesin karar araci degildir</p>
-          <p className="text-xs text-amber-400/70 mt-0.5">
-            Tum skorlar ve analizler Claude AI tarafindan otomatik olusturulmustur. Personel kararlarinda (prim, uyari, koçluk) bu verileri bir rehber olarak kullanin, son karari insan gozetimi ile verin.
-            Analiz kapsami: {stats.totalChats > 0 ? Math.round((stats.analyzedChats / stats.totalChats) * 100) : 0}% ({stats.analyzedChats} / {stats.totalChats} chat).
-          </p>
-        </div>
-      </div>
-
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {statCards.map((card) => {
           const Icon = card.icon;
