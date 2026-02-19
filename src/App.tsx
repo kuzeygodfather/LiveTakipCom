@@ -209,26 +209,26 @@ function App() {
                       key={item.id}
                       onClick={() => handleNavClick(item.id as Page)}
                       className={`
-                        relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-sm font-medium
+                        relative w-full flex items-center gap-3 px-3 py-3 rounded-xl mb-1 font-medium
                         transition-all duration-200 group overflow-hidden
                         ${isActive
                           ? `bg-gradient-to-r ${accent.bg} ${accent.text} shadow-lg ${accent.glow} border border-white/8`
-                          : 'text-slate-500 hover:text-slate-300 hover:bg-white/5 border border-transparent'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
                         }
                       `}
                     >
                       {isActive && (
-                        <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full ${accent.border.replace('border-', 'bg-')}`} />
+                        <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full ${accent.border.replace('border-', 'bg-')}`} />
                       )}
                       <span className={`
-                        relative flex items-center justify-center w-7 h-7 rounded-lg flex-shrink-0 transition-all duration-200
-                        ${isActive ? accent.iconBg : 'text-slate-500 group-hover:text-slate-300'}
+                        relative flex items-center justify-center w-9 h-9 rounded-xl flex-shrink-0 transition-all duration-200
+                        ${isActive ? accent.iconBg : 'bg-white/5 text-slate-400 group-hover:bg-white/8 group-hover:text-slate-200'}
                       `}>
-                        <Icon className="w-4 h-4" />
+                        <Icon className="w-5 h-5" />
                       </span>
-                      <span className="flex-1 text-left truncate text-[13px]">{item.name}</span>
+                      <span className="flex-1 text-left truncate text-sm">{item.name}</span>
                       {isActive && (
-                        <ChevronRight className="w-3.5 h-3.5 opacity-60 flex-shrink-0" />
+                        <ChevronRight className="w-4 h-4 opacity-60 flex-shrink-0" />
                       )}
                     </button>
                   );
@@ -323,7 +323,7 @@ function App() {
 
         <div className="flex">
           <aside className={`
-            fixed top-0 left-0 z-50 h-full w-60
+            fixed top-0 left-0 z-50 h-full w-64
             bg-[#0d1117] border-r border-white/[0.06]
             transform transition-transform duration-300 ease-in-out
             lg:translate-x-0
@@ -333,7 +333,7 @@ function App() {
             <SidebarContent />
           </aside>
 
-          <main className="flex-1 lg:ml-60 pt-14 lg:pt-0 min-w-0">
+          <main className="flex-1 lg:ml-64 pt-14 lg:pt-0 min-w-0">
             {renderPage()}
           </main>
         </div>
