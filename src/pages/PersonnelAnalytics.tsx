@@ -564,17 +564,30 @@ export default function PersonnelAnalytics() {
                     {selectedPersonnel.email && (
                       <p className="text-slate-400 mt-1">{selectedPersonnel.email}</p>
                     )}
-                    <div className="flex items-center gap-3 mt-2">
-                      <span className="text-sm text-slate-400">
-                        {getTierLabel(selectedPersonnel.reliability_tier)}
-                      </span>
-                      <span className="text-sm text-slate-400" title="Daha fazla analiz edilmis chat, daha guvenilir bir skor demektir. Az sayida chat uzerinden hesaplanan skorlar yaniltici olabilir.">
-                        Guvenilirlik: {Math.round(parseScore(selectedPersonnel.confidence_level || 0))}%
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-1.5 text-xs text-amber-400/70">
-                      <AlertTriangle className="w-3 h-3 flex-shrink-0" />
-                      <span>AI skoru — rehber amaclidir, nihai karar icin insan gozetimi gerekir</span>
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                      {(() => {
+                        const tier = selectedPersonnel.reliability_tier;
+                        const conf = Math.round(parseScore(selectedPersonnel.confidence_level || 0));
+                        const tierStyles: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+                          A: { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-400' },
+                          B: { bg: 'bg-cyan-500/15',    text: 'text-cyan-300',    border: 'border-cyan-500/30',    dot: 'bg-cyan-400' },
+                          C: { bg: 'bg-blue-500/15',    text: 'text-blue-300',    border: 'border-blue-500/30',    dot: 'bg-blue-400' },
+                          D: { bg: 'bg-amber-500/15',   text: 'text-amber-300',   border: 'border-amber-500/30',   dot: 'bg-amber-400' },
+                        };
+                        const s = tierStyles[tier] ?? tierStyles['D'];
+                        return (
+                          <>
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                              {getTierLabel(tier)} — Seviye {tier}
+                            </span>
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${s.bg} ${s.text} ${s.border}`}
+                              title="Daha fazla analiz edilmis chat, daha guvenilir bir skor demektir.">
+                              Güvenilirlik %{conf}
+                            </span>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
