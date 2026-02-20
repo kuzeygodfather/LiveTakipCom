@@ -152,6 +152,36 @@ function normalizeText(text: string): string {
     .replace(/[çÇ]/g, 'c');
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  'cat:dogrudan_cevap': 'Müşteri sorusuna doğrudan cevap verme',
+  'cat:empati': 'Müşteriye empati kurma',
+  'cat:yanit_suresi': 'Yanıt süresi / gecikme',
+  'cat:hatali_bilgi': 'Hatalı veya eksik bilgi verme',
+  'cat:kapatma': 'Chat kapatma ve çözüm doğrulama',
+  'cat:kisisellestirilme': 'Kişiselleştirilmiş yanıt oluşturma',
+  'cat:yanit_uzunlugu': 'Yanıt uzunluğu ve özlük',
+  'cat:profesyonel_dil': 'Profesyonel dil kullanımı',
+};
+
+function categorizeIssue(text: string): string {
+  const n = normalizeText(text.toLowerCase());
+  if (
+    (n.includes('dogru') || n.includes('direkt') || n.includes('dogrudan')) &&
+    (n.includes('cevap') || n.includes('yanit') || n.includes('soru') || n.includes('istek'))
+  ) return 'cat:dogrudan_cevap';
+  if (n.includes('empa') || n.includes('anlayis') || n.includes('ilgisiz') || n.includes('soguk') || n.includes('duyarli')) return 'cat:empati';
+  if (n.includes('gecikme') || n.includes('yavas') || n.includes('yanit sure') || n.includes('bekleme') || n.includes('hizli')) return 'cat:yanit_suresi';
+  if (
+    (n.includes('yanlis') || n.includes('hatali') || n.includes('eksik')) &&
+    (n.includes('bilgi') || n.includes('bilgi') || n.includes('yanit'))
+  ) return 'cat:hatali_bilgi';
+  if (n.includes('kapatma') || n.includes('sonlandirma') || (n.includes('cozum') && n.includes('dogrula'))) return 'cat:kapatma';
+  if (n.includes('sablon') || n.includes('kopya') || n.includes('kisisel') || n.includes('standart metin')) return 'cat:kisisellestirilme';
+  if (n.includes('uzun') || n.includes('gereksiz') || n.includes('kisalt') || n.includes('ozluk') || n.includes('savurgan')) return 'cat:yanit_uzunlugu';
+  if (n.includes('kibarca') || n.includes('profesyonel') || n.includes('resmi') || n.includes('nazik') || (n.includes('dil') && n.includes('kullan'))) return 'cat:profesyonel_dil';
+  return n.slice(0, 50).trim();
+}
+
 function deriveCorrectApproach(issueText: string): string {
   const lower = normalizeText(issueText.toLowerCase());
   if (lower.includes('gecikme') || lower.includes('yavas') || lower.includes('yanit sures')) {
@@ -251,67 +281,53 @@ function buildDetailedScript(
   const thin = '·'.repeat(62);
 
   if (avgScore >= 90 && !isRepeat) {
-    let s = `YÖNETİCİ–PERSONEL GÖRÜŞMESİ — TAKIM LİDERİ / MENTORLUK\n`;
-    s += `Tarih: ${today}  |  Personel: ${agentName}  |  Süre: ~10-15 dk\n`;
+    const hasAnyIssues = criticals.length > 0 || improvements.length > 0;
+
+    let s = `YÖNETİCİ–PERSONEL GÖRÜŞMESİ — TAKDİR & MENTORLUK\n`;
+    s += `Tarih: ${today}  |  Personel: ${agentName}  |  Süre: ~10 dk\n`;
     s += `${sep}\n`;
-    s += `NOT: Bu görüşme takdir ve ileri gelişim odaklıdır. Hesap soran\n`;
-    s += `     bir ton kullanılmaz. Y: Yönetici  |  P: Personel\n\n`;
+    s += `NOT: Bu görüşme tamamen takdir odaklıdır. Hesap soran veya düzeltici\n`;
+    s += `     ton kullanılmaz. Y: Yönetici  |  P: Personel\n\n`;
 
     s += `${sep}\n`;
-    s += `BÖLÜM 1 — TAKDİR VE PERFORMANS PAYLAŞIMI\n`;
+    s += `TAKDİR VE PERFORMANS PAYLAŞIMI\n`;
     s += `${sep}\n\n`;
 
-    s += `Y: "${firstName}, seninle bu döneme ait verileri paylaşmak istedim çünkü\n`;
-    s += `   gerçekten etkileyici bir performans sergiliyorsun.\n`;
-    s += `   ${totalChats} chat inceledim, ortalaman ${avgScore}/100 — bu son derece güçlü bir sonuç.\n`;
-    s += `   Bu skoru nasıl tutturduğunu merak ediyorum, bana anlat."\n\n`;
-    s += `P: [Yaklaşımını, alışkanlıklarını paylaşır]\n\n`;
-    s += `Y: "Bunu duymak çok değerli. Özellikle tutarlılığın dikkat çekici —\n`;
-    s += `   sadece birkaç iyi chat değil, dönem boyunca bu kaliteyi korumuşsun.\n`;
-    s += `   Takımımız için gerçek bir referans noktasısın."\n\n`;
+    s += `Y: "${firstName}, seninle bu döneme ait verileri paylaşmak istedim.\n`;
+    s += `   ${totalChats} chat inceledim — ortalaman ${avgScore}/100. Bu son derece güçlü bir sonuç.\n`;
+    s += `   Bu tutarlılığı nasıl sağladığını merak ediyorum, bana anlat."\n\n`;
+    s += `P: [Yaklaşımını ve alışkanlıklarını paylaşır]\n\n`;
+    s += `Y: "Bunu duymak çok değerli. Takımımız için gerçek bir referans noktasısın.\n`;
+    s += `   Bu başarını fark etmemi istedim, tebrik ederim."\n\n`;
 
-    if (criticals.length > 0 || improvements.length > 0) {
+    if (hasAnyIssues) {
       s += `${sep}\n`;
-      s += `BÖLÜM 2 — GELİŞİM FIRSATLARI (Küçük notlar)\n`;
+      s += `İSTEĞE BAĞLI — PAYLAŞMAK İSTERSEN\n`;
       s += `${sep}\n\n`;
-
-      s += `Y: "Sana küçük bir gözlemimi de aktarmak istiyorum — bu eleştiri değil,\n`;
-      s += `   zaten mükemmel olan bir performansı nasıl daha da ileriye taşıyabiliriz diye.\n`;
-      s += `   İstersen birlikte bakalım mı?"\n\n`;
-      s += `P: [Merakla kabul eder]\n\n`;
-
+      s += `Y: "İstersen, bazı chatlerde AI'ın küçük notlar düştüğünü de görebiliriz —\n`;
+      s += `   bunları eleştiri olarak değil, zaten iyi olan bir performansı ince ayar\n`;
+      s += `   yapma fırsatı olarak düşün. Bakmak ister misin?"\n\n`;
+      s += `P: [İsterse devam et, istemezse geç]\n\n`;
       const allIssues = [...criticals, ...improvements];
-      allIssues.slice(0, 2).forEach((issue, idx) => {
-        s += `${thin}\n`;
-        s += `NOT ${idx + 1}: ${issue.text}\n`;
-        s += `${thin}\n\n`;
-        s += `Y: "Bazı chatlerde ${issue.text.toLowerCase()} konusunda küçük bir not düşülmüş.\n`;
-        if (issue.evidences.length > 0) {
-          const ev = issue.evidences[0];
-          s += `   Örnek: ${formatDate(ev.date)} tarihli Chat #${shortChatId(ev.chatId)}, skor ${ev.score}/100.\n`;
-        }
+      allIssues.slice(0, 1).forEach(issue => {
+        s += `Y: "${issue.text} konusunda birkaç chatte küçük bir not var.\n`;
         s += `   ${issue.correctApproach}\n`;
-        s += `   Bu senin için zaten kolay bir düzeltme olur — nasıl yaklaşırsın?"\n\n`;
-        s += `P: [Görüşünü paylaşır]\n\n`;
+        s += `   Senin için zaten küçük bir ince ayar meselesi."\n\n`;
+        s += `P: [Değerlendirir]\n\n`;
       });
     }
 
     s += `${sep}\n`;
-    s += `BÖLÜM 3 — MENTORLUK VE TAKIM KATKI FIRSATI\n`;
+    s += `MENTORLUK FIRSATI\n`;
     s += `${sep}\n\n`;
 
-    s += `Y: "Senden bir şey talep etmek istiyorum: takım içinde bu başarını\n`;
-    s += `   paylaşabilir misin? Yeni arkadaşlarımıza chat kalitesi konusunda\n`;
-    s += `   örnek olman çok değerli olurdu.\n`;
-    s += `   Bunu nasıl yapabileceğimizi birlikte düşünelim."\n\n`;
+    s += `Y: "Senden bir şey talep etmek istiyorum: takımda yeni arkadaşlarımıza\n`;
+    s += `   chat kalitesi konusunda örnek olmanı. Bunu nasıl yapabileceğini\n`;
+    s += `   birlikte düşünelim."\n\n`;
     s += `P: [Fikirlerini paylaşır]\n\n`;
-    s += `Y: "Takımımızda sana güveniyorum. Bu performansını sürdür,\n`;
-    s += `   ihtiyaç duyduğunda her zaman buraya gel."\n\n`;
-    s += `P: [Teşekkür eder]\n\n`;
+    s += `Y: "Sana güveniyorum. Bu performansını sürdür, ihtiyaç duyduğunda gel."\n\n`;
 
     s += `${sep}\n`;
-    s += `NOTLAR\n`;
-    s += `${sep}\n\n`;
     s += `Yönetici:   _______________________   Tarih: ${today}\n`;
     s += `Personel:   _______________________   Tarih: ${today}\n`;
 
@@ -724,8 +740,9 @@ export default function CoachingCenter() {
         const improvementAreas: string[] = issues.improvement_areas || [];
 
         criticalErrors.forEach(err => {
-          const key = err.trim().toLowerCase();
-          if (!key || key.length < 5) return;
+          const raw = err.trim();
+          if (!raw || raw.length < 5) return;
+          const key = categorizeIssue(raw);
           if (!agent.issueEvidenceMap.has(key)) {
             agent.issueEvidenceMap.set(key, { type: 'critical', evidences: [], totalCount: 0 });
           }
@@ -736,8 +753,9 @@ export default function CoachingCenter() {
 
         improvementAreas.forEach(area => {
           if (score >= 70) return;
-          const key = area.trim().toLowerCase();
-          if (!key || key.length < 5) return;
+          const raw = area.trim();
+          if (!raw || raw.length < 5) return;
+          const key = categorizeIssue(raw);
           if (!agent.issueEvidenceMap.has(key)) {
             agent.issueEvidenceMap.set(key, { type: 'improvement', evidences: [], totalCount: 0 });
           }
@@ -760,13 +778,16 @@ export default function CoachingCenter() {
         const minCriticalRepeat = avgScore >= 70 ? 2 : 1;
 
         const evidencedIssues: EvidencedIssue[] = Array.from(agent.issueEvidenceMap.entries())
-          .map(([text, data]) => ({
-            text: text.charAt(0).toUpperCase() + text.slice(1),
-            type: data.type,
-            count: data.totalCount,
-            evidences: data.evidences.sort((a, b) => a.score - b.score),
-            correctApproach: deriveCorrectApproach(text),
-          }))
+          .map(([key, data]) => {
+            const displayText = CATEGORY_LABELS[key] ?? (key.charAt(0).toUpperCase() + key.slice(1));
+            return {
+              text: displayText,
+              type: data.type,
+              count: data.totalCount,
+              evidences: data.evidences.sort((a, b) => a.score - b.score),
+              correctApproach: deriveCorrectApproach(key),
+            };
+          })
           .filter(issue => {
             if (issue.type === 'critical') return issue.count >= minCriticalRepeat;
             return issue.count >= minImprovementRepeat;
