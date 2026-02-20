@@ -465,73 +465,87 @@ export default function PersonnelAnalytics() {
                     <div
                       key={person.id}
                       onClick={() => setSelectedPersonnel(person)}
-                      className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
+                      className={`w-full text-left rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden ${
                         selectedPersonnel?.id === person.id
-                          ? 'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/10'
-                          : 'border-white/8 hover:border-white/20 hover:bg-white/4'
+                          ? 'border-blue-500/40 bg-gradient-to-b from-blue-500/10 to-blue-500/5 shadow-xl shadow-blue-500/10'
+                          : 'border-white/8 hover:border-white/16 bg-slate-800/25 hover:bg-slate-800/45 hover:shadow-lg hover:shadow-black/20'
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="w-8 h-8 rounded-full bg-slate-700/60 border border-white/10 flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-slate-300" />
-                          </div>
-                          <span className="font-semibold text-white truncate">{person.name}</span>
-                        </div>
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border flex-shrink-0 ${ts.bg} ${ts.text} ${ts.border}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${ts.dot}`} />
-                          {getTierLabel(person.reliability_tier)}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-slate-400">{person.total_chats} chat</span>
-                        <div className="flex flex-col items-end gap-0.5">
-                          {person.total_chats < 30 ? (
-                            <div className="flex flex-col items-end gap-0.5">
-                              <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-500/25">
-                                Değerlendirmede
-                              </span>
-                              <span className="text-xs text-slate-500">
-                                {Math.round(parseScore(adjustedScore))}/100 (erken)
-                              </span>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between gap-2 mb-4">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-600/80 to-slate-700/80 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner">
+                              <User className="w-4 h-4 text-slate-300" />
                             </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              <span className={`px-2.5 py-0.5 rounded-md text-sm font-bold ${performance.color}`}>
-                                {Math.round(parseScore(adjustedScore))}/100
-                              </span>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-white text-sm truncate leading-tight">{person.name}</div>
+                              <div className="text-xs text-slate-500 leading-tight mt-0.5">{person.total_chats} chat</div>
                             </div>
-                          )}
-                          {person.total_chats >= 30 && person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
-                            <span className="text-xs text-slate-500" title="Ham ortalama skor">
-                              ham: {Math.round(parseScore(person.average_score))}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        <div className="bg-slate-800/40 rounded-lg px-3 py-1.5 text-center">
-                          <div className="text-xs text-slate-500 mb-0.5">İlk Yanıt</div>
-                          <div className="text-xs font-semibold text-slate-200">
-                            {ratings.avg_first_response_time !== null ? `${Math.floor(ratings.avg_first_response_time / 60)}dk` : '—'}
+                          </div>
+                          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${ts.bg} ${ts.text} ${ts.border}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${ts.dot} shadow-sm`} />
+                            {getTierLabel(person.reliability_tier)}
                           </div>
                         </div>
-                        <div className="bg-slate-800/40 rounded-lg px-3 py-1.5 text-center">
-                          <div className="text-xs text-slate-500 mb-0.5">Çözüm</div>
-                          <div className="text-xs font-semibold text-slate-200">
-                            {ratings.avg_resolution_time !== null ? `${Math.floor(ratings.avg_resolution_time / 60)}dk` : '—'}
+
+                        {person.total_chats < 30 ? (
+                          <div className="flex items-center gap-2.5 bg-amber-500/8 border border-amber-500/20 rounded-xl px-3 py-2.5 mb-4">
+                            <div className="w-7 h-7 rounded-full bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-semibold text-amber-300 leading-tight">Değerlendirme Aşamasında</div>
+                              <div className="text-xs text-slate-500 leading-tight mt-0.5">30 chatte netleşir · şu an {Math.round(parseScore(adjustedScore))}/100</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs text-slate-500">Performans Skoru</span>
+                              <div className="flex items-center gap-2">
+                                {person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
+                                  <span className="text-xs text-slate-600">ham {Math.round(parseScore(person.average_score))}</span>
+                                )}
+                                <span className={`text-sm font-bold ${performance.color.split(' ')[0]}`}>
+                                  {Math.round(parseScore(adjustedScore))}/100
+                                </span>
+                              </div>
+                            </div>
+                            <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  parseScore(adjustedScore) >= 90 ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' :
+                                  parseScore(adjustedScore) >= 75 ? 'bg-gradient-to-r from-cyan-500 to-cyan-400' :
+                                  parseScore(adjustedScore) >= 60 ? 'bg-gradient-to-r from-blue-500 to-blue-400' :
+                                  parseScore(adjustedScore) >= 45 ? 'bg-gradient-to-r from-amber-500 to-amber-400' :
+                                  'bg-gradient-to-r from-red-500 to-red-400'
+                                }`}
+                                style={{ width: `${Math.min(100, Math.max(0, parseScore(adjustedScore)))}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-slate-800/50 border border-white/5 rounded-xl px-3 py-2 text-center">
+                            <div className="text-xs text-slate-500 mb-1">İlk Yanıt</div>
+                            <div className="text-sm font-semibold text-slate-200">
+                              {ratings.avg_first_response_time !== null ? `${Math.floor(ratings.avg_first_response_time / 60)}dk` : '—'}
+                            </div>
+                          </div>
+                          <div className="bg-slate-800/50 border border-white/5 rounded-xl px-3 py-2 text-center">
+                            <div className="text-xs text-slate-500 mb-1">Çözüm</div>
+                            <div className="text-sm font-semibold text-slate-200">
+                              {ratings.avg_resolution_time !== null ? `${Math.floor(ratings.avg_resolution_time / 60)}dk` : '—'}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {ratings.like_count > 0 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`); }}
-                              className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                              className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 px-2.5 py-1 rounded-full transition-all hover:scale-105 cursor-pointer"
                             >
                               <ThumbsUp className="w-3 h-3" />
                               <span>{ratings.like_count}</span>
@@ -540,7 +554,7 @@ export default function PersonnelAnalytics() {
                           {ratings.dislike_count > 0 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`); }}
-                              className="flex items-center gap-1 text-xs text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                              className="flex items-center gap-1 text-xs text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 px-2.5 py-1 rounded-full transition-all hover:scale-105 cursor-pointer"
                             >
                               <ThumbsDown className="w-3 h-3" />
                               <span>{ratings.dislike_count}</span>
@@ -549,25 +563,23 @@ export default function PersonnelAnalytics() {
                           {ratings.warning_chats.length > 0 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`); }}
-                              className="flex items-center gap-1 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                              className="flex items-center gap-1 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 px-2.5 py-1 rounded-full transition-all hover:scale-105 cursor-pointer"
                             >
                               <AlertTriangle className="w-3 h-3" />
                               <span>{ratings.warning_chats.length}</span>
                             </button>
                           )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
                           {(person.recurring_issues_count ?? 0) > 0 && (
                             <button
                               onClick={(e) => { e.stopPropagation(); openRecurringModal(person); }}
-                              className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2 py-0.5 rounded-full hover:bg-orange-500/20 transition-colors cursor-pointer"
+                              className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2.5 py-1 rounded-full hover:bg-orange-500/20 transition-all hover:scale-105 cursor-pointer"
                             >
                               <AlertTriangle className="w-3 h-3" />
                               {person.recurring_issues_count} tekrar
                             </button>
                           )}
                           {ratings.missed_count > 0 && (
-                            <div className="flex items-center gap-1 text-xs text-orange-500 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
+                            <div className="flex items-center gap-1 text-xs text-orange-500 bg-orange-500/10 border border-orange-500/20 px-2.5 py-1 rounded-full">
                               <PhoneOff className="w-3 h-3" />
                               <span>{ratings.missed_count} kaçan</span>
                             </div>
