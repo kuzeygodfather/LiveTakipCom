@@ -184,26 +184,29 @@ function categorizeIssue(text: string): string {
 
 function deriveCorrectApproach(issueText: string): string {
   const lower = normalizeText(issueText.toLowerCase());
-  if (lower.includes('gecikme') || lower.includes('yavas') || lower.includes('yanit sures')) {
+  if (lower.includes('dogrudan') || lower.includes('direkt cevap')) {
+    return 'Musterinin sorusunu ilk cumlede dogrudan yanıtla. "Evet, X urunune X tarihine kadar garanti gecerlidir" gibi. Arka plan aciklamasini cevaptan sonra ver, once degil.';
+  }
+  if (lower.includes('gecikme') || lower.includes('yavas') || lower.includes('yanit sure') || lower.includes('suresi')) {
     return 'Musteri mesajlarina en gec 60 saniye icinde ilk yaniti ver. Uzun islemler icin "Simdi kontrol ediyorum, bir dakika" gibi ara yanit gonder.';
   }
   if (lower.includes('empa') || lower.includes('ilgisiz') || lower.includes('sogukkanli')) {
     return 'Musterinin durumunu oncelikle kabul et. "Anliyorum, bu durum gercekten sinir bozucu olabilir" gibi ifadeler kullan. Cozum sunmadan once duyuldigini hissettir.';
   }
-  if (lower.includes('bilgi') || lower.includes('yanlis') || lower.includes('yanlış') || lower.includes('hatali')) {
-    return 'Emin olmadigın konularda kesin yanit verme. "Hemen kontrol edeyim" de ve dogrulayarak geri don. Yanlis bilgi vermek musterinin guvensizligine yol acar.';
+  if (lower.includes('bilgi') || lower.includes('yanlis') || lower.includes('hatali') || lower.includes('eksik')) {
+    return 'Emin olmadigin konularda kesin yanit verme. "Hemen kontrol edeyim" de ve dogrulayarak geri don. Yanlis bilgi vermek musterinin guvensizligine yol acar.';
   }
-  if (lower.includes('kapatma') || lower.includes('sonlandirma') || lower.includes('cozum')) {
+  if (lower.includes('kapatma') || lower.includes('sonlandirma') || lower.includes('cozum dogrula')) {
     return 'Chati kapatmadan once musteriye "Baska bir konuda yardimci olabilecegim bir sey var mi?" diye sor. Cozumun tam oldugunu dogrula.';
   }
-  if (lower.includes('kopya') || lower.includes('sablonla') || lower.includes('standart')) {
-    return 'Hazir metin kullanirken musterinin adini ve ozel durumunu mutlaka ekle. "Sayın [Musteri Adi], sizin durumunuzda..." gibi kisisellestirilmis bir yaklasim benimse.';
+  if (lower.includes('kisisel') || lower.includes('kopya') || lower.includes('sablon') || lower.includes('standart')) {
+    return 'Hazir metin kullanirken musterinin adini ve ozel durumunu mutlaka ekle. "Sayin [Musteri Adi], sizin durumunuzda..." gibi kisisellestirilmis bir yaklasim benimse.';
   }
-  if (lower.includes('uzun') || lower.includes('gereksiz') || lower.includes('savurgan')) {
+  if (lower.includes('uzun') || lower.includes('gereksiz') || lower.includes('savurgan') || lower.includes('ozluk')) {
     return 'Yanitleri kisa ve oz tut. Musterinin sorusunu dogrudan cevapla, gereksiz aciklama ve tekrarlardan kacin.';
   }
   if (lower.includes('kibarca') || lower.includes('profesyonel') || lower.includes('dil')) {
-    return 'Her zaman resmi ve nazik bir dil kullan. "Tabiki", "Elbet" gibi samimi ifadeler yanında "Sayın Musterimiz" gibi resmi hitaplari dengeli kullan.';
+    return 'Her zaman resmi ve nazik bir dil kullan. "Tabiki", "Elbet" gibi samimi ifadeler yaninda "Sayin Musterimiz" gibi resmi hitaplari dengeli kullan.';
   }
   return 'Bu konuda standart prosedure uymaya ozen goster. Benzer durumlarda nasil davranman gerektigini amirinden teyit al ve gelecek chatlere not olarak ekle.';
 }
@@ -226,15 +229,17 @@ function buildActionItems(issues: EvidencedIssue[], avgScore: number): string[] 
 
   criticals.forEach(issue => {
     const n = normalizeText(issue.text.toLowerCase());
-    if (n.includes('gecikme') || n.includes('yavas') || n.includes('yanit')) {
+    if (n.includes('dogrudan') || n.includes('direkt cevap')) {
+      items.push('Yanita oncelikle net bir cevap ile basla, aciklamayi ardindan ver — musterinin sorusunu atlatma');
+    } else if (n.includes('gecikme') || n.includes('yavas') || n.includes('yanit sure') || n.includes('suresi')) {
       items.push('Yanit surelerini gunluk takip et — hedef: 60 saniye icinde ilk yanit');
     } else if (n.includes('empa') || n.includes('ilgisiz') || n.includes('soguk')) {
       items.push('Her chatin basindan musterinin durumunu kabul eden bir cumle yaz; empati kurmadan cozume gecme');
-    } else if (n.includes('bilgi') || n.includes('yanlis') || n.includes('hatali')) {
+    } else if (n.includes('bilgi') || n.includes('yanlis') || n.includes('hatali') || n.includes('eksik')) {
       items.push('Emin olunmayan sorularda once dogrula, sonra yanit ver — tahminle devam etme');
-    } else if (n.includes('kapatma') || n.includes('sonlandirma') || n.includes('cozum')) {
+    } else if (n.includes('kapatma') || n.includes('sonlandirma') || n.includes('cozum dogrula')) {
       items.push('Chati kapatmadan once "Baska bir konuda yardimci olabilir miyim?" kontrolunu rutin hale getir');
-    } else if (n.includes('kopya') || n.includes('sablon') || n.includes('standart')) {
+    } else if (n.includes('kisisel') || n.includes('kopya') || n.includes('sablon') || n.includes('standart')) {
       items.push('Hazir metinlere musteri adi ve ozel durum ekleyerek kisisellestirilmis yanitlar olustur');
     } else {
       items.push(`"${issue.text.slice(0, 55)}${issue.text.length > 55 ? '...' : ''}" hatasini tekrarlamamak icin somut onlem belirle, 3 gun sonra kontrol et`);
@@ -243,11 +248,13 @@ function buildActionItems(issues: EvidencedIssue[], avgScore: number): string[] 
 
   improvements.forEach(issue => {
     const n = normalizeText(issue.text.toLowerCase());
-    if (n.includes('uzun') || n.includes('gereksiz') || n.includes('savurgan')) {
+    if (n.includes('dogrudan') || n.includes('direkt cevap')) {
+      items.push('Cevaplarinda sorunun ozunu ilk cumlede ver; aciklamayi ancak ardindan ekle');
+    } else if (n.includes('uzun') || n.includes('gereksiz') || n.includes('savurgan') || n.includes('ozluk')) {
       items.push('Yanit uzunlugunu izle — musterinin sorusunu 2-3 cumlede dogrudan cevapla');
     } else if (n.includes('profesyonel') || n.includes('dil') || n.includes('kibarca')) {
       items.push('Resmi ve samimi dili dengeli kullan; "Sayin Musterimiz" gibi hitaplarla "Elbet" gibi yakin ifadeleri karistic');
-    } else if (n.includes('kopya') || n.includes('sablon')) {
+    } else if (n.includes('kisisel') || n.includes('kopya') || n.includes('sablon')) {
       items.push('Hazir metin kullanirken mutlaka musteri adini ve ozel durumunu ekle');
     } else {
       items.push(`${issue.text.slice(0, 55)}${issue.text.length > 55 ? '...' : ''} konusunda ornek chatler incele ve 2 gunluk odakli pratik yap`);
@@ -785,7 +792,7 @@ export default function CoachingCenter() {
               type: data.type,
               count: data.totalCount,
               evidences: data.evidences.sort((a, b) => a.score - b.score),
-              correctApproach: deriveCorrectApproach(key),
+              correctApproach: deriveCorrectApproach(displayText),
             };
           })
           .filter(issue => {
