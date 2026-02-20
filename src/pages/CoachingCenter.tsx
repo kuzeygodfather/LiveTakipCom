@@ -180,6 +180,17 @@ function deriveCorrectApproach(issueText: string): string {
 
 function buildActionItems(issues: EvidencedIssue[], avgScore: number): string[] {
   const items: string[] = [];
+
+  if (avgScore >= 90) {
+    items.push('Bu dönemdeki başarılı pratikleri kısa bir notla belgeleyerek paylaş');
+    items.push('Ekip içinde bir yeni başlayan personele mentörlük yapmayı değerlendir');
+    if (issues.length > 0) {
+      items.push(`${issues[0].text.slice(0, 55)}${issues[0].text.length > 55 ? '...' : ''} konusundaki küçük notu göz önünde bulundur`);
+    }
+    items.push('Mevcut yüksek kalite standartlarını gelecek dönemde de koru');
+    return items;
+  }
+
   const criticals = issues.filter(i => i.type === 'critical').slice(0, 2);
   const improvements = issues.filter(i => i.type === 'improvement').slice(0, 2);
 
@@ -238,6 +249,74 @@ function buildDetailedScript(
 
   const sep = '─'.repeat(62);
   const thin = '·'.repeat(62);
+
+  if (avgScore >= 90 && !isRepeat) {
+    let s = `YÖNETİCİ–PERSONEL GÖRÜŞMESİ — TAKIM LİDERİ / MENTORLUK\n`;
+    s += `Tarih: ${today}  |  Personel: ${agentName}  |  Süre: ~10-15 dk\n`;
+    s += `${sep}\n`;
+    s += `NOT: Bu görüşme takdir ve ileri gelişim odaklıdır. Hesap soran\n`;
+    s += `     bir ton kullanılmaz. Y: Yönetici  |  P: Personel\n\n`;
+
+    s += `${sep}\n`;
+    s += `BÖLÜM 1 — TAKDİR VE PERFORMANS PAYLAŞIMI\n`;
+    s += `${sep}\n\n`;
+
+    s += `Y: "${firstName}, seninle bu döneme ait verileri paylaşmak istedim çünkü\n`;
+    s += `   gerçekten etkileyici bir performans sergiliyorsun.\n`;
+    s += `   ${totalChats} chat inceledim, ortalaman ${avgScore}/100 — bu son derece güçlü bir sonuç.\n`;
+    s += `   Bu skoru nasıl tutturduğunu merak ediyorum, bana anlat."\n\n`;
+    s += `P: [Yaklaşımını, alışkanlıklarını paylaşır]\n\n`;
+    s += `Y: "Bunu duymak çok değerli. Özellikle tutarlılığın dikkat çekici —\n`;
+    s += `   sadece birkaç iyi chat değil, dönem boyunca bu kaliteyi korumuşsun.\n`;
+    s += `   Takımımız için gerçek bir referans noktasısın."\n\n`;
+
+    if (criticals.length > 0 || improvements.length > 0) {
+      s += `${sep}\n`;
+      s += `BÖLÜM 2 — GELİŞİM FIRSATLARI (Küçük notlar)\n`;
+      s += `${sep}\n\n`;
+
+      s += `Y: "Sana küçük bir gözlemimi de aktarmak istiyorum — bu eleştiri değil,\n`;
+      s += `   zaten mükemmel olan bir performansı nasıl daha da ileriye taşıyabiliriz diye.\n`;
+      s += `   İstersen birlikte bakalım mı?"\n\n`;
+      s += `P: [Merakla kabul eder]\n\n`;
+
+      const allIssues = [...criticals, ...improvements];
+      allIssues.slice(0, 2).forEach((issue, idx) => {
+        s += `${thin}\n`;
+        s += `NOT ${idx + 1}: ${issue.text}\n`;
+        s += `${thin}\n\n`;
+        s += `Y: "Bazı chatlerde ${issue.text.toLowerCase()} konusunda küçük bir not düşülmüş.\n`;
+        if (issue.evidences.length > 0) {
+          const ev = issue.evidences[0];
+          s += `   Örnek: ${formatDate(ev.date)} tarihli Chat #${shortChatId(ev.chatId)}, skor ${ev.score}/100.\n`;
+        }
+        s += `   ${issue.correctApproach}\n`;
+        s += `   Bu senin için zaten kolay bir düzeltme olur — nasıl yaklaşırsın?"\n\n`;
+        s += `P: [Görüşünü paylaşır]\n\n`;
+      });
+    }
+
+    s += `${sep}\n`;
+    s += `BÖLÜM 3 — MENTORLUK VE TAKIM KATKI FIRSATI\n`;
+    s += `${sep}\n\n`;
+
+    s += `Y: "Senden bir şey talep etmek istiyorum: takım içinde bu başarını\n`;
+    s += `   paylaşabilir misin? Yeni arkadaşlarımıza chat kalitesi konusunda\n`;
+    s += `   örnek olman çok değerli olurdu.\n`;
+    s += `   Bunu nasıl yapabileceğimizi birlikte düşünelim."\n\n`;
+    s += `P: [Fikirlerini paylaşır]\n\n`;
+    s += `Y: "Takımımızda sana güveniyorum. Bu performansını sürdür,\n`;
+    s += `   ihtiyaç duyduğunda her zaman buraya gel."\n\n`;
+    s += `P: [Teşekkür eder]\n\n`;
+
+    s += `${sep}\n`;
+    s += `NOTLAR\n`;
+    s += `${sep}\n\n`;
+    s += `Yönetici:   _______________________   Tarih: ${today}\n`;
+    s += `Personel:   _______________________   Tarih: ${today}\n`;
+
+    return s;
+  }
 
   if (isRepeat) {
     let s = `YÖNETİCİ–PERSONEL GÖRÜŞME SENARYOSU — TAKİP GÖRÜŞMESİ\n`;
@@ -656,6 +735,7 @@ export default function CoachingCenter() {
         });
 
         improvementAreas.forEach(area => {
+          if (score >= 70) return;
           const key = area.trim().toLowerCase();
           if (!key || key.length < 5) return;
           if (!agent.issueEvidenceMap.has(key)) {
@@ -676,6 +756,9 @@ export default function CoachingCenter() {
           : 0;
         const negativeSentimentCount = agent.sentiments.filter(s => s === 'negative').length;
 
+        const minImprovementRepeat = avgScore >= 90 ? Infinity : avgScore >= 70 ? 3 : 2;
+        const minCriticalRepeat = avgScore >= 70 ? 2 : 1;
+
         const evidencedIssues: EvidencedIssue[] = Array.from(agent.issueEvidenceMap.entries())
           .map(([text, data]) => ({
             text: text.charAt(0).toUpperCase() + text.slice(1),
@@ -684,6 +767,10 @@ export default function CoachingCenter() {
             evidences: data.evidences.sort((a, b) => a.score - b.score),
             correctApproach: deriveCorrectApproach(text),
           }))
+          .filter(issue => {
+            if (issue.type === 'critical') return issue.count >= minCriticalRepeat;
+            return issue.count >= minImprovementRepeat;
+          })
           .sort((a, b) => {
             if (a.type !== b.type) return a.type === 'critical' ? -1 : 1;
             return b.count - a.count;
@@ -964,7 +1051,7 @@ export default function CoachingCenter() {
             const lastCoachingDate = coachingHistory.get(agent.agentName);
             const isSentToday = lastCoachingDate ? new Date(lastCoachingDate).toDateString() === todayStr : false;
             const wasCoachedBefore = !!lastCoachingDate && !isSentToday;
-            const isRepeatCoaching = wasCoachedBefore && agent.evidencedIssues.length > 0;
+            const isRepeatCoaching = wasCoachedBefore && agent.evidencedIssues.length > 0 && agent.urgency !== 'excellent' && agent.urgency !== 'low';
             const hasImproved = wasCoachedBefore && agent.evidencedIssues.length === 0;
             const activeScript = isExpanded
               ? buildDetailedScript(agent.agentName, agent.evidencedIssues, agent.avgScore, agent.totalChats, dateRange, agent.lowestScoringChats, agent.actionItems, isRepeatCoaching)
