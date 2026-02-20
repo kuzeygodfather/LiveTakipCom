@@ -487,17 +487,23 @@ export default function PersonnelAnalytics() {
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm text-slate-400">{person.total_chats} chat</span>
                         <div className="flex flex-col items-end gap-0.5">
-                          <div className="flex items-center gap-1.5">
-                            {person.total_chats < 30 && (
-                              <span className="text-amber-400/70" title="30'dan az chat — skor henüz netleşmemiş olabilir">
-                                <AlertTriangle className="w-3 h-3" />
+                          {person.total_chats < 30 ? (
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold text-amber-300 bg-amber-500/15 border border-amber-500/25">
+                                Değerlendirmede
                               </span>
-                            )}
-                            <span className={`px-2.5 py-0.5 rounded-md text-sm font-bold ${performance.color}`}>
-                              {Math.round(parseScore(adjustedScore))}/100
-                            </span>
-                          </div>
-                          {person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
+                              <span className="text-xs text-slate-500">
+                                {Math.round(parseScore(adjustedScore))}/100 (erken)
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1.5">
+                              <span className={`px-2.5 py-0.5 rounded-md text-sm font-bold ${performance.color}`}>
+                                {Math.round(parseScore(adjustedScore))}/100
+                              </span>
+                            </div>
+                          )}
+                          {person.total_chats >= 30 && person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
                             <span className="text-xs text-slate-500" title="Ham ortalama skor">
                               ham: {Math.round(parseScore(person.average_score))}
                             </span>
@@ -612,14 +618,20 @@ export default function PersonnelAnalytics() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).color}`}>
-                      {getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).label}
-                    </div>
-                    {selectedPersonnel.total_chats < 30 && (
-                      <span className="text-xs text-amber-400/70 flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        Az veri
-                      </span>
+                    {selectedPersonnel.total_chats < 30 ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="px-4 py-2 rounded-lg font-bold text-amber-300 bg-amber-500/15 border border-amber-500/25">
+                          Değerlendirme Aşamasında
+                        </div>
+                        <span className="text-xs text-amber-400/70 flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          30 chat tamamlandığında netleşir
+                        </span>
+                      </div>
+                    ) : (
+                      <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).color}`}>
+                        {getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).label}
+                      </div>
                     )}
                   </div>
                 </div>
