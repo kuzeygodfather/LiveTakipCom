@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { maskName } from '../lib/utils';
+import { maskName, getIstanbulDateStartUTC, formatDateInIstanbulTimezone } from '../lib/utils';
 import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff, X, ChevronDown, ChevronUp, Lightbulb, Calendar } from 'lucide-react';
 import type { Personnel } from '../types';
 import { useNotification } from '../lib/notifications';
@@ -331,9 +331,7 @@ export default function PersonnelAnalytics() {
 
   const loadPeriodChats = async (days: number) => {
     try {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoffStr = cutoffDate.toISOString().split('T')[0];
+      const cutoffStr = formatDateInIstanbulTimezone(getIstanbulDateStartUTC(days - 1));
 
       const { data, error } = await supabase
         .from('personnel_daily_stats')
@@ -359,9 +357,7 @@ export default function PersonnelAnalytics() {
 
   const loadPersonnelDetails = async (personnelName: string, days = 30) => {
     try {
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - days);
-      const cutoffStr = cutoffDate.toISOString().split('T')[0];
+      const cutoffStr = formatDateInIstanbulTimezone(getIstanbulDateStartUTC(days - 1));
 
       const { data, error } = await supabase
         .from('personnel_daily_stats')
