@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName } from '../lib/utils';
-import { MessageSquare, User, Calendar, Clock, Filter, Search, AlertCircle, CheckCircle, X, ThumbsUp, ThumbsDown, MessageCircle } from 'lucide-react';
+import { MessageSquare, User, Calendar, Clock, Filter, Search, AlertCircle, CheckCircle, X, ThumbsUp, ThumbsDown, MessageCircle, ChevronDown, ChevronUp, RotateCcw, SlidersHorizontal } from 'lucide-react';
 
 interface Chat {
   id: string;
@@ -48,7 +48,7 @@ export default function ChatList() {
   const [dateTo, setDateTo] = useState<string>('');
 
   const [agents, setAgents] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [hoveredStat, setHoveredStat] = useState<string | null>(null);
 
   // Helper: Convert UTC date to Istanbul timezone date string
@@ -299,171 +299,224 @@ export default function ChatList() {
       </div>
 
       {/* Filters Section */}
-      <div className="glass-effect rounded-xl shadow-lg p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-slate-600" />
-            <h2 className="text-lg font-semibold text-white">Filtreler</h2>
+      <div className="glass-effect rounded-xl border border-slate-700/50 overflow-hidden">
+        {/* Filter Header */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-700/20 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
+              <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
+            </div>
+            <span className="text-base font-semibold text-white">Filtreler</span>
+            {(statusFilter !== 'all' || agentFilter || analyzedFilter !== 'all' || ratingFilter !== 'all' || missedFilter || dateFrom || dateTo || searchQuery) && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                {[statusFilter !== 'all', !!agentFilter, analyzedFilter !== 'all', ratingFilter !== 'all', missedFilter, !!dateFrom || !!dateTo, !!searchQuery].filter(Boolean).length} aktif
+              </span>
+            )}
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-          >
-            {showFilters ? 'Gizle' : 'Göster'}
-          </button>
-        </div>
+          {showFilters ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        </button>
 
         {showFilters && (
-          <div className="space-y-4">
+          <div className="px-5 pb-5 space-y-5 border-t border-slate-700/50">
             {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-slate-200 mb-2">Ara</label>
+            <div className="pt-5">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-200" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Chat ID, müşteri veya temsilci adı..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600 text-white placeholder-slate-400 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                  placeholder="Chat ID, müşteri veya temsilci adı ara..."
+                  className="w-full pl-11 pr-10 py-3 bg-slate-800/60 border border-slate-600/60 text-white placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm transition-all"
                 />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Status Filter */}
+            {/* Row 1: Status + Analyzed */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">Durum</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                >
-                  <option value="all">Tümü</option>
-                  <option value="active">Aktif</option>
-                  <option value="archived">Arşiv</option>
-                </select>
-              </div>
-
-              {/* Agent Filter */}
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">Temsilci</label>
-                <select
-                  value={agentFilter}
-                  onChange={(e) => setAgentFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                >
-                  <option value="">Tümü</option>
-                  {agents.map(agent => (
-                    <option key={agent} value={agent}>{agent}</option>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Durum</label>
+                <div className="flex gap-1.5 p-1 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                  {[
+                    { value: 'all', label: 'Tümü' },
+                    { value: 'active', label: 'Aktif' },
+                    { value: 'archived', label: 'Arşiv' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setStatusFilter(opt.value)}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        statusFilter === opt.value
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40 border border-transparent'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
-              {/* Analyzed Filter */}
+              {/* Analyzed */}
               <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">Analiz Durumu</label>
-                <select
-                  value={analyzedFilter}
-                  onChange={(e) => setAnalyzedFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                >
-                  <option value="all">Tümü</option>
-                  <option value="analyzed">Analiz Edildi</option>
-                  <option value="not_analyzed">Analiz Edilmedi</option>
-                </select>
-              </div>
-
-              {/* Rating Filter */}
-              <div>
-                <label className="block text-sm font-medium text-slate-200 mb-2">Müşteri Değerlendirmesi</label>
-                <select
-                  value={ratingFilter}
-                  onChange={(e) => setRatingFilter(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                >
-                  <option value="all">Tümü</option>
-                  <option value="like">👍 Beğenilen</option>
-                  <option value="dislike">👎 Beğenilmeyen</option>
-                  <option value="with_comment">💬 Yorumlu</option>
-                  <option value="not_rated">⚪ Değerlendirilmemiş</option>
-                </select>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Analiz Durumu</label>
+                <div className="flex gap-1.5 p-1 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                  {[
+                    { value: 'all', label: 'Tümü' },
+                    { value: 'analyzed', label: 'Analiz Edildi' },
+                    { value: 'not_analyzed', label: 'Analiz Edilmedi' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setAnalyzedFilter(opt.value)}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        analyzedFilter === opt.value
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40 border border-transparent'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <label className="block text-sm font-medium text-slate-200">Tarih Araligi</label>
-                <span className="text-xs text-slate-100">Hizli Filtre:</span>
-                <button
-                  onClick={() => setQuickDateFilter('today')}
-                  className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                >
-                  Bugün
-                </button>
-                <button
-                  onClick={() => setQuickDateFilter('yesterday')}
-                  className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                >
-                  Dün
-                </button>
-                <button
-                  onClick={() => setQuickDateFilter('last7days')}
-                  className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                >
-                  Son 7 Gün
-                </button>
+            {/* Row 2: Rating + Agent */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Rating */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Müşteri Değerlendirmesi</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { value: 'all', label: 'Tümü', color: 'cyan' },
+                    { value: 'like', label: 'Beğenilen', color: 'emerald' },
+                    { value: 'dislike', label: 'Beğenilmeyen', color: 'rose' },
+                    { value: 'with_comment', label: 'Yorumlu', color: 'blue' },
+                    { value: 'not_rated', label: 'Değerlendirilmemiş', color: 'slate' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setRatingFilter(opt.value)}
+                      className={`py-2 px-3.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                        ratingFilter === opt.value
+                          ? opt.color === 'cyan' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                            : opt.color === 'emerald' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                            : opt.color === 'rose' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                            : opt.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/40'
+                            : 'bg-slate-600/40 text-slate-300 border-slate-500/40'
+                          : 'text-slate-400 border-slate-700/50 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-700/30'
+                      }`}
+                    >
+                      {opt.value === 'like' && <ThumbsUp className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />}
+                      {opt.value === 'dislike' && <ThumbsDown className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />}
+                      {opt.value === 'with_comment' && <MessageCircle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />}
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Date From */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-200 mb-2">Başlangıç Tarihi</label>
+
+              {/* Agent */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Temsilci</label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <select
+                    value={agentFilter}
+                    onChange={(e) => setAgentFilter(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-slate-600/60 text-white rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm appearance-none transition-all"
+                  >
+                    <option value="">Tüm Temsilciler</option>
+                    {agents.map(agent => (
+                      <option key={agent} value={agent}>{agent}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            {/* Date Range */}
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tarih Aralığı</label>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-500">Hızlı:</span>
+                  {[
+                    { key: 'today' as const, label: 'Bugün' },
+                    { key: 'yesterday' as const, label: 'Dün' },
+                    { key: 'last7days' as const, label: 'Son 7 Gün' },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setQuickDateFilter(key)}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-slate-700/60 border border-slate-600/50 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-cyan-500/10 transition-all duration-200 font-medium"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-slate-600/60 text-white rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm transition-all"
                   />
                 </div>
-
-                {/* Date To */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-200 mb-2">Bitiş Tarihi</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-slate-600/60 text-white rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm transition-all"
                   />
                 </div>
               </div>
               {(dateFrom || dateTo) && (
-                <p className="text-xs text-slate-600">
-                  Seçilen aralık: {dateFrom || '...'} ~ {dateTo || '...'} (00:00-23:59 İstanbul Saati)
+                <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  {dateFrom || '...'} — {dateTo || '...'} arası (İstanbul saatiyle 00:00–23:59)
                 </p>
               )}
             </div>
 
-            {/* Missed Chat Toggle */}
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="missedFilter"
-                checked={missedFilter}
-                onChange={(e) => setMissedFilter(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="missedFilter" className="text-sm font-medium text-slate-200">
-                Sadece kaçırılmış chatleri göster
-              </label>
-            </div>
+            {/* Bottom Row: Missed filter + Clear */}
+            <div className="flex items-center justify-between pt-1 border-t border-slate-700/40">
+              <button
+                onClick={() => setMissedFilter(!missedFilter)}
+                className={`flex items-center gap-3 group`}
+              >
+                <div className={`relative w-10 h-5.5 rounded-full transition-all duration-200 ${missedFilter ? 'bg-cyan-500' : 'bg-slate-600'}`} style={{height: '22px'}}>
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${missedFilter ? 'left-5' : 'left-0.5'}`} />
+                </div>
+                <span className={`text-sm font-medium transition-colors ${missedFilter ? 'text-cyan-300' : 'text-slate-400 group-hover:text-slate-200'}`}>
+                  Sadece kaçırılmış chatleri göster
+                </span>
+              </button>
 
-            <button
-              onClick={clearFilters}
-              className="text-sm text-slate-600 hover:text-white font-medium"
-            >
-              Filtreleri Temizle
-            </button>
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent hover:border-slate-600/50 transition-all duration-200"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Filtreleri Temizle
+              </button>
+            </div>
           </div>
         )}
       </div>
