@@ -453,103 +453,124 @@ export default function PersonnelAnalytics() {
                 avg_resolution_time: null,
                 total_chats_with_data: 0
               };
-              return (
-                <div
-                  key={person.id}
-                  onClick={() => setSelectedPersonnel(person)}
-                  className={`w-full text-left p-4 rounded-lg border transition-all cursor-pointer ${
-                    selectedPersonnel?.id === person.id
-                      ? 'border-blue-500 bg-blue-500/15'
-                      : 'border-white/10 hover:border-white/25 hover:bg-white/5'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-slate-400" />
-                      <span className="font-semibold text-white">{person.name}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-100 font-medium">
-                        {getTierLabel(person.reliability_tier)}
-                      </span>
-                      {(person.recurring_issues_count ?? 0) > 0 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openRecurringModal(person); }}
-                          className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2 py-0.5 rounded-full hover:bg-orange-500/20 transition-colors cursor-pointer"
-                        >
-                          <AlertTriangle className="w-3 h-3" />
-                          {person.recurring_issues_count} tekrar
-                        </button>
-                      )}
-                      {ratings.warning_chats.length > 0 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`); }}
-                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
-                        >
-                          <AlertTriangle className="w-3 h-3" />
-                          {ratings.warning_chats.length}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-slate-400">{person.total_chats} chat</span>
-                    <div className="flex items-center gap-1.5">
-                      {person.total_chats < 30 && (
-                        <span className="text-xs text-amber-400/80" title="30'dan az chat — skor henuz netlesmemis olabilir">
-                          <AlertTriangle className="w-3 h-3 inline" />
-                        </span>
-                      )}
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${performance.color}`}>
-                          {Math.round(parseScore(adjustedScore))}/100
-                        </span>
-                        {person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
-                          <span className="text-xs text-slate-500" title="Ham ortalama skor">
-                            ham: {Math.round(parseScore(person.average_score))}
-                          </span>
-                        )}
+              return (() => {
+                  const tierStyles: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+                    A: { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-400' },
+                    B: { bg: 'bg-cyan-500/15',    text: 'text-cyan-300',    border: 'border-cyan-500/30',    dot: 'bg-cyan-400' },
+                    C: { bg: 'bg-blue-500/15',    text: 'text-blue-300',    border: 'border-blue-500/30',    dot: 'bg-blue-400' },
+                    D: { bg: 'bg-amber-500/15',   text: 'text-amber-300',   border: 'border-amber-500/30',   dot: 'bg-amber-400' },
+                  };
+                  const ts = tierStyles[person.reliability_tier] ?? tierStyles['D'];
+                  return (
+                    <div
+                      key={person.id}
+                      onClick={() => setSelectedPersonnel(person)}
+                      className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
+                        selectedPersonnel?.id === person.id
+                          ? 'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/10'
+                          : 'border-white/8 hover:border-white/20 hover:bg-white/4'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-slate-700/60 border border-white/10 flex items-center justify-center flex-shrink-0">
+                            <User className="w-4 h-4 text-slate-300" />
+                          </div>
+                          <span className="font-semibold text-white truncate">{person.name}</span>
+                        </div>
+                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border flex-shrink-0 ${ts.bg} ${ts.text} ${ts.border}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${ts.dot}`} />
+                          {getTierLabel(person.reliability_tier)}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-slate-400">{person.total_chats} chat</span>
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="flex items-center gap-1.5">
+                            {person.total_chats < 30 && (
+                              <span className="text-amber-400/70" title="30'dan az chat — skor henüz netleşmemiş olabilir">
+                                <AlertTriangle className="w-3 h-3" />
+                              </span>
+                            )}
+                            <span className={`px-2.5 py-0.5 rounded-md text-sm font-bold ${performance.color}`}>
+                              {Math.round(parseScore(adjustedScore))}/100
+                            </span>
+                          </div>
+                          {person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
+                            <span className="text-xs text-slate-500" title="Ham ortalama skor">
+                              ham: {Math.round(parseScore(person.average_score))}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="bg-slate-800/40 rounded-lg px-3 py-1.5 text-center">
+                          <div className="text-xs text-slate-500 mb-0.5">İlk Yanıt</div>
+                          <div className="text-xs font-semibold text-slate-200">
+                            {ratings.avg_first_response_time !== null ? `${Math.floor(ratings.avg_first_response_time / 60)}dk` : '—'}
+                          </div>
+                        </div>
+                        <div className="bg-slate-800/40 rounded-lg px-3 py-1.5 text-center">
+                          <div className="text-xs text-slate-500 mb-0.5">Çözüm</div>
+                          <div className="text-xs font-semibold text-slate-200">
+                            {ratings.avg_resolution_time !== null ? `${Math.floor(ratings.avg_resolution_time / 60)}dk` : '—'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          {ratings.like_count > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`); }}
+                              className="flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                            >
+                              <ThumbsUp className="w-3 h-3" />
+                              <span>{ratings.like_count}</span>
+                            </button>
+                          )}
+                          {ratings.dislike_count > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`); }}
+                              className="flex items-center gap-1 text-xs text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                            >
+                              <ThumbsDown className="w-3 h-3" />
+                              <span>{ratings.dislike_count}</span>
+                            </button>
+                          )}
+                          {ratings.warning_chats.length > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openChatModal('warning', ratings.warning_chats, `${person.name} - Uyarı Alan Chatler`); }}
+                              className="flex items-center gap-1 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                            >
+                              <AlertTriangle className="w-3 h-3" />
+                              <span>{ratings.warning_chats.length}</span>
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {(person.recurring_issues_count ?? 0) > 0 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openRecurringModal(person); }}
+                              className="flex items-center gap-1 text-xs text-orange-400 bg-orange-500/10 border border-orange-500/25 px-2 py-0.5 rounded-full hover:bg-orange-500/20 transition-colors cursor-pointer"
+                            >
+                              <AlertTriangle className="w-3 h-3" />
+                              {person.recurring_issues_count} tekrar
+                            </button>
+                          )}
+                          {ratings.missed_count > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-orange-500 bg-orange-500/10 border border-orange-500/20 px-2 py-0.5 rounded-full">
+                              <PhoneOff className="w-3 h-3" />
+                              <span>{ratings.missed_count} kaçan</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs mb-2">
-                    <span className="text-slate-100">
-                      İlk Yanıt: {ratings.avg_first_response_time !== null ? `${Math.floor(ratings.avg_first_response_time / 60)}dk` : 'N/A'}
-                    </span>
-                    <span className="text-slate-100">
-                      Çözüm: {ratings.avg_resolution_time !== null ? `${Math.floor(ratings.avg_resolution_time / 60)}dk` : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-3">
-                      {ratings.like_count > 0 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openChatModal('like', ratings.liked_chats, `${person.name} - Beğenilen Chatler`); }}
-                          className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
-                        >
-                          <ThumbsUp className="w-3 h-3" />
-                          <span>{ratings.like_count}</span>
-                        </button>
-                      )}
-                      {ratings.dislike_count > 0 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); openChatModal('dislike', ratings.disliked_chats, `${person.name} - Beğenilmeyen Chatler`); }}
-                          className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/15 px-2 py-1 rounded transition-colors cursor-pointer"
-                        >
-                          <ThumbsDown className="w-3 h-3" />
-                          <span>{ratings.dislike_count}</span>
-                        </button>
-                      )}
-                    </div>
-                    {ratings.missed_count > 0 && (
-                      <div className="flex items-center gap-1 text-orange-600">
-                        <PhoneOff className="w-3 h-3" />
-                        <span>{ratings.missed_count} kaçan</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
+                  );
+                })();
             })}
           </div>
         </div>
