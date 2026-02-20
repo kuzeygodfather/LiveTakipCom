@@ -1153,27 +1153,39 @@ export default function CoachingCenter() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-sm text-slate-400">Filtre:</span>
-        {(['all', 'high', 'insufficient_activity', 'medium', 'low', 'excellent'] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setFilterUrgency(f)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all duration-200 ${
-              filterUrgency === f
-                ? f === 'all' ? 'bg-slate-600 text-white border-slate-500'
-                  : f === 'high' ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
-                  : f === 'insufficient_activity' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50'
-                  : f === 'medium' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
-                  : f === 'low' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
-                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
-                : 'text-slate-400 border-slate-700/50 hover:border-slate-600'
-            }`}
-          >
-            {f === 'all' ? 'Tümü' : URGENCY_LABELS[f]}
-            {f !== 'all' && <span className="ml-1.5 opacity-60">({summaryStats[f]})</span>}
-          </button>
-        ))}
+      <div className="glass-effect rounded-xl border border-slate-700/50 p-1.5">
+        <div className="flex items-center gap-1 flex-wrap">
+          {([
+            { key: 'all', label: 'Tümü', icon: null, active: 'bg-slate-600/80 text-white border-slate-500/60 shadow-sm', inactive: 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40' },
+            { key: 'high', label: 'Acil', icon: <AlertTriangle className="w-3.5 h-3.5" />, active: 'bg-rose-500/25 text-rose-300 border-rose-500/50 shadow-rose-500/10 shadow-sm', inactive: 'text-slate-400 hover:text-rose-300 hover:bg-rose-500/10' },
+            { key: 'insufficient_activity', label: 'Düşük Aktivite', icon: <BarChart2 className="w-3.5 h-3.5" />, active: 'bg-orange-500/25 text-orange-300 border-orange-500/50 shadow-orange-500/10 shadow-sm', inactive: 'text-slate-400 hover:text-orange-300 hover:bg-orange-500/10' },
+            { key: 'medium', label: 'Orta', icon: <Target className="w-3.5 h-3.5" />, active: 'bg-amber-500/25 text-amber-300 border-amber-500/50 shadow-amber-500/10 shadow-sm', inactive: 'text-slate-400 hover:text-amber-300 hover:bg-amber-500/10' },
+            { key: 'low', label: 'İyi', icon: <TrendingUp className="w-3.5 h-3.5" />, active: 'bg-cyan-500/25 text-cyan-300 border-cyan-500/50 shadow-cyan-500/10 shadow-sm', inactive: 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10' },
+            { key: 'excellent', label: 'Mükemmel', icon: <Star className="w-3.5 h-3.5" />, active: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/50 shadow-emerald-500/10 shadow-sm', inactive: 'text-slate-400 hover:text-emerald-300 hover:bg-emerald-500/10' },
+          ] as const).map(({ key, label, icon, active, inactive }) => {
+            const isActive = filterUrgency === key;
+            const count = key !== 'all' ? (summaryStats as Record<string, number>)[key] ?? 0 : summaryStats.totalAgents;
+            return (
+              <button
+                key={key}
+                onClick={() => setFilterUrgency(key)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                  isActive
+                    ? `${active} border`
+                    : `${inactive} border-transparent`
+                }`}
+              >
+                {icon}
+                <span>{label}</span>
+                <span className={`ml-0.5 min-w-[1.4rem] text-center px-1.5 py-0.5 rounded-md text-xs font-bold ${
+                  isActive ? 'bg-white/15' : 'bg-slate-700/60 text-slate-400'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {loading ? (
