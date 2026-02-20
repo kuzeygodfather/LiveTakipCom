@@ -21,6 +21,7 @@ export interface Personnel {
   weak_topics: any[];
   reliability_tier?: string;
   confidence_level?: number | string;
+  adjusted_score?: number | string;
   created_at: string;
   updated_at: string;
 }

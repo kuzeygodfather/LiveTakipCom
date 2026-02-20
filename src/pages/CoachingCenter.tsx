@@ -597,8 +597,10 @@ function buildDetailedScript(
   return s;
 }
 
-function determineUrgency(avgScore: number): 'high' | 'medium' | 'low' | 'excellent' {
-  if (avgScore >= 90) return 'excellent';
+const MENTOR_MIN_CHATS = 30;
+
+function determineUrgency(avgScore: number, totalChats: number): 'high' | 'medium' | 'low' | 'excellent' {
+  if (avgScore >= 90) return totalChats >= MENTOR_MIN_CHATS ? 'excellent' : 'low';
   if (avgScore >= 70) return 'low';
   if (avgScore >= 60) return 'medium';
   return 'high';
@@ -805,7 +807,7 @@ export default function CoachingCenter() {
           })
           .slice(0, 10);
 
-        const urgency = determineUrgency(avgScore);
+        const urgency = determineUrgency(avgScore, agent.scores.length);
 
         const sortedByScore = [...agent.scores].sort((a, b) => a.score - b.score);
         const lowestScoringChats: ChatEvidence[] = sortedByScore.slice(0, 3).map(s => {

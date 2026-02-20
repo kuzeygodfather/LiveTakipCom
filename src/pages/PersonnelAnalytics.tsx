@@ -82,7 +82,7 @@ export default function PersonnelAnalytics() {
           .from('personnel')
           .select('*')
           .neq('name', 'Unknown')
-          .order('average_score', { ascending: false })
+          .order('adjusted_score', { ascending: false })
           .range(from, from + batchSize - 1);
 
         if (error) {
@@ -440,8 +440,8 @@ export default function PersonnelAnalytics() {
           <h2 className="text-lg font-bold text-white mb-4">Personel Listesi</h2>
           <div className="space-y-2">
             {personnel.map((person) => {
-              const statScore = person.average_score;
-              const performance = getPerformanceLevel(statScore);
+              const adjustedScore = person.adjusted_score ?? person.average_score;
+              const performance = getPerformanceLevel(adjustedScore);
               const ratings = ratingInfo[person.name] || {
                 like_count: 0,
                 dislike_count: 0,
@@ -495,14 +495,21 @@ export default function PersonnelAnalytics() {
                   <div className="flex items-center justify-between text-sm mb-2">
                     <span className="text-slate-400">{person.total_chats} chat</span>
                     <div className="flex items-center gap-1.5">
-                      {person.total_chats < 10 && (
-                        <span className="text-xs text-amber-400/80" title="Az sayida chat — skor guvenilirligi dusuk olabilir">
+                      {person.total_chats < 30 && (
+                        <span className="text-xs text-amber-400/80" title="30'dan az chat — skor henuz netlesmemis olabilir">
                           <AlertTriangle className="w-3 h-3 inline" />
                         </span>
                       )}
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${performance.color}`}>
-                        {Math.round(parseScore(statScore))}/100
-                      </span>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${performance.color}`}>
+                          {Math.round(parseScore(adjustedScore))}/100
+                        </span>
+                        {person.adjusted_score !== undefined && Math.abs(parseScore(person.adjusted_score) - parseScore(person.average_score)) >= 1 && (
+                          <span className="text-xs text-slate-500" title="Ham ortalama skor">
+                            ham: {Math.round(parseScore(person.average_score))}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-xs mb-2">
@@ -570,8 +577,16 @@ export default function PersonnelAnalytics() {
                       <span>AI skoru — rehber amaclidir, nihai karar icin insan gozetimi gerekir</span>
                     </div>
                   </div>
-                  <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.average_score).color}`}>
-                    {getPerformanceLevel(selectedPersonnel.average_score).label}
+                  <div className="flex flex-col items-end gap-1">
+                    <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).color}`}>
+                      {getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).label}
+                    </div>
+                    {selectedPersonnel.total_chats < 30 && (
+                      <span className="text-xs text-amber-400/70 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Az veri
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -580,19 +595,26 @@ export default function PersonnelAnalytics() {
                     <div className="text-sm text-slate-400 mb-1">Toplam Chat</div>
                     <div className="text-2xl font-bold text-white">{selectedPersonnel.total_chats}</div>
                   </div>
-                  <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-400 mb-1">İstatistiksel Skor</div>
-                    <div className="text-2xl font-bold text-white">
-                      {Math.round(parseScore(selectedPersonnel.average_score))}/100
+                  <div className="bg-slate-800/30 p-4 rounded-lg border border-emerald-500/10">
+                    <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
+                      Güvenilir Skor
+                      <span className="text-xs text-slate-500" title="Bayesian düzeltme: az verili yüksek skor ortalamaya çekilir, çok veriyle güçlenir">?</span>
                     </div>
-                    <div className="text-xs text-slate-600 mt-1">{selectedPersonnel.total_chats} chat uzerinden</div>
+                    <div className={`text-2xl font-bold ${getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).color.split(' ')[0]}`}>
+                      {Math.round(parseScore(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score))}/100
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">{selectedPersonnel.total_chats} chat · güven düzeltmeli</div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg">
                     <div className="text-sm text-slate-400 mb-1">Ham Skor</div>
                     <div className="text-xl font-bold text-white">
                       {Math.round(parseScore(selectedPersonnel.average_score))}/100
                     </div>
-                    <div className="text-xs text-slate-600 mt-1">Ceza oncesi</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      {selectedPersonnel.adjusted_score !== undefined && Math.abs(parseScore(selectedPersonnel.adjusted_score) - parseScore(selectedPersonnel.average_score)) >= 1
+                        ? `${parseScore(selectedPersonnel.adjusted_score) < parseScore(selectedPersonnel.average_score) ? '↓' : '↑'} ${Math.abs(Math.round(parseScore(selectedPersonnel.adjusted_score) - parseScore(selectedPersonnel.average_score)))} puan güven düzeltmesi`
+                        : 'Düzeltme yok'}
+                    </div>
                   </div>
                   <button
                     onClick={() => {

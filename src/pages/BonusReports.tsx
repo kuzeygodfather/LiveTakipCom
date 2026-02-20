@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History, Download, X, FileText, AlertTriangle, Info } from 'lucide-react';
+import { Calculator, Calendar, TrendingUp, Users, DollarSign, ChevronDown, ChevronUp, Save, History, Download, X, FileText, AlertTriangle, Info, ShieldAlert } from 'lucide-react';
 import { useNotification } from '../lib/notifications';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+
+const BONUS_MIN_CHATS = 20;
 
 interface BonusCalculation {
   id: string;
@@ -614,13 +616,25 @@ export default function BonusReports() {
                         {calc.total_bonus_amount >= 0 ? '+' : ''}{calc.total_bonus_amount.toLocaleString('tr-TR')} TL
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                      {calc.metrics_snapshot?.total_chats || 0}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-slate-400">{calc.metrics_snapshot?.total_chats || 0}</span>
+                        {(calc.metrics_snapshot?.total_chats || 0) < BONUS_MIN_CHATS && (
+                          <span title={`Yetersiz veri: ${BONUS_MIN_CHATS} chat gerekli`} className="text-amber-400">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
-                        {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
+                          {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
+                        </span>
+                        {(calc.metrics_snapshot?.total_chats || 0) < BONUS_MIN_CHATS && (
+                          <span className="text-xs text-amber-400/70 px-1">Az veri</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 text-xs font-medium rounded-full bg-white/10 text-slate-300 border border-white/10">
@@ -662,13 +676,19 @@ export default function BonusReports() {
                     {calc.total_bonus_amount >= 0 ? '+' : ''}{calc.total_bonus_amount.toLocaleString('tr-TR')} TL
                   </span>
                 </div>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
                   <span className="px-3 py-1 text-sm font-semibold rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/20">
                     Skor: {calc.metrics_snapshot?.avg_score?.toFixed(1) || '0.0'}
                   </span>
                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-white/10 text-slate-300 border border-white/10">
                     {calc.calculation_details?.length || 0} kural
                   </span>
+                  {(calc.metrics_snapshot?.total_chats || 0) < BONUS_MIN_CHATS && (
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      Az veri ({calc.metrics_snapshot?.total_chats || 0}/{BONUS_MIN_CHATS})
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={(e) => handlePersonnelClick(calc, e)}
@@ -736,6 +756,20 @@ export default function BonusReports() {
                   </div>
                 </div>
               </div>
+
+              {(selectedRecord.metrics_snapshot?.total_chats || 0) < BONUS_MIN_CHATS && (
+                <div className="mb-6 flex items-start gap-3 p-4 bg-amber-500/8 border border-amber-500/25 rounded-xl">
+                  <ShieldAlert className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-amber-300">Yetersiz Veri Uyarısı</p>
+                    <p className="text-xs text-amber-400/70 mt-0.5">
+                      Bu personelin dönem içinde yalnızca <strong>{selectedRecord.metrics_snapshot?.total_chats || 0} chat</strong> kaydı var.
+                      Güvenilir bir skor için en az <strong>{BONUS_MIN_CHATS} chat</strong> gereklidir.
+                      Prim kararı verilmeden önce yönetici doğrulaması önerilir.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">

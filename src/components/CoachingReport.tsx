@@ -1045,6 +1045,7 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
                     {bonusAgents.length > 0 && (
                       <> Toplam <strong className="text-emerald-400">₺{totalBonus.toLocaleString('tr-TR')}</strong> bonus tahakkuk etmesi, performans ödüllendirme sisteminin çalıştığını göstermektedir.</>
                     )}
+                    {' '}<span className="text-xs text-slate-500">(Mentör önerileri en az 30 analiz edilmiş görüşmesi olan personele aittir.)</span>
                   </p>
                 </div>
               </div>
@@ -1075,7 +1076,7 @@ export default function CoachingReport({ coachingData, coachingHistory, dateRang
                   excellentCount > 0 && {
                     n: 4, color: 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30',
                     title: 'Mentorluk Programı Başlatın',
-                    text: `${coachingData.filter(a => a.urgency === 'excellent').map(a => a.agentName).join(', ')} düşük puanlı personellerle eşleştirilerek haftalık peer-coaching seansları düzenlenebilir. Bu model hem üst performansı ödüllendirip hem de bilgi transferini organik biçimde sağlar.`,
+                    text: `${coachingData.filter(a => a.urgency === 'excellent').map(a => a.agentName).join(', ')} (en az 30 görüşmesiyle doğrulanmış yüksek performans) düşük puanlı personellerle eşleştirilerek haftalık peer-coaching seansları düzenlenebilir. Bu model hem üst performansı ödüllendirip hem de bilgi transferini organik biçimde sağlar.`,
                   },
                   coachingRepeatAgents.length > 0 && {
                     n: 5, color: 'text-orange-400 bg-orange-500/15 border-orange-500/30',

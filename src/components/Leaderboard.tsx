@@ -144,7 +144,11 @@ function generateInsights(item: LeaderboardItem, type: 'top' | 'bottom', rank: n
       suggestions.push(`${chatCount} chati bu kaliteyle yönetmek etkileyici — yüksek hacim altında kaliteyi koruma becerisine sahipsin.`);
     }
 
-    suggestions.push('Deneyimini takım arkadaşlarınla paylaş — en iyi uygulamalarını mentor olarak aktarabilirsin.');
+    if (chatCount >= 30) {
+      suggestions.push('Deneyimini takım arkadaşlarınla paylaş — en iyi uygulamalarını mentor olarak aktarabilirsin.');
+    } else {
+      suggestions.push(`Henüz ${chatCount} görüşme var — skor netleşmekte. ${30 - chatCount} görüşme daha tamamlanınca mentör olma değerlendirilebilir.`);
+    }
 
     motivations.push('Liderlik tablosunda kalmak, sürekli gelişime bağlıdır — hiçbir zaman rahat etme.');
     if (rank === 0) motivations.push('Takımın en iyisisin — başkalarına ilham oluyorsun.');
