@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName, SCORE_TIERS, ScoreTierKey } from '../lib/utils';
-import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones, RotateCcw, AlertTriangle, Flag, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Filter, Eye, AlertCircle, MessageCircle, Calendar, BarChart3, X, RefreshCw, PlayCircle, Lightbulb, Sparkles, User, Headphones, RotateCcw, AlertTriangle, Flag, CheckCircle2, Clock, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Chat, ChatAnalysis, ChatMessage } from '../types';
 
 interface ChatWithAnalysis extends Chat {
@@ -31,11 +31,34 @@ export default function ChatAnalysisList() {
   const [flagReason, setFlagReason] = useState('');
   const [flagResolutionNote, setFlagResolutionNote] = useState('');
   const [flagging, setFlagging] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
 
   const getIstanbulDateBoundaries = (dateStr: string): { start: Date, end: Date } => {
     const istanbulDate = new Date(dateStr + 'T00:00:00+03:00');
     const istanbulDateEnd = new Date(dateStr + 'T23:59:59.999+03:00');
     return { start: istanbulDate, end: istanbulDateEnd };
+  };
+
+  const getIstanbulDateString = (date: Date): string => {
+    return date.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit' })
+      .split('.').reverse().join('-');
+  };
+
+  const setQuickDateFilter = (filter: 'today' | 'yesterday' | 'last7days') => {
+    const now = new Date();
+    const istanbulNow = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+    if (filter === 'today') {
+      const d = getIstanbulDateString(istanbulNow);
+      setDateFrom(d); setDateTo(d);
+    } else if (filter === 'yesterday') {
+      const y = new Date(istanbulNow); y.setDate(y.getDate() - 1);
+      const d = getIstanbulDateString(y);
+      setDateFrom(d); setDateTo(d);
+    } else {
+      const l = new Date(istanbulNow); l.setDate(l.getDate() - 7);
+      setDateFrom(getIstanbulDateString(l));
+      setDateTo(getIstanbulDateString(istanbulNow));
+    }
   };
 
   useEffect(() => { loadChats(); }, []);
@@ -543,104 +566,200 @@ export default function ChatAnalysisList() {
       </div>
 
       {/* Filters & List */}
-      <div className="glass-effect rounded-xl border border-white/10 p-4 sm:p-6">
-        <div className="flex flex-col gap-3 mb-6">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Chat ID, temsilci, müşteri adı veya mesaj içeriği ile ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-            />
-          </div>
-
-          {/* Date range */}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-[160px]">
-              <Calendar className="w-4 h-4 text-slate-500 flex-shrink-0" />
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors [color-scheme:dark]"
-              />
+      <div className="glass-effect rounded-xl border border-slate-700/50 overflow-hidden">
+        {/* Filter Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700/50">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-3 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
+              <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
             </div>
-            <div className="flex items-center gap-2 flex-1 min-w-[160px]">
-              <Calendar className="w-4 h-4 text-slate-500 flex-shrink-0" />
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors [color-scheme:dark]"
-              />
-            </div>
-          </div>
+            <span className="text-base font-semibold text-white">Filtreler</span>
+            {(filterStatus !== 'all' || filterSentiment !== 'all' || dateFrom || dateTo || searchTerm) && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                {[filterStatus !== 'all', filterSentiment !== 'all', !!dateFrom || !!dateTo, !!searchTerm].filter(Boolean).length} aktif
+              </span>
+            )}
+            {showFilters ? <ChevronUp className="w-4 h-4 text-slate-400 ml-1" /> : <ChevronDown className="w-4 h-4 text-slate-400 ml-1" />}
+          </button>
 
-          {/* Status, sentiment, actions */}
-          <div className="flex flex-wrap gap-2">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="flex-1 min-w-[140px] px-3 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
-            >
-              <option value="all">Tüm Durumlar</option>
-              <option value="analyzed">Analiz Edildi</option>
-              <option value="pending">Analiz Bekliyor</option>
-            </select>
-
-            <select
-              value={filterSentiment}
-              onChange={(e) => setFilterSentiment(e.target.value as any)}
-              className="flex-1 min-w-[140px] px-3 py-2.5 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50 transition-colors [color-scheme:dark]"
-            >
-              <option value="all">Tüm Kategoriler</option>
-              {SCORE_TIERS.map(tier => (
-                <option key={tier.key} value={tier.key}>{tier.label} ({tier.min}–{tier.max})</option>
-              ))}
-            </select>
-
-            <button
-              onClick={() => { setDateFrom(''); setDateTo(''); setFilterStatus('all'); setFilterSentiment('all'); setSearchTerm(''); }}
-              className="px-4 py-2.5 bg-white/5 border border-white/10 text-slate-300 rounded-lg hover:bg-white/10 transition-colors text-sm"
-            >
-              Temizle
-            </button>
-
+          {/* Action Buttons always visible */}
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <button
               onClick={loadChats}
-              className="px-4 py-2.5 bg-blue-600/80 border border-blue-500/50 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm flex items-center gap-1.5"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-blue-500/15 border border-blue-500/30 text-blue-300 hover:bg-blue-500/25 transition-all duration-200"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Yenile
             </button>
-
             <button
               onClick={startAnalysis}
               disabled={analyzing || reanalyzing}
-              className={`px-4 py-2.5 rounded-lg text-sm flex items-center gap-1.5 border transition-colors ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
                 analyzing
-                  ? 'bg-slate-700 border-slate-600 text-slate-400 cursor-not-allowed'
-                  : 'bg-cyan-600/80 border-cyan-500/50 text-white hover:bg-cyan-600'
+                  ? 'bg-slate-700/40 border-slate-600/40 text-slate-500 cursor-not-allowed'
+                  : 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25'
               }`}
             >
               <PlayCircle className="w-3.5 h-3.5" />
               {analyzing ? 'Analiz Ediliyor...' : 'Analiz Başlat'}
             </button>
-
             <button
               onClick={() => setShowReanalyzeConfirm(true)}
               disabled={analyzing || reanalyzing}
-              className="px-4 py-2.5 rounded-lg text-sm flex items-center gap-1.5 border transition-colors bg-amber-600/20 border-amber-500/40 text-amber-300 hover:bg-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Tümünü Yeniden Analiz Et
             </button>
           </div>
+        </div>
 
-          {showReanalyzeConfirm && (
+        {showFilters && (
+          <div className="px-5 pb-5 pt-5 space-y-5 border-b border-slate-700/50">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Chat ID, temsilci, müşteri adı veya mesaj içeriği ile ara..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-11 pr-10 py-3 bg-slate-800/60 border border-slate-600/60 text-white placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm transition-all"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Status + Sentiment (Categories) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Analiz Durumu</label>
+                <div className="flex gap-1.5 p-1 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                  {[
+                    { value: 'all', label: 'Tümü' },
+                    { value: 'analyzed', label: 'Analiz Edildi' },
+                    { value: 'pending', label: 'Bekliyor' },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setFilterStatus(opt.value as any)}
+                      className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filterStatus === opt.value
+                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/40 border border-transparent'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Kategori</label>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => setFilterSentiment('all')}
+                    className={`py-2 px-3.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                      filterSentiment === 'all'
+                        ? 'bg-slate-600/40 text-slate-200 border-slate-500/50'
+                        : 'text-slate-400 border-slate-700/50 hover:text-slate-200 hover:border-slate-600 hover:bg-slate-700/30'
+                    }`}
+                  >
+                    Tümü
+                  </button>
+                  {SCORE_TIERS.map(tier => (
+                    <button
+                      key={tier.key}
+                      onClick={() => setFilterSentiment(tier.key)}
+                      className={`py-2 px-3.5 rounded-lg text-sm font-medium border transition-all duration-200 ${
+                        filterSentiment === tier.key
+                          ? 'border-current shadow-sm'
+                          : 'text-slate-400 border-slate-700/50 hover:border-slate-600 hover:bg-slate-700/30'
+                      }`}
+                      style={filterSentiment === tier.key ? {
+                        color: tier.color,
+                        backgroundColor: `${tier.color}20`,
+                        borderColor: `${tier.color}50`,
+                      } : {}}
+                    >
+                      {tier.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Date Range */}
+            <div>
+              <div className="flex items-center justify-between mb-2.5">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tarih Aralığı</label>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-500">Hızlı:</span>
+                  {[
+                    { key: 'today' as const, label: 'Bugün' },
+                    { key: 'yesterday' as const, label: 'Dün' },
+                    { key: 'last7days' as const, label: 'Son 7 Gün' },
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setQuickDateFilter(key)}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-slate-700/60 border border-slate-600/50 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-cyan-500/10 transition-all duration-200 font-medium"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-slate-600/60 text-white rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm transition-all [color-scheme:dark]"
+                  />
+                </div>
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-800/60 border border-slate-600/60 text-white rounded-xl focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/60 text-sm transition-all [color-scheme:dark]"
+                  />
+                </div>
+              </div>
+              {(dateFrom || dateTo) && (
+                <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  {dateFrom || '...'} — {dateTo || '...'} arası (İstanbul saatiyle 00:00–23:59)
+                </p>
+              )}
+            </div>
+
+            {/* Clear button */}
+            <div className="flex justify-end pt-1 border-t border-slate-700/40">
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); setFilterStatus('all'); setFilterSentiment('all'); setSearchTerm(''); }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 border border-transparent hover:border-slate-600/50 transition-all duration-200"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Filtreleri Temizle
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showReanalyzeConfirm && (
+          <div className="px-5 py-4 border-b border-slate-700/50">
             <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
@@ -656,14 +775,19 @@ export default function ChatAnalysisList() {
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {analyzeStatus && (
-            <div className="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-lg text-sm">
+        {analyzeStatus && (
+          <div className="px-5 py-3 border-b border-slate-700/50">
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-lg text-sm flex items-center gap-2">
+              <RefreshCw className={`w-3.5 h-3.5 flex-shrink-0 ${analyzing || reanalyzing ? 'animate-spin' : ''}`} />
               {analyzeStatus}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        <div className="p-4 sm:p-6">
 
         {/* Chat list */}
         <div className="space-y-2">
@@ -727,6 +851,7 @@ export default function ChatAnalysisList() {
               </div>
             ))
           )}
+        </div>
         </div>
       </div>
 
