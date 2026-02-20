@@ -1,8 +1,135 @@
 import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter, Send, CheckCircle, TrendingUp, Users, Target } from 'lucide-react';
+import { Calendar, BarChart, MessageCircle, Lightbulb, AlertCircle, ChevronDown, ChevronUp, Loader2, Filter, Send, CheckCircle, TrendingUp, Users, Target, AlertTriangle, User, Headphones } from 'lucide-react';
 import { getIstanbulDateStartUTC, formatDateInIstanbulTimezone } from '../lib/utils';
 import { useNotification } from '../lib/notifications';
+
+
+interface DialogueLine { speaker: 'customer' | 'agent'; text: string; }
+
+function parseCoachingText(suggestion: string): {
+  anaSorun: string;
+  bullets: string[];
+  ornekCevap: string;
+  ornekDiyalog: DialogueLine[];
+  fallback: string;
+} {
+  if (!suggestion) return { anaSorun: '', bullets: [], ornekCevap: '', ornekDiyalog: [], fallback: '' };
+
+  const clean = (s: string) => s.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/^#+\s*/gm, '').trim();
+
+  let anaSorun = '';
+  let bullets: string[] = [];
+  let ornekCevap = '';
+  const ornekDiyalog: DialogueLine[] = [];
+
+  const sorunMatch = suggestion.match(/(?:\d+\.\s*)?(?:\*\*)?Ana Sorun(?:\*\*)?\s*:?\s*([\s\S]*?)(?=(?:\d+\.\s*)?(?:\*\*)?Yapılması|$)/i);
+  if (sorunMatch) anaSorun = clean(sorunMatch[1]).replace(/\s+/g, ' ').trim();
+
+  const yapMatch = suggestion.match(/(?:\d+\.\s*)?(?:\*\*)?Yapılması Gerekenler?(?:\*\*)?\s*:?\s*([\s\S]*?)(?=(?:\d+\.\s*)?(?:\*\*)?Örnek|$)/i);
+  if (yapMatch) {
+    bullets = yapMatch[1].split(/\n/).map(s => clean(s).replace(/^[-•]\s*/, '').trim()).filter(s => s.length > 5);
+  }
+
+  const cevapMatch = suggestion.match(/(?:\d+\.\s*)?(?:\*\*)?Örnek Cevap(?:\*\*)?\s*:?\s*"?([\s\S]*?)(?="?\s*(?:\d+\.\s*)?(?:\*\*)?Örnek Diyalog|\s*DIYALOG_BASLANGIC|$)/i);
+  if (cevapMatch) ornekCevap = clean(cevapMatch[1]).replace(/["]+$/, '').trim();
+
+  const diyalogMatch = suggestion.match(/DIYALOG_BASLANGIC([\s\S]*?)DIYALOG_BITIS/i);
+  if (diyalogMatch) {
+    const lines = diyalogMatch[1].split(/\n/).map(l => l.trim()).filter(Boolean);
+    for (const line of lines) {
+      const uyeMatch = line.match(/^(?:Üye|Müşteri|Kullanıcı)\s*:\s*(.*)/i);
+      const temsilciMatch = line.match(/^(?:Temsilci|Agent|Operatör)\s*:\s*(.*)/i);
+      if (uyeMatch) ornekDiyalog.push({ speaker: 'customer', text: clean(uyeMatch[1]) });
+      else if (temsilciMatch) ornekDiyalog.push({ speaker: 'agent', text: clean(temsilciMatch[1]) });
+    }
+  }
+
+  if (!anaSorun && bullets.length === 0 && !ornekCevap && ornekDiyalog.length === 0) {
+    return { anaSorun: '', bullets: [], ornekCevap: '', ornekDiyalog: [], fallback: clean(suggestion) };
+  }
+
+  return { anaSorun, bullets, ornekCevap, ornekDiyalog, fallback: '' };
+}
+
+function CoachingContent({ text }: { text: string }) {
+  const parsed = parseCoachingText(text);
+
+  if (parsed.fallback) {
+    return <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{parsed.fallback}</p>;
+  }
+
+  return (
+    <div className="space-y-4">
+      {parsed.anaSorun && (
+        <div className="flex gap-3 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20">
+          <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-[11px] font-semibold text-rose-400 uppercase tracking-wide mb-1">Tespit Edilen Sorun</p>
+            <p className="text-sm text-slate-200 leading-relaxed">{parsed.anaSorun}</p>
+          </div>
+        </div>
+      )}
+
+      {parsed.bullets.length > 0 && (
+        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <p className="text-[11px] font-semibold text-emerald-400 uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
+            <CheckCircle className="w-3.5 h-3.5" />
+            Yapılması Gerekenler
+          </p>
+          <ul className="space-y-1.5">
+            {parsed.bullets.map((b, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-slate-200 leading-relaxed">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/70 flex-shrink-0 mt-1.5" />
+                {b}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {parsed.ornekCevap && (
+        <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+          <p className="text-[11px] font-semibold text-cyan-400 uppercase tracking-wide mb-1.5">Örnek Yaklaşım</p>
+          <p className="text-sm text-slate-200 leading-relaxed italic border-l-2 border-cyan-500/40 pl-3">{parsed.ornekCevap}</p>
+        </div>
+      )}
+
+      {parsed.ornekDiyalog.length > 0 && (
+        <div className="rounded-xl bg-slate-800/60 border border-slate-700/50 overflow-hidden">
+          <div className="px-4 py-2.5 bg-slate-700/40 border-b border-slate-700/50 flex items-center gap-2">
+            <MessageCircle className="w-3.5 h-3.5 text-blue-400" />
+            <span className="text-[11px] font-semibold text-blue-400 uppercase tracking-wide">Örnek Diyalog</span>
+          </div>
+          <div className="p-4 space-y-3">
+            {parsed.ornekDiyalog.map((line, i) => (
+              <div key={i} className={`flex gap-2.5 ${line.speaker === 'agent' ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  line.speaker === 'customer' ? 'bg-slate-600/60 border border-slate-500/40' : 'bg-blue-600/30 border border-blue-500/40'
+                }`}>
+                  {line.speaker === 'customer'
+                    ? <User className="w-3.5 h-3.5 text-slate-300" />
+                    : <Headphones className="w-3.5 h-3.5 text-blue-400" />
+                  }
+                </div>
+                <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                  line.speaker === 'customer'
+                    ? 'bg-slate-700/60 text-slate-200 rounded-tl-sm'
+                    : 'bg-blue-600/20 text-blue-100 border border-blue-500/20 rounded-tr-sm'
+                }`}>
+                  <span className={`block text-[10px] font-semibold mb-1 ${line.speaker === 'customer' ? 'text-slate-400' : 'text-blue-400'}`}>
+                    {line.speaker === 'customer' ? 'Müşteri' : 'Temsilci'}
+                  </span>
+                  {line.text}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ReportData {
   daily: any[];
@@ -1425,11 +1552,7 @@ export default function Reports() {
                                 </div>
                               ) : chat.coaching ? (
                                 <>
-                                  <div className={`prose prose-sm max-w-none whitespace-pre-wrap leading-relaxed ${
-                                    chat.sent_feedback ? 'text-slate-200' : 'text-white'
-                                  }`}>
-                                    {chat.coaching}
-                                  </div>
+                                  <CoachingContent text={chat.coaching} />
                                   {chat.sent_feedback && (
                                     <div className="mt-4 pt-4 border-t border-emerald-500/25">
                                       <p className="text-sm text-emerald-400 flex items-center gap-2 font-medium">
