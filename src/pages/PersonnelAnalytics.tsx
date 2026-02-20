@@ -211,7 +211,7 @@ export default function PersonnelAnalytics() {
       const { error } = await supabase.rpc('recalculate_personnel_stats');
       if (error) throw error;
       await loadPersonnel();
-      if (selectedPersonnel) await loadPersonnelDetails(selectedPersonnel.name);
+      if (selectedPersonnel) await loadPersonnelDetails(selectedPersonnel.name, parseInt(dateRange));
       showSuccess('İstatistikler başarıyla yeniden hesaplandı!');
     } catch (error: any) {
       showError(`Hata: ${error.message || 'Bilinmeyen hata'}`);
@@ -728,7 +728,7 @@ export default function PersonnelAnalytics() {
                       Son {dateRange} Gün Günlük Performans
                     </h3>
                     <div className="space-y-2">
-                      {dailyStats.slice(0, parseInt(dateRange)).map((stat, i) => {
+                      {dailyStats.filter(stat => stat.date >= formatDateInIstanbulTimezone(getIstanbulDateStartUTC(parseInt(dateRange) - 1))).map((stat, i) => {
                         const ds = parseScore(stat.average_score);
                         const dc = getScoreColor(ds);
                         return (
