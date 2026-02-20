@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { maskName } from '../lib/utils';
-import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff, X, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
+import { User, TrendingUp, TrendingDown, AlertTriangle, Award, RefreshCw, ThumbsUp, ThumbsDown, PhoneOff, X, ChevronDown, ChevronUp, Lightbulb, Calendar } from 'lucide-react';
 import type { Personnel } from '../types';
 import { useNotification } from '../lib/notifications';
 import { Modal } from '../components/Modal';
+
+type DateRange = '7' | '14' | '30';
 
 interface RecurringIssue {
   chat_id: string;
@@ -37,6 +39,9 @@ export default function PersonnelAnalytics() {
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
   const [ratingInfo, setRatingInfo] = useState<Record<string, RatingInfo>>({});
+  const [dateRange, setDateRange] = useState<DateRange>('7');
+  const [periodChats, setPeriodChats] = useState<Record<string, number>>({});
+  const [teamAvgChats, setTeamAvgChats] = useState<number>(0);
   const [hoveredRating, setHoveredRating] = useState<{ personnel: string; type: string } | null>(null);
   const [recurringModal, setRecurringModal] = useState<{ isOpen: boolean; personnelName: string; issues: RecurringIssue[]; loading: boolean; expandedIndex: number | null }>({
     isOpen: false,
@@ -64,11 +69,16 @@ export default function PersonnelAnalytics() {
   }, []);
 
   useEffect(() => {
-    if (selectedPersonnel) {
-      console.log(`Selected personnel changed: ${selectedPersonnel.name}`);
-      loadPersonnelDetails(selectedPersonnel.name);
+    if (personnel.length > 0) {
+      loadPeriodChats(parseInt(dateRange));
     }
-  }, [selectedPersonnel?.name]);
+  }, [dateRange, personnel.length]);
+
+  useEffect(() => {
+    if (selectedPersonnel) {
+      loadPersonnelDetails(selectedPersonnel.name, parseInt(dateRange));
+    }
+  }, [selectedPersonnel?.name, dateRange]);
 
   const loadPersonnel = async () => {
     try {
@@ -319,22 +329,52 @@ export default function PersonnelAnalytics() {
     });
   };
 
-  const loadPersonnelDetails = async (personnelName: string) => {
+  const loadPeriodChats = async (days: number) => {
     try {
-      console.log(`Loading daily stats for ${personnelName}...`);
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+      const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
+      const { data, error } = await supabase
+        .from('personnel_daily_stats')
+        .select('personnel_name, total_chats')
+        .gte('date', cutoffStr);
+
+      if (error) throw error;
+
+      const chatMap: Record<string, number> = {};
+      for (const row of data || []) {
+        chatMap[row.personnel_name] = (chatMap[row.personnel_name] || 0) + row.total_chats;
+      }
+
+      setPeriodChats(chatMap);
+
+      const values = Object.values(chatMap).filter(v => v > 0);
+      const avg = values.length > 0 ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+      setTeamAvgChats(avg);
+    } catch (error) {
+      console.error('Error loading period chats:', error);
+    }
+  };
+
+  const loadPersonnelDetails = async (personnelName: string, days = 30) => {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - days);
+      const cutoffStr = cutoffDate.toISOString().split('T')[0];
+
       const { data, error } = await supabase
         .from('personnel_daily_stats')
         .select('*')
         .eq('personnel_name', personnelName)
-        .order('date', { ascending: false })
-        .limit(30);
+        .gte('date', cutoffStr)
+        .order('date', { ascending: false });
 
       if (error) {
         console.error('Error loading personnel details:', error);
         throw error;
       }
 
-      console.log(`Loaded ${data?.length || 0} daily stats records for ${personnelName}`);
       setDailyStats(data || []);
     } catch (error) {
       console.error('Error loading personnel details:', error);
@@ -437,7 +477,33 @@ export default function PersonnelAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 glass-effect rounded-xl shadow-lg p-4 sm:p-6 max-h-[60vh] lg:max-h-none overflow-y-auto">
-          <h2 className="text-lg font-bold text-white mb-4">Personel Listesi</h2>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold text-white">Personel Listesi</h2>
+            </div>
+            <div className="flex items-center gap-1.5 p-1 bg-slate-800/50 rounded-xl border border-white/8 mb-3">
+              {(['7', '14', '30'] as DateRange[]).map(d => (
+                <button
+                  key={d}
+                  onClick={() => setDateRange(d)}
+                  className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    dateRange === d
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Son {d}G
+                </button>
+              ))}
+            </div>
+            {teamAvgChats > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-800/40 border border-white/6 rounded-lg">
+                <Calendar className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                <span className="text-xs text-slate-500">Dönem ort. aktivite:</span>
+                <span className="text-xs font-semibold text-slate-300">~{teamAvgChats} chat</span>
+              </div>
+            )}
+          </div>
           <div className="space-y-2">
             {personnel.map((person) => {
               const adjustedScore = person.adjusted_score ?? person.average_score;
@@ -453,6 +519,10 @@ export default function PersonnelAnalytics() {
                 avg_resolution_time: null,
                 total_chats_with_data: 0
               };
+              const pCount = periodChats[person.name] ?? 0;
+              const lowActivityThreshold = teamAvgChats > 0 ? teamAvgChats * 0.5 : 0;
+              const isBelowAvg = teamAvgChats > 0 && pCount < teamAvgChats && pCount >= lowActivityThreshold;
+              const isUnderEval = teamAvgChats > 0 ? pCount < lowActivityThreshold : false;
               return (() => {
                   const tierStyles: Record<string, { bg: string; text: string; border: string; dot: string }> = {
                     A: { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-400' },
@@ -479,7 +549,9 @@ export default function PersonnelAnalytics() {
                             </div>
                             <div className="min-w-0">
                               <div className="font-semibold text-white text-sm truncate leading-tight">{person.name}</div>
-                              <div className="text-xs text-slate-500 leading-tight mt-0.5">{person.total_chats} chat</div>
+                              <div className="text-xs text-slate-500 leading-tight mt-0.5">
+                                {pCount > 0 ? `${pCount} chat (son ${dateRange}g)` : `${person.total_chats} chat (toplam)`}
+                              </div>
                             </div>
                           </div>
                           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${ts.bg} ${ts.text} ${ts.border}`}>
@@ -488,14 +560,16 @@ export default function PersonnelAnalytics() {
                           </div>
                         </div>
 
-                        {person.total_chats < 30 ? (
+                        {isUnderEval ? (
                           <div className="flex items-center gap-2.5 bg-amber-500/8 border border-amber-500/20 rounded-xl px-3 py-2.5 mb-4">
                             <div className="w-7 h-7 rounded-full bg-amber-500/15 flex items-center justify-center flex-shrink-0">
                               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="text-xs font-semibold text-amber-300 leading-tight">Değerlendirme Aşamasında</div>
-                              <div className="text-xs text-slate-500 leading-tight mt-0.5">30 chatte netleşir · şu an {Math.round(parseScore(adjustedScore))}/100</div>
+                              <div className="text-xs text-slate-500 leading-tight mt-0.5">
+                                Dönem ort. çok altında · {pCount} / ~{teamAvgChats} chat
+                              </div>
                             </div>
                           </div>
                         ) : (
@@ -523,6 +597,12 @@ export default function PersonnelAnalytics() {
                                 style={{ width: `${Math.min(100, Math.max(0, parseScore(adjustedScore)))}%` }}
                               />
                             </div>
+                            {isBelowAvg && (
+                              <div className="flex items-center gap-1.5 mt-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                                <span className="text-xs text-amber-400/80">Dönem ortalamasının altında aktivite</span>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -630,28 +710,48 @@ export default function PersonnelAnalytics() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    {selectedPersonnel.total_chats < 30 ? (
-                      <div className="flex flex-col items-end gap-1">
-                        <div className="px-4 py-2 rounded-lg font-bold text-amber-300 bg-amber-500/15 border border-amber-500/25">
-                          Değerlendirme Aşamasında
+                    {(() => {
+                      const spCount = periodChats[selectedPersonnel.name] ?? 0;
+                      const spLow = teamAvgChats > 0 ? teamAvgChats * 0.5 : 0;
+                      const spUnderEval = teamAvgChats > 0 && spCount < spLow;
+                      const spBelowAvg = teamAvgChats > 0 && spCount >= spLow && spCount < teamAvgChats;
+                      if (spUnderEval) {
+                        return (
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="px-4 py-2 rounded-lg font-bold text-amber-300 bg-amber-500/15 border border-amber-500/25">
+                              Değerlendirme Aşamasında
+                            </div>
+                            <span className="text-xs text-amber-400/70 flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Dönem ort. çok altında ({spCount} / ~{teamAvgChats} chat)
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="flex flex-col items-end gap-1.5">
+                          <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).color}`}>
+                            {getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).label}
+                          </div>
+                          {spBelowAvg && (
+                            <span className="text-xs text-amber-400/70 flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3" />
+                              Dönem ort. altında aktivite
+                            </span>
+                          )}
                         </div>
-                        <span className="text-xs text-amber-400/70 flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" />
-                          30 chat tamamlandığında netleşir
-                        </span>
-                      </div>
-                    ) : (
-                      <div className={`px-4 py-2 rounded-lg font-bold ${getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).color}`}>
-                        {getPerformanceLevel(selectedPersonnel.adjusted_score ?? selectedPersonnel.average_score).label}
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <div className="bg-slate-800/30 p-4 rounded-lg">
-                    <div className="text-sm text-slate-400 mb-1">Toplam Chat</div>
-                    <div className="text-2xl font-bold text-white">{selectedPersonnel.total_chats}</div>
+                    <div className="text-sm text-slate-400 mb-1">Son {dateRange} Gün</div>
+                    <div className="text-2xl font-bold text-white">
+                      {periodChats[selectedPersonnel.name] ?? 0}
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">Toplam: {selectedPersonnel.total_chats}</div>
                   </div>
                   <div className="bg-slate-800/30 p-4 rounded-lg border border-emerald-500/10">
                     <div className="text-sm text-slate-400 mb-1 flex items-center gap-1">
@@ -772,9 +872,9 @@ export default function PersonnelAnalytics() {
 
               {dailyStats.length > 0 && (
                 <div className="glass-effect rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-bold text-white mb-4">Son 30 Gün Performansı</h3>
+                  <h3 className="text-lg font-bold text-white mb-4">Son {dateRange} Gün Performansı</h3>
                   <div className="space-y-2">
-                    {dailyStats.slice(0, 10).map((stat) => (
+                    {dailyStats.slice(0, parseInt(dateRange)).map((stat) => (
                       <div key={stat.id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
                         <div className="flex items-center gap-4">
                           <span className="text-sm font-medium text-slate-200">
