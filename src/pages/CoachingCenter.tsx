@@ -48,9 +48,10 @@ interface AgentCoachingData {
   coachingScript: string;
   lastActivityDate: string;
   trend: 'up' | 'down' | 'stable';
-  urgency: 'high' | 'medium' | 'low' | 'excellent';
+  urgency: 'high' | 'medium' | 'low' | 'excellent' | 'insufficient_activity';
   lowestScoringChats: ChatEvidence[];
   actionItems: string[];
+  teamAvgChats: number;
 }
 
 interface SentFeedback {
@@ -64,6 +65,7 @@ const URGENCY_LABELS: Record<string, string> = {
   medium: 'Orta',
   low: 'İyi',
   excellent: 'Mükemmel',
+  insufficient_activity: 'Değerlendirme Aşamasında',
 };
 
 const URGENCY_COLORS: Record<string, string> = {
@@ -71,6 +73,7 @@ const URGENCY_COLORS: Record<string, string> = {
   medium: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
   low: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
   excellent: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+  insufficient_activity: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
 };
 
 function getScoreCategory(score: number): keyof ScoreBreakdown {
@@ -597,6 +600,97 @@ function buildDetailedScript(
   return s;
 }
 
+function buildActivityReviewScript(
+  agentName: string,
+  totalChats: number,
+  teamAvgChats: number,
+  dateRange: string,
+  avgScore: number
+): string {
+  const firstName = agentName.split(' ')[0];
+  const today = new Date().toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', year: 'numeric' });
+  const sep = '─'.repeat(62);
+
+  let s = `YÖNETİCİ–PERSONEL GÖRÜŞMESİ — AKTİVİTE DEĞERLENDİRME\n`;
+  s += `Tarih: ${today}  |  Personel: ${agentName}  |  Süre: ~15 dk\n`;
+  s += `${sep}\n`;
+  s += `NOT: Bu görüşme düşük aktivite odaklıdır. Skor güçlü görünse de\n`;
+  s += `     dönem içindeki chat hacmi ekip ortalamasının çok altında.\n`;
+  s += `     Y: Yönetici  |  P: Personel beklenen yanıt\n\n`;
+
+  s += `${sep}\n`;
+  s += `BÖLÜM 1 — AÇILIŞ\n`;
+  s += `${sep}\n\n`;
+
+  s += `Y: "${firstName}, seninle bu dönemdeki performans verisini paylaşmak istiyorum.\n`;
+  s += `   Skor performansın güçlü görünüyor — ${avgScore}/100. Bu olumlu bir tablo.\n`;
+  s += `   Ama dönem içinde ekip ortalamasının çok altında chat almışsın.\n`;
+  s += `   Bunu konuşmamız gerekiyor."\n\n`;
+
+  s += `P: [Dinliyor]\n\n`;
+
+  s += `Y: "Rakamları paylaşayım: Ekip ortalaması bu dönem ~${Math.round(teamAvgChats)} chat,\n`;
+  s += `   sen ${totalChats} chat almışsın. Bu fark benim için ciddi bir soru işareti.\n`;
+  s += `   Sana doğrudan sormam gerekiyor: Bu durumun sebebi nedir?"\n\n`;
+
+  s += `P: [Açıklar]\n\n`;
+
+  s += `${sep}\n`;
+  s += `BÖLÜM 2 — SORGULAMA\n`;
+  s += `${sep}\n\n`;
+
+  s += `Y: "Birkaç konu üzerinden gitmek istiyorum:\n\n`;
+  s += `   1. Vardiya düzenin nasıl? Bu dönemde izin, erken çıkış veya geç başlama var mıydı?"\n\n`;
+  s += `P: [Cevaplar]\n\n`;
+  s += `Y: "2. Teknik bir sorun yaşadın mı? Sistem kesintisi, bağlantı problemi veya\n`;
+  s += `   araç erişim sorunu gibi bir durum söz konusu oldu mu?"\n\n`;
+  s += `P: [Cevaplar]\n\n`;
+  s += `Y: "3. Vardiya içinde chat dışı bir görev mi üstlendin? Eğitim, toplantı,\n`;
+  s += `   başka bir sorumluluk gibi bir şey var mıydı?"\n\n`;
+  s += `P: [Cevaplar]\n\n`;
+  s += `Y: "4. Chat hattında iş yükü dağılımında bir dengesizlik fark ettin mi?\n`;
+  s += `   Bazı arkadaşlar çok daha fazla chat alırken sen az aldıysan bu önemli."\n\n`;
+  s += `P: [Cevaplar]\n\n`;
+
+  s += `${sep}\n`;
+  s += `BÖLÜM 3 — HEDEF BELİRLEME\n`;
+  s += `${sep}\n\n`;
+
+  s += `Y: "${firstName}, konuştuklarımızı değerlendirdiğimde, açıklaman yeterliyse\n`;
+  s += `   bunu kayda geçirelim. Geçerli bir sebep yoksa önümüzdeki dönem için\n`;
+  s += `   somut bir hedef koymamız gerekiyor.\n\n`;
+  s += `   Ekip ortalaması ~${Math.round(teamAvgChats)} chat. Önümüzdeki ${dateRange} günlük\n`;
+  s += `   dönem için hangi chat rakamını hedefliyorsun?"\n\n`;
+  s += `P: [Rakam verir]\n\n`;
+
+  s += `Y: "Bu hedefi kayıt altına alıyoruz. Dönem sonunda bu rakama birlikte bakacağız.\n`;
+  s += `   Skor performansın iyi — chat hacmini de buna paralel getirirsen güçlü\n`;
+  s += `   bir profil çıkacak karşımıza."\n\n`;
+  s += `P: [Onaylar]\n\n`;
+
+  s += `${sep}\n`;
+  s += `BÖLÜM 4 — TAKİP TARİHİ\n`;
+  s += `${sep}\n\n`;
+
+  s += `Y: "Bir sonraki değerlendirmemizi dönem sonunda yapacağız. O zaman hem skor\n`;
+  s += `   hem de chat hacmini birlikte ele alacağız. Dönem ortasında kısa bir kontrol\n`;
+  s += `   yapabiliriz — nasıl ilerliyor görmek için."\n\n`;
+  s += `P: [Anladığını onaylar]\n\n`;
+  s += `Y: "Bu görüşme hesap sorma değil, durumu anlamak ve seni doğru yola\n`;
+  s += `   yönlendirmek için yapıldı. Sorun olursa her zaman gelebilirsin."\n\n`;
+
+  s += `${sep}\n`;
+  s += `NOTLAR VE TAAHHÜT\n`;
+  s += `${sep}\n\n`;
+  s += `Açıklama (varsa): ___________________________________________________\n\n`;
+  s += `Belirlenen hedef: Önümüzdeki dönem için _______ chat\n`;
+  s += `Takip tarihi: _______________\n\n`;
+  s += `Yönetici:   _______________________   Tarih: ${today}\n`;
+  s += `Personel:   _______________________   Tarih: ${today}\n`;
+
+  return s;
+}
+
 const MENTOR_MIN_CHATS = 30;
 
 function determineUrgency(avgScore: number, totalChats: number): 'high' | 'medium' | 'low' | 'excellent' {
@@ -616,7 +710,7 @@ export default function CoachingCenter() {
   const [copiedAgent, setCopiedAgent] = useState<string | null>(null);
   const [sendingFeedback, setSendingFeedback] = useState<string | null>(null);
   const [coachingHistory, setCoachingHistory] = useState<Map<string, string>>(new Map());
-  const [filterUrgency, setFilterUrgency] = useState<'all' | 'high' | 'medium' | 'low' | 'excellent'>('all');
+  const [filterUrgency, setFilterUrgency] = useState<'all' | 'high' | 'medium' | 'low' | 'excellent' | 'insufficient_activity'>('all');
   const [activeTab, setActiveTab] = useState<Record<string, 'issues' | 'script' | 'actions'>>({});
   const [showReport, setShowReport] = useState(false);
 
@@ -776,6 +870,9 @@ export default function CoachingCenter() {
 
       const results: AgentCoachingData[] = [];
 
+      const totalAgentChatsAll = Array.from(agentMap.values()).reduce((sum, a) => sum + a.scores.length, 0);
+      const teamAvgChats = agentMap.size >= 3 ? totalAgentChatsAll / agentMap.size : 0;
+
       agentMap.forEach((agent, agentName) => {
         const scoreValues = agent.scores.map(s => s.score);
         const avgScore = scoreValues.length > 0
@@ -807,7 +904,10 @@ export default function CoachingCenter() {
           })
           .slice(0, 10);
 
-        const urgency = determineUrgency(avgScore, agent.scores.length);
+        const isInsufficientActivity = teamAvgChats > 0 && agent.scores.length < teamAvgChats * 0.5;
+        const urgency: AgentCoachingData['urgency'] = isInsufficientActivity
+          ? 'insufficient_activity'
+          : determineUrgency(avgScore, agent.scores.length);
 
         const sortedByScore = [...agent.scores].sort((a, b) => a.score - b.score);
         const lowestScoringChats: ChatEvidence[] = sortedByScore.slice(0, 3).map(s => {
@@ -834,7 +934,9 @@ export default function CoachingCenter() {
           firstHalfAvg - secondHalfAvg > 3 ? 'down' : 'stable';
 
         const actionItems = buildActionItems(evidencedIssues, avgScore);
-        const coachingScript = buildDetailedScript(agentName, evidencedIssues, avgScore, agent.scores.length, dateRange, lowestScoringChats, actionItems);
+        const coachingScript = isInsufficientActivity
+          ? buildActivityReviewScript(agentName, agent.scores.length, teamAvgChats, dateRange, avgScore)
+          : buildDetailedScript(agentName, evidencedIssues, avgScore, agent.scores.length, dateRange, lowestScoringChats, actionItems);
 
         results.push({
           agentName,
@@ -850,11 +952,12 @@ export default function CoachingCenter() {
           urgency,
           lowestScoringChats,
           actionItems,
+          teamAvgChats,
         });
       });
 
       results.sort((a, b) => {
-        const urgencyOrder = { high: 0, medium: 1, low: 2, excellent: 3 };
+        const urgencyOrder: Record<string, number> = { high: 0, insufficient_activity: 1, medium: 2, low: 3, excellent: 4 };
         if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
         return a.avgScore - b.avgScore;
       });
@@ -932,6 +1035,7 @@ export default function CoachingCenter() {
       medium: coachingData.filter(d => d.urgency === 'medium').length,
       low: coachingData.filter(d => d.urgency === 'low').length,
       excellent: coachingData.filter(d => d.urgency === 'excellent').length,
+      insufficient_activity: coachingData.filter(d => d.urgency === 'insufficient_activity').length,
       sentTodayCount: [...coachingHistory.values()].filter(d => new Date(d).toDateString() === today).length,
       totalAgents: coachingData.length,
     };
@@ -995,7 +1099,7 @@ export default function CoachingCenter() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
         <div className="glass-effect rounded-xl p-4 border border-rose-500/20">
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4 text-rose-400" />
@@ -1003,6 +1107,14 @@ export default function CoachingCenter() {
           </div>
           <div className="text-2xl font-bold text-rose-400">{summaryStats.high}</div>
           <div className="text-xs text-slate-500 mt-1">personel (ort. &lt;60)</div>
+        </div>
+        <div className="glass-effect rounded-xl p-4 border border-orange-500/20">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart2 className="w-4 h-4 text-orange-400" />
+            <span className="text-xs text-slate-400">Düşük Aktivite</span>
+          </div>
+          <div className="text-2xl font-bold text-orange-400">{summaryStats.insufficient_activity}</div>
+          <div className="text-xs text-slate-500 mt-1">personel (&lt;%50 avg)</div>
         </div>
         <div className="glass-effect rounded-xl p-4 border border-amber-500/20">
           <div className="flex items-center gap-2 mb-2">
@@ -1043,7 +1155,7 @@ export default function CoachingCenter() {
 
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm text-slate-400">Filtre:</span>
-        {(['all', 'high', 'medium', 'low', 'excellent'] as const).map(f => (
+        {(['all', 'high', 'insufficient_activity', 'medium', 'low', 'excellent'] as const).map(f => (
           <button
             key={f}
             onClick={() => setFilterUrgency(f)}
@@ -1051,6 +1163,7 @@ export default function CoachingCenter() {
               filterUrgency === f
                 ? f === 'all' ? 'bg-slate-600 text-white border-slate-500'
                   : f === 'high' ? 'bg-rose-500/20 text-rose-300 border-rose-500/50'
+                  : f === 'insufficient_activity' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50'
                   : f === 'medium' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50'
                   : f === 'low' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
                   : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
@@ -1081,10 +1194,12 @@ export default function CoachingCenter() {
             const lastCoachingDate = coachingHistory.get(agent.agentName);
             const isSentToday = lastCoachingDate ? new Date(lastCoachingDate).toDateString() === todayStr : false;
             const wasCoachedBefore = !!lastCoachingDate && !isSentToday;
-            const isRepeatCoaching = wasCoachedBefore && agent.evidencedIssues.length > 0 && agent.urgency !== 'excellent' && agent.urgency !== 'low';
+            const isRepeatCoaching = wasCoachedBefore && agent.evidencedIssues.length > 0 && !['excellent', 'low', 'insufficient_activity'].includes(agent.urgency);
             const hasImproved = wasCoachedBefore && agent.evidencedIssues.length === 0;
             const activeScript = isExpanded
-              ? buildDetailedScript(agent.agentName, agent.evidencedIssues, agent.avgScore, agent.totalChats, dateRange, agent.lowestScoringChats, agent.actionItems, isRepeatCoaching)
+              ? agent.urgency === 'insufficient_activity'
+                ? buildActivityReviewScript(agent.agentName, agent.totalChats, agent.teamAvgChats, dateRange, agent.avgScore)
+                : buildDetailedScript(agent.agentName, agent.evidencedIssues, agent.avgScore, agent.totalChats, dateRange, agent.lowestScoringChats, agent.actionItems, isRepeatCoaching)
               : agent.coachingScript;
             const initials = agent.agentName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2);
             const tab = getTab(agent.agentName);
@@ -1095,6 +1210,7 @@ export default function CoachingCenter() {
                 key={agent.agentName}
                 className={`glass-effect rounded-xl border transition-all duration-300 ${
                   agent.urgency === 'high' ? 'border-rose-500/30 shadow-lg shadow-rose-500/5' :
+                  agent.urgency === 'insufficient_activity' ? 'border-orange-500/30 shadow-lg shadow-orange-500/5' :
                   agent.urgency === 'medium' ? 'border-amber-500/20' :
                   agent.urgency === 'excellent' ? 'border-emerald-500/30 shadow-lg shadow-emerald-500/5' :
                   'border-slate-700/50'
@@ -1104,6 +1220,7 @@ export default function CoachingCenter() {
                   <div className="flex items-center gap-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${
                       agent.urgency === 'high' ? 'bg-rose-500/20 text-rose-300 border-2 border-rose-500/40' :
+                      agent.urgency === 'insufficient_activity' ? 'bg-orange-500/20 text-orange-300 border-2 border-orange-500/40' :
                       agent.urgency === 'medium' ? 'bg-amber-500/20 text-amber-300 border-2 border-amber-500/40' :
                       agent.urgency === 'excellent' ? 'bg-emerald-500/20 text-emerald-300 border-2 border-emerald-500/40' :
                       'bg-cyan-500/20 text-cyan-300 border-2 border-cyan-500/30'
